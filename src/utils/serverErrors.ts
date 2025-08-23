@@ -110,3 +110,38 @@ export function isDatabaseError(error: unknown): error is ServerError {
   return isServerError(error) && 
     [ServerErrorCodes.DATABASE_ERROR, ServerErrorCodes.RECORD_NOT_FOUND, ServerErrorCodes.DUPLICATE_RECORD].includes(error.code as ServerErrorCode)
 }
+
+// API error handler
+export function handleApiError(error: unknown) {
+  console.error('API Error:', error)
+  
+  if (isServerError(error)) {
+    return Response.json(
+      {
+        success: false,
+        error: error.toJSON()
+      },
+      { status: error.statusCode }
+    )
+  }
+  
+  if (error instanceof Error) {
+    const serverError = createInternalError(error.message)
+    return Response.json(
+      {
+        success: false,
+        error: serverError.toJSON()
+      },
+      { status: 500 }
+    )
+  }
+  
+  const serverError = createInternalError('Unknown error occurred')
+  return Response.json(
+    {
+      success: false,
+      error: serverError.toJSON()
+    },
+    { status: 500 }
+  )
+}

@@ -474,3 +474,6 @@ export function createPostContentFactory(
       throw new Error(`Unknown post content type: ${type}`)
   }
 }
+
+// Alias for backward compatibility
+export const validateContentForPlatform = validatePostContent

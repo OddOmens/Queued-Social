@@ -4,7 +4,6 @@ import React from 'react'
 import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import MainNavigation from './MainNavigation'
 import { ErrorHandlingProvider } from '@/components/ErrorHandlingProvider'
-import { Toast } from '@/components/Toast'
 
 interface AppLayoutProps {
   children: React.ReactNode
@@ -21,7 +20,6 @@ export default function AppLayout({ children }: AppLayoutProps) {
               {children}
             </div>
           </main>
-          <Toast />
         </div>
       </ErrorHandlingProvider>
     </ProtectedRoute>

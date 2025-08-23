@@ -167,3 +167,6 @@ export function rateLimit(
   current.count++
   return true
 }
+
+// Alias for backward compatibility
+export const authMiddleware = withAuth

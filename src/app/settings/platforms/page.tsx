@@ -216,8 +216,8 @@ export default function PlatformsSettingsPage() {
               <ul className="list-disc list-inside space-y-1">
                 <li>Make sure you have admin access to the social media accounts you want to connect</li>
                 <li>Some platforms may require approval for third-party applications</li>
-                <li>You can test your connections at any time to ensure they're working properly</li>
-                <li>Disconnecting an account will not delete your scheduled posts, but they won't be published</li>
+                <li>You can test your connections at any time to ensure they&apos;re working properly</li>
+                <li>Disconnecting an account will not delete your scheduled posts, but they won&apos;t be published</li>
               </ul>
             </div>
           </div>

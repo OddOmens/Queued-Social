@@ -1,6 +1,6 @@
 import { vi } from 'vitest'
 import { render, RenderOptions } from '@testing-library/react'
-import { ReactElement, ReactNode } from 'react'
+import React, { ReactElement, ReactNode } from 'react'
 
 // Mock providers for testing
 export const createMockAuthProvider = (user: any = null) => {
