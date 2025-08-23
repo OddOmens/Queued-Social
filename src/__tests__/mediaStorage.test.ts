@@ -23,8 +23,11 @@ const mockSupabase = {
 }
 
 vi.mock('@/services/supabase', () => ({
-  createServerSupabaseClient: () => mockSupabase,
   createClient: () => mockSupabase
+}))
+
+vi.mock('@/services/supabase-server', () => ({
+  createServerSupabaseClient: () => mockSupabase
 }))
 
 // Mock UUID

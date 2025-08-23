@@ -1,4 +1,4 @@
-import { createAdminSupabaseClient, createServerSupabaseClient } from './supabase';
+import { createAdminSupabaseClient, createServerSupabaseClient } from './supabase-server';
 import { PlatformCredentials, Platform } from '../types';
 import crypto from 'crypto';
 

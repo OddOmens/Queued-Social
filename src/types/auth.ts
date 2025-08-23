@@ -56,6 +56,7 @@ export interface AuthStore extends AuthState {
   // Actions
   signUp: (data: SignUpData) => Promise<AuthResponse<AuthUser>>
   signIn: (data: SignInData) => Promise<AuthResponse<AuthUser>>
+  signInWithGoogle: () => Promise<AuthResponse<null>>
   signOut: () => Promise<AuthResponse<null>>
   resetPassword: (data: ResetPasswordData) => Promise<AuthResponse<null>>
   updatePassword: (data: UpdatePasswordData) => Promise<AuthResponse<AuthUser>>

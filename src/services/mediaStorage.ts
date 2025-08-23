@@ -1,4 +1,5 @@
-import { createClient, createServerSupabaseClient } from './supabase'
+import { createClient } from './supabase'
+import { createServerSupabaseClient } from './supabase-server'
 import { Platform } from '@/types'
 import { validateMediaForPlatform } from '@/utils/mediaProcessing'
 import { v4 as uuidv4 } from 'uuid'

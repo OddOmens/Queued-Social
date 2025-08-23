@@ -4,7 +4,7 @@
  */
 
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/services/supabase'
+import { createServerSupabaseClient } from '@/services/supabase-server'
 import { schedulingService } from '@/services/scheduling'
 import {
   validateRequestBody,

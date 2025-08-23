@@ -19,6 +19,7 @@ export function useAuth() {
     // Actions
     signUp: store.signUp,
     signIn: store.signIn,
+    signInWithGoogle: store.signInWithGoogle,
     signOut: store.signOut,
     resetPassword: store.resetPassword,
     updatePassword: store.updatePassword,

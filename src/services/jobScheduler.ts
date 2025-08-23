@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { createAdminSupabaseClient } from './supabase';
+import { createAdminSupabaseClient } from './supabase-server';
 import { PlatformManager } from './platformManager';
 import { ScheduledPost, PostStatus } from '../types';
 

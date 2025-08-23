@@ -5,7 +5,7 @@ import { GET as mediaGet, DELETE as mediaDelete } from '@/app/api/media/[id]/rou
 import { POST as cleanupPost, DELETE as cleanupDelete } from '@/app/api/media/cleanup/route'
 
 // Mock services
-vi.mock('@/services/supabase', () => ({
+vi.mock('@/services/supabase-server', () => ({
   createServerSupabaseClient: () => mockSupabase
 }))
 

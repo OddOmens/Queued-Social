@@ -88,6 +88,30 @@ export const useAuthStore = create<AuthStore>()(
           }
         },
 
+        signInWithGoogle: async (): Promise<AuthResponse<null>> => {
+          set({ loading: true })
+          
+          try {
+            const { data, error } = await supabase.auth.signInWithOAuth({
+              provider: 'google',
+              options: {
+                redirectTo: `${window.location.origin}/auth/callback`
+              }
+            })
+
+            if (error) {
+              set({ loading: false })
+              return createAuthResponse(null, error)
+            }
+
+            // OAuth redirect will handle the rest
+            return createAuthResponse(null)
+          } catch (error) {
+            set({ loading: false })
+            return createAuthResponse(null, error)
+          }
+        },
+
         signOut: async (): Promise<AuthResponse<null>> => {
           set({ loading: true })
           

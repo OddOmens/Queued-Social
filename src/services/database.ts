@@ -3,7 +3,8 @@
  * Provides typed interfaces for database operations
  */
 
-import { createClient, createServerSupabaseClient } from './supabase'
+import { createClient } from './supabase'
+import { createServerSupabaseClient } from './supabase-server'
 import type {
   UserProfile,
   TimeSlotConfig,

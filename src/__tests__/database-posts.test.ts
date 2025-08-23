@@ -31,7 +31,10 @@ const mockSupabaseClient = {
 
 // Mock the supabase module
 vi.mock('../services/supabase', () => ({
-  createClient: () => mockSupabaseClient,
+  createClient: () => mockSupabaseClient
+}))
+
+vi.mock('../services/supabase-server', () => ({
   createServerSupabaseClient: () => mockSupabaseClient
 }))
 

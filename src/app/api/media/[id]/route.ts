@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabaseClient } from '@/services/supabase'
+import { createServerSupabaseClient } from '@/services/supabase-server'
 import { deleteMediaFile } from '@/services/mediaStorage'
 import { handleApiError } from '@/utils/serverErrors'
 

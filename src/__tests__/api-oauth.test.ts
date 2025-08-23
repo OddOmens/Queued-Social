@@ -29,7 +29,7 @@ vi.mock('../services/platformManager', () => ({
   },
 }));
 
-vi.mock('../services/supabase', () => ({
+vi.mock('../services/supabase-server', () => ({
   createServerSupabaseClient: vi.fn(() => ({
     auth: {
       getUser: vi.fn(),
@@ -50,7 +50,7 @@ describe('OAuth API Endpoints', () => {
     mockWithAuth = require('../middleware/auth').withAuth;
     mockCredentialManager = require('../services/credentialManager').credentialManager;
     mockPlatformManager = require('../services/platformManager').PlatformManager.getInstance();
-    mockSupabase = require('../services/supabase').createServerSupabaseClient();
+    mockSupabase = require('../services/supabase-server').createServerSupabaseClient();
   });
 
   describe('GET /api/auth/platforms', () => {

@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { JobScheduler, JobResult } from '../services/jobScheduler';
 import { PlatformManager } from '../services/platformManager';
-import { createAdminSupabaseClient } from '../services/supabase';
+import { createAdminSupabaseClient } from '../services/supabase-server';
 import { ScheduledPost, PostContent, Platform } from '../types';
 
 // Mock dependencies
-vi.mock('../services/supabase', () => ({
+vi.mock('../services/supabase-server', () => ({
   createAdminSupabaseClient: vi.fn(() => ({
     from: vi.fn(() => ({
       select: vi.fn(() => ({
