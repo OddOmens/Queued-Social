@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { credentialManager } from '../../../../../services/credentialManager';
-import { createServerSupabaseClient } from '../../../../../services/supabase';
+import { createServerSupabaseClient } from '../../../../../services/supabase-server';
 
 // GET /api/auth/threads/callback - Handle Threads OAuth callback
 export async function GET(request: NextRequest) {

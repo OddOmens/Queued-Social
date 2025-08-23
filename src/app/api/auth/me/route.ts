@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/middleware/auth'
-import { createServerSupabaseClient } from '@/services/supabase'
+import { createServerSupabaseClient } from '@/services/supabase-server'
 
 export const GET = requireAuth(async (request: NextRequest, user) => {
   try {

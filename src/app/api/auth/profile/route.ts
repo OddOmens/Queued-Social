@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { requireAuth } from '@/middleware/auth'
-import { createServerSupabaseClient } from '@/services/supabase'
+import { createServerSupabaseClient } from '@/services/supabase-server'
 import { ErrorCode } from '@/types'
 
 export const PUT = requireAuth(async (request: NextRequest, user) => {
