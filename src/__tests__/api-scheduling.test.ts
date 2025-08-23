@@ -42,7 +42,7 @@ describe('Scheduling API Endpoints', () => {
     vi.clearAllMocks()
     
     // Setup mocks
-    const { createServerSupabaseClient } = require('@/services/supabase')
+    const { createServerSupabaseClient } = require('@/services/supabase-server')
     const { schedulingService } = require('@/services/scheduling')
     
     mockSupabase = createServerSupabaseClient()
