@@ -1,0 +1,73 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    environment:
+      # Supabase Configuration
+      - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+      - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
+      
+      # Authentication
+      - NEXTAUTH_SECRET=${NEXTAUTH_SECRET}
+      - NEXTAUTH_URL=${NEXTAUTH_URL}
+      
+      # Platform API Keys
+      - THREADS_CLIENT_ID=${THREADS_CLIENT_ID}
+      - THREADS_CLIENT_SECRET=${THREADS_CLIENT_SECRET}
+      - THREADS_REDIRECT_URI=${THREADS_REDIRECT_URI}
+      
+      # Application Configuration
+      - NODE_ENV=production
+      - PORT=3000
+      - HOSTNAME=0.0.0.0
+      
+      # Monitoring and Logging
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - ENABLE_METRICS=${ENABLE_METRICS:-true}
+      
+      # Job Scheduling
+      - ENABLE_CRON_JOBS=${ENABLE_CRON_JOBS:-true}
+      - JOB_CONCURRENCY=${JOB_CONCURRENCY:-5}
+      
+      # Rate Limiting
+      - RATE_LIMIT_WINDOW=${RATE_LIMIT_WINDOW:-900000}
+      - RATE_LIMIT_MAX=${RATE_LIMIT_MAX:-100}
+      
+    volumes:
+      # Persistent storage for logs and temporary files
+      - app_logs:/app/logs
+      - app_temp:/app/temp
+    
+    restart: unless-stopped
+    
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    
+    labels:
+      # Coolify labels for automatic deployment
+      - "coolify.managed=true"
+      - "coolify.name=social-media-scheduler"
+      - "coolify.type=application"
+      
+    networks:
+      - app_network
+
+volumes:
+  app_logs:
+    driver: local
+  app_temp:
+    driver: local
+
+networks:
+  app_network:
+    driver: bridge

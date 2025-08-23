@@ -1,0 +1,58 @@
+{
+  "name": "social-media-scheduler",
+  "description": "SaaS Social Media Scheduling Tool",
+  "type": "application",
+  "framework": "nextjs",
+  "buildCommand": "npm run build",
+  "startCommand": "npm start",
+  "port": 3000,
+  "healthCheck": {
+    "path": "/api/health",
+    "interval": 30,
+    "timeout": 10,
+    "retries": 3
+  },
+  "environment": {
+    "NODE_ENV": "production",
+    "PORT": "3000",
+    "HOSTNAME": "0.0.0.0"
+  },
+  "secrets": [
+    "NEXT_PUBLIC_SUPABASE_URL",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+    "SUPABASE_SERVICE_ROLE_KEY",
+    "NEXTAUTH_SECRET",
+    "NEXTAUTH_URL",
+    "THREADS_CLIENT_ID",
+    "THREADS_CLIENT_SECRET",
+    "THREADS_REDIRECT_URI"
+  ],
+  "volumes": [
+    {
+      "source": "app_logs",
+      "target": "/app/logs"
+    },
+    {
+      "source": "app_temp",
+      "target": "/app/temp"
+    }
+  ],
+  "domains": [],
+  "ssl": true,
+  "redirectToHttps": true,
+  "deployment": {
+    "strategy": "rolling",
+    "maxUnavailable": 0,
+    "maxSurge": 1
+  },
+  "resources": {
+    "memory": "512Mi",
+    "cpu": "500m"
+  },
+  "scaling": {
+    "minReplicas": 1,
+    "maxReplicas": 3,
+    "targetCPU": 70,
+    "targetMemory": 80
+  }
+}
