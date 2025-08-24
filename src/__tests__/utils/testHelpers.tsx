@@ -4,19 +4,23 @@ import React, { ReactElement, ReactNode } from 'react'
 
 // Mock providers for testing
 export const createMockAuthProvider = (user: any = null) => {
-  return ({ children }: { children: ReactNode }) => (
+  const MockAuthProvider = ({ children }: { children: ReactNode }) => (
     <div data-testid="mock-auth-provider">
       {children}
     </div>
   )
+  MockAuthProvider.displayName = 'MockAuthProvider'
+  return MockAuthProvider
 }
 
 export const createMockErrorProvider = () => {
-  return ({ children }: { children: ReactNode }) => (
+  const MockErrorProvider = ({ children }: { children: ReactNode }) => (
     <div data-testid="mock-error-provider">
       {children}
     </div>
   )
+  MockErrorProvider.displayName = 'MockErrorProvider'
+  return MockErrorProvider
 }
 
 // Custom render function with providers

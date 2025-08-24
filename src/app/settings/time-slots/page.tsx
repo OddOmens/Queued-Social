@@ -25,7 +25,11 @@ export default function TimeSlotsSettingsPage() {
       // Convert TimeSlotRequest to TimeSlotConfig for local state
       const savedSlots: TimeSlotConfig[] = slots.map((slot, index) => ({
         id: `slot-${index}`,
-        ...slot
+        userId: 'current-user', // This should come from auth context
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        ...slot,
+        isActive: slot.isActive ?? true
       }))
       
       setTimeSlots(savedSlots)

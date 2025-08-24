@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/services/supabase-server'
 import { validateMediaFile, uploadMediaToStorage, createMediaRecord } from '@/services/mediaStorage'
 import { handleApiError } from '@/utils/serverErrors'
+import { Platform } from '@/types'
 
 export async function POST(request: NextRequest) {
   try {
@@ -19,7 +20,7 @@ export async function POST(request: NextRequest) {
     // Parse form data
     const formData = await request.formData()
     const files = formData.getAll('files') as File[]
-    const platform = formData.get('platform') as string
+    const platformString = formData.get('platform') as string
 
     if (!files || files.length === 0) {
       return NextResponse.json(
@@ -28,12 +29,23 @@ export async function POST(request: NextRequest) {
       )
     }
 
-    if (!platform) {
+    if (!platformString) {
       return NextResponse.json(
         { error: 'Platform is required' },
         { status: 400 }
       )
     }
+
+    // Validate platform
+    const validPlatforms = ['threads', 'twitter', 'instagram', 'linkedin']
+    if (!validPlatforms.includes(platformString)) {
+      return NextResponse.json(
+        { error: 'Invalid platform' },
+        { status: 400 }
+      )
+    }
+
+    const platform = platformString as Platform
 
     const uploadResults = []
     const errors = []

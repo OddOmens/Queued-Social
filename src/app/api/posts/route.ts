@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
         return NextResponse.json<ApiResponse>(
           createErrorResponse(
             'VALIDATION_ERROR' as ErrorCode,
-            customTimeValidation.errors.map(e => e.message).join(', ')
+            customTimeValidation.errors.map((e: any) => e.message).join(', ')
           ),
           { status: 400 }
         )
@@ -294,8 +294,7 @@ export async function GET(request: NextRequest) {
         hasNext,
         hasPrev
       },
-      message: `Retrieved ${posts.length} posts`,
-      timestamp: new Date().toISOString()
+      message: `Retrieved ${posts.length} posts`
     }
 
     return NextResponse.json(response)

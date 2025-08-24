@@ -119,6 +119,7 @@ export default function CalendarDemoPage() {
   const getStatusColor = (status: PostStatus) => {
     const colors = {
       scheduled: 'text-blue-600 bg-blue-50',
+      publishing: 'text-yellow-600 bg-yellow-50',
       published: 'text-green-600 bg-green-50',
       failed: 'text-red-600 bg-red-50',
       cancelled: 'text-gray-600 bg-gray-50'

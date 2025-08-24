@@ -56,6 +56,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   const getStatusIcon = (status: PostStatus): string => {
     const icons = {
       scheduled: '⏰',
+      publishing: '🚀',
       published: '✅',
       failed: '❌',
       cancelled: '🚫'
@@ -123,6 +124,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 
     const statusOpacity = {
       scheduled: 1,
+      publishing: 0.9,
       published: 0.7,
       failed: 0.5,
       cancelled: 0.3
