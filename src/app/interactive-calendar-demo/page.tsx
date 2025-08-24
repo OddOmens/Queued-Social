@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import React, { useState, useEffect } from 'react'
 import { InteractiveCalendarView } from '@/components/calendar'
 import { ScheduledPost, Platform, PostStatus } from '@/types'
 
@@ -126,9 +126,15 @@ const mockPosts: ScheduledPost[] = [
 ]
 
 export default function InteractiveCalendarDemoPage() {
-  const [posts, setPosts] = useState<ScheduledPost[]>(mockPosts)
-  const [loading, setLoading] = useState(false)
+  const [posts, setPosts] = useState<ScheduledPost[]>([])
+  const [loading, setLoading] = useState(true)
   const [notifications, setNotifications] = useState<string[]>([])
+
+  // Initialize posts after component mounts to avoid SSR issues
+  useEffect(() => {
+    setPosts(mockPosts)
+    setLoading(false)
+  }, [])
 
   const addNotification = (message: string) => {
     setNotifications(prev => [...prev, message])

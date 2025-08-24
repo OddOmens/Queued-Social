@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/services/supabase-server'
-import { db } from '@/services/database'
+import { createDbService } from '@/services/database'
 import {
   validateRequestBody,
   validatePostContent,
@@ -62,6 +62,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
     }
 
     // Get the post
+    const db = createDbService()
     const post = await db.getScheduledPostById(id, user.id)
 
     if (!post) {
@@ -117,6 +118,7 @@ export async function PUT(request: NextRequest, { params }: RouteParams) {
     }
 
     // Check if post exists and belongs to user
+    const db = createDbService()
     const existingPost = await db.getScheduledPostById(id, user.id)
     if (!existingPost) {
       return NextResponse.json<ApiResponse>(
@@ -266,6 +268,7 @@ export async function DELETE(request: NextRequest, { params }: RouteParams) {
     }
 
     // Check if post exists and belongs to user
+    const db = createDbService()
     const existingPost = await db.getScheduledPostById(id, user.id)
     if (!existingPost) {
       return NextResponse.json<ApiResponse>(

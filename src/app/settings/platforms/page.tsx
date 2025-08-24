@@ -1,6 +1,7 @@
 'use client'
 
 import React, { useState, useEffect } from 'react'
+import AppLayout from '@/components/layout/AppLayout'
 
 interface PlatformConnection {
   platform: string
@@ -35,7 +36,7 @@ export default function PlatformsSettingsPage() {
   const handleConnect = async (platform: string) => {
     try {
       // Redirect to OAuth flow
-      window.location.href = `/api/auth/${platform.toLowerCase()}`
+      window.location.href = `/api/auth/${platform.toLowerCase()}/authorize`
     } catch (error) {
       console.error('Failed to connect platform:', error)
     }
@@ -116,14 +117,17 @@ export default function PlatformsSettingsPage() {
   ]
 
   return (
-    <div className="space-y-6">
-      <div className="bg-white rounded-lg shadow-sm p-6">
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">Platform Connections</h2>
+    <AppLayout>
+      <div className="space-y-6">
+        {/* Page Header */}
+        <div className="bg-white rounded-lg shadow-sm p-6">
+          <h1 className="text-2xl font-bold text-gray-900">Platform Connections</h1>
           <p className="text-gray-600 mt-1">
-            Connect your social media accounts to start scheduling posts. You can manage your connections and test them here.
+            Connect your social media accounts to start scheduling posts across platforms.
           </p>
         </div>
+
+        <div className="bg-white rounded-lg shadow-sm p-6">
 
         {loading ? (
           <div className="space-y-4">
@@ -198,31 +202,32 @@ export default function PlatformsSettingsPage() {
             })}
           </div>
         )}
-      </div>
+        </div>
 
-      {/* Connection Help */}
-      <div className="bg-blue-50 rounded-lg p-6">
-        <div className="flex">
-          <div className="flex-shrink-0">
-            <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-              <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
-            </svg>
-          </div>
-          <div className="ml-3">
-            <h3 className="text-sm font-medium text-blue-800">
-              Need help connecting your accounts?
-            </h3>
-            <div className="mt-2 text-sm text-blue-700">
-              <ul className="list-disc list-inside space-y-1">
-                <li>Make sure you have admin access to the social media accounts you want to connect</li>
-                <li>Some platforms may require approval for third-party applications</li>
-                <li>You can test your connections at any time to ensure they&apos;re working properly</li>
-                <li>Disconnecting an account will not delete your scheduled posts, but they won&apos;t be published</li>
-              </ul>
+        {/* Connection Help */}
+        <div className="bg-blue-50 rounded-lg p-6">
+          <div className="flex">
+            <div className="flex-shrink-0">
+              <svg className="w-5 h-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+              </svg>
+            </div>
+            <div className="ml-3">
+              <h3 className="text-sm font-medium text-blue-800">
+                Need help connecting your accounts?
+              </h3>
+              <div className="mt-2 text-sm text-blue-700">
+                <ul className="list-disc list-inside space-y-1">
+                  <li>Make sure you have admin access to the social media accounts you want to connect</li>
+                  <li>Some platforms may require approval for third-party applications</li>
+                  <li>You can test your connections at any time to ensure they&apos;re working properly</li>
+                  <li>Disconnecting an account will not delete your scheduled posts, but they won&apos;t be published</li>
+                </ul>
+              </div>
             </div>
           </div>
         </div>
       </div>
-    </div>
+    </AppLayout>
   )
 }

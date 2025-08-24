@@ -1,18 +1,21 @@
 'use client';
 
 import { useEffect } from 'react';
+import { useAuthStore } from '@/stores/auth';
 
 /**
  * Client-side component to trigger server initialization
- * This will call the API to start services when the app loads
+ * This will call the API to start services when the user is authenticated
  */
 export function ServerInitializer() {
+  const { user, initialized } = useAuthStore();
+
   useEffect(() => {
-    // Only run on client side and only once
-    if (typeof window !== 'undefined') {
+    // Only run when user is authenticated and auth is initialized
+    if (user && initialized && typeof window !== 'undefined') {
       initializeServerServices();
     }
-  }, []);
+  }, [user, initialized]);
 
   const initializeServerServices = async () => {
     try {

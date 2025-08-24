@@ -5,7 +5,7 @@
  * Manages time slot configuration with day-of-week selection and time picker
  */
 
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import type {
   TimeSlotConfig,
   TimeSlotRequest,
@@ -17,7 +17,7 @@ import { TimeSlotEditor } from './TimeSlotEditor'
 import { TimeSlotList } from './TimeSlotList'
 
 interface TimeSlotManagerProps {
-  timeSlots: TimeSlotConfig[]
+  timeSlots?: TimeSlotConfig[]
   onSave: (slots: TimeSlotRequest[]) => Promise<void>
   loading?: boolean
   className?: string
@@ -39,7 +39,7 @@ const DAYS_OF_WEEK = [
 ]
 
 export function TimeSlotManager({ 
-  timeSlots, 
+  timeSlots = [], 
   onSave, 
   loading = false,
   className = ''
@@ -50,7 +50,7 @@ export function TimeSlotManager({
   const [validationErrors, setValidationErrors] = useState<ValidationResult | null>(null)
   const [hasChanges, setHasChanges] = useState(false)
 
-  // Initialize draft slots from props
+  // Update draft slots when timeSlots prop changes
   useEffect(() => {
     const drafts: TimeSlotDraft[] = timeSlots.map(slot => ({
       id: slot.id,
@@ -60,6 +60,7 @@ export function TimeSlotManager({
       isActive: slot.isActive,
       isNew: false
     }))
+    
     setDraftSlots(drafts)
     setHasChanges(false)
   }, [timeSlots])
@@ -201,34 +202,25 @@ export function TimeSlotManager({
 
   return (
     <div className={`space-y-6 ${className}`}>
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Time Slot Configuration</h2>
-          <p className="text-sm text-gray-600 mt-1">
-            Configure your posting schedule by setting time slots for each day of the week
-          </p>
+      {/* Action Buttons */}
+      {hasChanges && (
+        <div className="flex justify-end gap-2 pb-4 border-b border-gray-200">
+          <button
+            onClick={handleCancel}
+            disabled={loading}
+            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={handleSave}
+            disabled={loading}
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+          >
+            {loading ? 'Saving...' : 'Save Changes'}
+          </button>
         </div>
-        
-        {hasChanges && (
-          <div className="flex gap-2">
-            <button
-              onClick={handleCancel}
-              disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={handleSave}
-              disabled={loading}
-              className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-            >
-              {loading ? 'Saving...' : 'Save Changes'}
-            </button>
-          </div>
-        )}
-      </div>
+      )}
 
       {/* Validation Errors */}
       {validationErrors && !validationErrors.isValid && (
@@ -245,9 +237,9 @@ export function TimeSlotManager({
               </h3>
               <div className="mt-2 text-sm text-red-700">
                 <ul className="list-disc list-inside space-y-1">
-                  {validationErrors.errors.map((error, index) => (
+                  {validationErrors.errors?.map((error, index) => (
                     <li key={index}>{error.message}</li>
-                  ))}
+                  )) || []}
                 </ul>
               </div>
             </div>

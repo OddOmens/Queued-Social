@@ -5,7 +5,7 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabaseClient } from '@/services/supabase-server'
-import { db } from '@/services/database'
+import { createDbService } from '@/services/database'
 import {
   validateRequestBody,
   validatePostContent,
@@ -87,6 +87,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate scheduling type and custom time if provided
+    let customTimeValidation: any = null
     if (body.schedulingType === 'custom') {
       if (!body.customTime) {
         return NextResponse.json<ApiResponse>(
@@ -98,7 +99,7 @@ export async function POST(request: NextRequest) {
         )
       }
 
-      const customTimeValidation = validateAndParseDate(body.customTime.toISOString(), 'customTime')
+      customTimeValidation = validateAndParseDate(body.customTime, 'customTime')
       if (!customTimeValidation.isValid) {
         return NextResponse.json<ApiResponse>(
           createErrorResponse(
@@ -123,9 +124,10 @@ export async function POST(request: NextRequest) {
 
     // Create the scheduled post
     const scheduledTime = body.schedulingType === 'custom' 
-      ? body.customTime! 
+      ? customTimeValidation.date! 
       : new Date() // This would be replaced by next slot logic in a real implementation
 
+    const db = createDbService()
     const newPost = await db.createScheduledPost({
       userId: user.id,
       platform: body.platform,
@@ -265,6 +267,7 @@ export async function GET(request: NextRequest) {
       offset
     }
 
+    const db = createDbService()
     const [posts, totalCount] = await Promise.all([
       db.getScheduledPosts(user.id, filters),
       db.getScheduledPostsCount(user.id, {

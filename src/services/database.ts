@@ -66,7 +66,7 @@ export class DatabaseService {
   private client: ReturnType<typeof createServerSupabaseClient>
 
   constructor(useServiceRole = false) {
-    this.client = useServiceRole ? createServerSupabaseClient() : createClient()
+    this.client = createServerSupabaseClient()
   }
 
   // User Profile operations
@@ -328,7 +328,7 @@ export class DatabaseService {
     return data.map(convertDbScheduledPost)
   }
 
-  async updatePostStatus(id: string, status: PostStatus, errorMessage?: string, publishedAt?: Date): Promise<ScheduledPost> {
+  async updatePostStatus(id: string, status: ScheduledPost['status'], errorMessage?: string, publishedAt?: Date): Promise<ScheduledPost> {
     const updateData: any = { 
       status,
       updated_at: new Date().toISOString()
@@ -372,7 +372,7 @@ export class DatabaseService {
     return data.map(convertDbScheduledPost)
   }
 
-  async bulkUpdatePostStatus(postIds: string[], status: PostStatus, errorMessage?: string): Promise<void> {
+  async bulkUpdatePostStatus(postIds: string[], status: ScheduledPost['status'], errorMessage?: string): Promise<void> {
     const updateData: any = { 
       status,
       updated_at: new Date().toISOString()
@@ -503,6 +503,6 @@ export class DatabaseService {
   }
 }
 
-// Export singleton instances
-export const db = new DatabaseService()
-export const adminDb = new DatabaseService(true)
+// Export factory functions instead of singletons to avoid calling cookies outside request scope
+export const createDbService = () => new DatabaseService()
+export const createAdminDbService = () => new DatabaseService(true)

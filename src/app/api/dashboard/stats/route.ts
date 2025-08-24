@@ -1,66 +1,126 @@
-import { NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/services/supabase'
-import { authMiddleware } from '@/middleware/auth'
+/**
+ * /api/dashboard/stats
+ * Dashboard statistics endpoint
+ */
 
+import { NextRequest, NextResponse } from 'next/server'
+import { createServerSupabaseClient } from '@/services/supabase-server'
+import { createDbService } from '@/services/database'
+import {
+  createErrorResponse,
+  createSuccessResponse
+} from '@/utils/apiValidation'
+import type { 
+  ApiResponse, 
+  ErrorCode
+} from '@/types'
+
+interface DashboardStats {
+  totalPosts: number
+  scheduledToday: number
+  publishedThisWeek: number
+  connectedPlatforms: number
+}
+
+/**
+ * GET /api/dashboard/stats
+ * Get dashboard statistics
+ */
 export async function GET(request: NextRequest) {
   try {
-    const authResult = await authMiddleware(request)
-    if (!authResult.success) {
-      return NextResponse.json({ error: authResult.error }, { status: 401 })
+    // Get authenticated user
+    const supabase = createServerSupabaseClient()
+    const { data: { user }, error: authError } = await supabase.auth.getUser()
+
+    if (authError || !user) {
+      return NextResponse.json<ApiResponse>({
+        success: false,
+        error: {
+          code: 'UNAUTHORIZED' as any,
+          message: 'Authentication required',
+          timestamp: new Date()
+        }
+      }, { status: 401 })
     }
 
-    const supabase = createClient()
-    const userId = authResult.user.id
-
-    // Get total posts count
-    const { count: totalPosts } = await supabase
-      .from('scheduled_posts')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-
-    // Get posts scheduled for today
-    const today = new Date()
-    const startOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate())
-    const endOfDay = new Date(today.getFullYear(), today.getMonth(), today.getDate() + 1)
-
-    const { count: scheduledToday } = await supabase
-      .from('scheduled_posts')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('status', 'scheduled')
-      .gte('scheduled_time', startOfDay.toISOString())
-      .lt('scheduled_time', endOfDay.toISOString())
-
-    // Get posts published this week
-    const startOfWeek = new Date(today)
-    startOfWeek.setDate(today.getDate() - today.getDay())
+    const db = createDbService()
+    
+    // Get current date boundaries
+    const now = new Date()
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate())
+    const endOfToday = new Date(startOfToday.getTime() + 24 * 60 * 60 * 1000)
+    
+    const startOfWeek = new Date(now)
+    startOfWeek.setDate(now.getDate() - now.getDay()) // Start of current week (Sunday)
     startOfWeek.setHours(0, 0, 0, 0)
+    
+    const endOfWeek = new Date(startOfWeek)
+    endOfWeek.setDate(startOfWeek.getDate() + 7)
 
-    const { count: publishedThisWeek } = await supabase
-      .from('scheduled_posts')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('status', 'published')
-      .gte('published_at', startOfWeek.toISOString())
+    // Fetch statistics in parallel
+    const [
+      totalPosts,
+      scheduledToday,
+      publishedThisWeek,
+      // For now, we'll hardcode connected platforms since we don't have platform credentials implemented yet
+    ] = await Promise.all([
+      // Total posts count
+      db.getScheduledPostsCount(user.id, {}),
+      
+      // Posts scheduled for today
+      db.getScheduledPostsCount(user.id, {
+        status: 'scheduled',
+        startDate: startOfToday,
+        endDate: endOfToday
+      }),
+      
+      // Posts published this week
+      db.getScheduledPostsCount(user.id, {
+        status: 'published',
+        startDate: startOfWeek,
+        endDate: endOfWeek
+      })
+    ])
 
-    // Get connected platforms count
-    const { count: connectedPlatforms } = await supabase
-      .from('platform_credentials')
-      .select('*', { count: 'exact', head: true })
-      .eq('user_id', userId)
-      .eq('is_active', true)
+    const stats: DashboardStats = {
+      totalPosts,
+      scheduledToday,
+      publishedThisWeek,
+      connectedPlatforms: 0 // TODO: Implement platform credentials counting
+    }
 
-    return NextResponse.json({
-      totalPosts: totalPosts || 0,
-      scheduledToday: scheduledToday || 0,
-      publishedThisWeek: publishedThisWeek || 0,
-      connectedPlatforms: connectedPlatforms || 0,
-    })
+    return NextResponse.json<ApiResponse<DashboardStats>>(
+      createSuccessResponse(stats, 'Dashboard statistics retrieved successfully')
+    )
+
   } catch (error) {
-    console.error('Dashboard stats error:', error)
-    return NextResponse.json(
-      { error: 'Failed to fetch dashboard statistics' },
+    console.error('Error in GET /api/dashboard/stats:', error)
+    
+    return NextResponse.json<ApiResponse>(
+      createErrorResponse('INTERNAL_SERVER_ERROR' as ErrorCode, 'An unexpected error occurred'),
       { status: 500 }
     )
   }
+}
+
+// Handle unsupported methods
+export async function POST() {
+  return NextResponse.json<ApiResponse>(
+    createErrorResponse('VALIDATION_ERROR' as ErrorCode, 'Method not allowed'),
+    { status: 405 }
+  )
+}
+
+export async function PUT() {
+  return NextResponse.json<ApiResponse>(
+    createErrorResponse('VALIDATION_ERROR' as ErrorCode, 'Method not allowed'),
+    { status: 405 }
+  )
+}
+
+export async function DELETE() {
+  return NextResponse.json<ApiResponse>(
+    createErrorResponse('VALIDATION_ERROR' as ErrorCode, 'Method not allowed'),
+    { status: 405 }
+  )
 }

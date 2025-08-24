@@ -24,6 +24,8 @@ export interface CalendarViewProps {
   onDateSelect: (date: Date) => void
   view: 'month' | 'week' | 'day'
   onViewChange: (view: 'month' | 'week' | 'day') => void
+  currentDate?: Date
+  onDateChange?: (date: Date) => void
   loading?: boolean
   className?: string
 }
@@ -34,45 +36,11 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   onDateSelect,
   view,
   onViewChange,
+  currentDate = new Date(),
+  onDateChange,
   loading = false,
   className = ''
 }) => {
-  // Convert posts to calendar events
-  const events = useMemo((): CalendarEvent[] => {
-    return posts.map(post => {
-      const startTime = new Date(post.scheduledTime)
-      const endTime = new Date(startTime.getTime() + 30 * 60 * 1000) // 30 minutes duration
-      
-      return {
-        id: post.id,
-        title: getEventTitle(post),
-        start: startTime,
-        end: endTime,
-        resource: post,
-        platform: post.platform,
-        status: post.status
-      }
-    })
-  }, [posts])
-
-  // Generate event title based on post content and platform
-  const getEventTitle = (post: ScheduledPost): string => {
-    const platformIcon = getPlatformIcon(post.platform)
-    const statusIcon = getStatusIcon(post.status)
-    
-    let contentPreview = ''
-    if (post.content.type === 'thread') {
-      contentPreview = `Thread: ${post.content.text.substring(0, 30)}...`
-    } else {
-      contentPreview = post.content.text.substring(0, 30)
-      if (post.content.text.length > 30) {
-        contentPreview += '...'
-      }
-    }
-    
-    return `${platformIcon} ${statusIcon} ${contentPreview}`
-  }
-
   // Get platform icon/indicator
   const getPlatformIcon = (platform: Platform): string => {
     const icons = {
@@ -94,6 +62,45 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     }
     return icons[status] || '⏰'
   }
+
+  // Generate event title based on post content and platform
+  const getEventTitle = (post: ScheduledPost): string => {
+    const platformIcon = getPlatformIcon(post.platform)
+    const statusIcon = getStatusIcon(post.status)
+    
+    let contentPreview = ''
+    if (post.content.type === 'thread') {
+      contentPreview = `Thread: ${post.content.text.substring(0, 30)}...`
+    } else {
+      contentPreview = post.content.text.substring(0, 30)
+      if (post.content.text.length > 30) {
+        contentPreview += '...'
+      }
+    }
+    
+    return `${platformIcon} ${statusIcon} ${contentPreview}`
+  }
+
+  // Convert posts to calendar events
+  const events = useMemo((): CalendarEvent[] => {
+    if (!posts || !Array.isArray(posts)) {
+      return []
+    }
+    return posts.map(post => {
+      const startTime = new Date(post.scheduledTime)
+      const endTime = new Date(startTime.getTime() + 30 * 60 * 1000) // 30 minutes duration
+      
+      return {
+        id: post.id,
+        title: getEventTitle(post),
+        start: startTime,
+        end: endTime,
+        resource: post,
+        platform: post.platform,
+        status: post.status
+      }
+    })
+  }, [posts])
 
   // Handle event selection
   const handleSelectEvent = useCallback((event: CalendarEvent) => {
@@ -175,6 +182,13 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       onViewChange(mappedView)
     }
   }, [onViewChange])
+
+  // Handle navigation (prev/next month/week/day)
+  const handleNavigate = useCallback((date: Date) => {
+    if (onDateChange) {
+      onDateChange(date)
+    }
+  }, [onDateChange])
 
   if (loading) {
     return (
@@ -295,7 +309,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         endAccessor="end"
         titleAccessor="title"
         view={calendarView}
+        date={currentDate}
         onView={handleViewChange}
+        onNavigate={handleNavigate}
         onSelectEvent={handleSelectEvent}
         onSelectSlot={handleSelectSlot}
         selectable
@@ -305,7 +321,6 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         showMultiDayTimes
         step={30}
         timeslots={2}
-        defaultDate={new Date()}
         style={{ height: 600 }}
         messages={{
           next: 'Next',

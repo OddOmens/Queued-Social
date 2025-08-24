@@ -2,7 +2,6 @@
 
 import React, { useState, useCallback, useMemo } from 'react'
 import CalendarView from './CalendarView'
-import CalendarNavigation from './CalendarNavigation'
 import { ScheduledPost } from '@/types'
 
 interface CalendarContainerProps {
@@ -51,29 +50,21 @@ const CalendarContainer: React.FC<CalendarContainerProps> = ({
   }, [onDateSelect])
 
   return (
-    <div className={`calendar-container bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
-      <CalendarNavigation
-        currentDate={currentDate}
+    <div className={`calendar-container relative ${className}`}>
+      <CalendarView
+        posts={filteredPosts}
+        onPostSelect={handlePostSelect}
+        onDateSelect={handleDateSelect}
         view={view}
-        onDateChange={handleDateChange}
         onViewChange={handleViewChange}
-        onToday={handleToday}
+        loading={loading}
+        currentDate={currentDate}
+        onDateChange={handleDateChange}
       />
-      
-      <div className="p-4">
-        <CalendarView
-          posts={filteredPosts}
-          onPostSelect={handlePostSelect}
-          onDateSelect={handleDateSelect}
-          view={view}
-          onViewChange={handleViewChange}
-          loading={loading}
-        />
-      </div>
 
       {/* Loading overlay */}
       {loading && (
-        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
+        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
           <div className="flex items-center space-x-2">
             <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
             <span className="text-gray-600">Loading posts...</span>

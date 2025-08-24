@@ -16,7 +16,9 @@ export default function PostsPage() {
         const response = await fetch('/api/posts')
         if (response.ok) {
           const data = await response.json()
-          setPosts(data.posts || [])
+          setPosts(data.data || []) // API returns data.data, not data.posts
+        } else {
+          console.error('Failed to fetch posts:', response.status, response.statusText)
         }
       } catch (error) {
         console.error('Failed to fetch posts:', error)

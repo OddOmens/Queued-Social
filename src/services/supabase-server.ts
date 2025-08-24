@@ -11,18 +11,30 @@ if (process.env.NODE_ENV === 'production' && (!process.env.NEXT_PUBLIC_SUPABASE_
 
 // Server-side Supabase client for API routes and server components
 export const createServerSupabaseClient = () => {
-  const cookieStore = cookies()
+  // During build time, cookies() is not available, so we provide a fallback
+  let cookieStore: any
+  
+  try {
+    cookieStore = cookies()
+  } catch (error) {
+    // During build time, provide a mock cookie store
+    cookieStore = {
+      get: () => undefined,
+      set: () => {},
+      delete: () => {}
+    }
+  }
   
   return createServerClient(supabaseUrl, supabaseAnonKey, {
     cookies: {
       get(name: string) {
-        return cookieStore.get(name)?.value
+        return cookieStore.get?.(name)?.value
       },
       set(name: string, value: string, options: any) {
-        cookieStore.set({ name, value, ...options })
+        cookieStore.set?.({ name, value, ...options })
       },
       remove(name: string, options: any) {
-        cookieStore.set({ name, value: '', ...options })
+        cookieStore.set?.({ name, value: '', ...options })
       },
     },
   })

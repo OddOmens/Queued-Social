@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react'
 import Link from 'next/link'
 import AppLayout from '@/components/layout/AppLayout'
-import { CalendarContainer } from '@/components/calendar'
+import CalendarPreview from '@/components/calendar/CalendarPreview'
 import { ScheduledPost } from '@/types'
 
 interface DashboardStats {
@@ -37,7 +37,7 @@ export default function DashboardPage() {
         const postsResponse = await fetch('/api/posts?limit=5&sort=created_at')
         if (postsResponse.ok) {
           const postsData = await postsResponse.json()
-          setRecentPosts(postsData.posts || [])
+          setRecentPosts(postsData.data || []) // API returns data.data
         }
       } catch (error) {
         console.error('Failed to fetch dashboard data:', error)
@@ -191,75 +191,86 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* Calendar Preview */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Upcoming Posts</h2>
-            <Link
-              href="/calendar"
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-            >
-              View Full Calendar →
-            </Link>
-          </div>
-          <div className="h-64">
-            <CalendarContainer className="h-full" />
-          </div>
-        </div>
-
-        {/* Recent Posts */}
-        <div className="bg-white rounded-lg shadow-sm p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">Recent Posts</h2>
-            <Link
-              href="/posts"
-              className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-            >
-              View All Posts →
-            </Link>
-          </div>
-          {loading ? (
-            <div className="space-y-3">
-              {[...Array(3)].map((_, i) => (
-                <div key={i} className="animate-pulse">
-                  <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
-                  <div className="h-3 bg-gray-200 rounded w-1/2"></div>
-                </div>
-              ))}
-            </div>
-          ) : recentPosts.length > 0 ? (
-            <div className="space-y-4">
-              {recentPosts.map((post) => (
-                <div key={post.id} className="border-l-4 border-blue-500 pl-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <p className="text-sm font-medium text-gray-900">
-                        {post.content.text.substring(0, 100)}
-                        {post.content.text.length > 100 ? '...' : ''}
-                      </p>
-                      <p className="text-xs text-gray-500">
-                        Scheduled for {new Date(post.scheduledTime).toLocaleDateString()} at{' '}
-                        {new Date(post.scheduledTime).toLocaleTimeString()}
-                      </p>
-                    </div>
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
-                      {post.platform}
-                    </span>
-                  </div>
-                </div>
-              ))}
-            </div>
-          ) : (
-            <div className="text-center py-8">
-              <p className="text-gray-500">No posts scheduled yet.</p>
+        {/* Calendar and Recent Posts - Side by Side */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {/* Calendar Preview */}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Upcoming Posts</h2>
               <Link
-                href="/posts/new"
+                href="/calendar"
                 className="text-blue-600 hover:text-blue-700 text-sm font-medium"
               >
-                Create your first post →
+                View Full Calendar →
               </Link>
             </div>
-          )}
+            <div className="h-64">
+              <CalendarPreview 
+                posts={recentPosts}
+                onPostSelect={(post) => console.log('Selected post:', post)}
+                onDateSelect={(date) => console.log('Selected date:', date)}
+                loading={loading}
+                className="h-full"
+              />
+            </div>
+          </div>
+
+          {/* Recent Posts */}
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold text-gray-900">Recent Posts</h2>
+              <Link
+                href="/posts"
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+              >
+                View All Posts →
+              </Link>
+            </div>
+            <div className="h-64 overflow-y-auto">
+              {loading ? (
+                <div className="space-y-3">
+                  {[...Array(3)].map((_, i) => (
+                    <div key={i} className="animate-pulse">
+                      <div className="h-4 bg-gray-200 rounded w-3/4 mb-2"></div>
+                      <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                    </div>
+                  ))}
+                </div>
+              ) : recentPosts.length > 0 ? (
+                <div className="space-y-4">
+                  {recentPosts.map((post) => (
+                    <div key={post.id} className="border-l-4 border-blue-500 pl-4">
+                      <div className="flex items-center justify-between">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {post.content.text.substring(0, 80)}
+                            {post.content.text.length > 80 ? '...' : ''}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            Scheduled for {new Date(post.scheduledTime).toLocaleDateString()} at{' '}
+                            {new Date(post.scheduledTime).toLocaleTimeString()}
+                          </p>
+                        </div>
+                        <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800 ml-2 flex-shrink-0">
+                          {post.platform}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="text-center py-8">
+                  <p className="text-gray-500">No posts scheduled yet.</p>
+                  <Link
+                    href="/posts/new"
+                    className="text-blue-600 hover:text-blue-700 text-sm font-medium"
+                  >
+                    Create your first post →
+                  </Link>
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </AppLayout>

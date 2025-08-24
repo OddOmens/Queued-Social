@@ -13,7 +13,9 @@ interface PostEditorProps {
   onSave: (post: CreatePostRequest) => void
   onCancel: () => void
   initialContent?: PostContent
+  initialScheduledTime?: Date
   loading?: boolean
+  isEditing?: boolean
 }
 
 export function PostEditor({ 
@@ -21,7 +23,9 @@ export function PostEditor({
   onSave, 
   onCancel, 
   initialContent, 
-  loading = false 
+  initialScheduledTime,
+  loading = false,
+  isEditing = false
 }: PostEditorProps) {
   const [contentType, setContentType] = useState<PostContentType>(
     initialContent?.type || 'single'
@@ -31,12 +35,19 @@ export function PostEditor({
   const [threadPosts, setThreadPosts] = useState<string[]>(
     initialContent?.type === 'thread' ? initialContent.threadPosts : ['']
   )
-  const [schedulingType, setSchedulingType] = useState<'next-slot' | 'custom'>('next-slot')
-  const [customTime, setCustomTime] = useState<string>('')
+  const [schedulingType, setSchedulingType] = useState<'next-slot' | 'custom'>(
+    initialScheduledTime ? 'custom' : 'next-slot'
+  )
+  const [customTime, setCustomTime] = useState<string>(
+    initialScheduledTime 
+      ? new Date(initialScheduledTime.getTime() - initialScheduledTime.getTimezoneOffset() * 60000)
+          .toISOString().slice(0, 16)
+      : ''
+  )
   const [errors, setErrors] = useState<string[]>([])
 
   const platformConfig = PLATFORM_CONFIGS[platform]
-  const supportedTypes = platformConfig.supportedContentTypes
+  const supportedTypes = platformConfig?.supportedContentTypes || ['single']
 
   // Reset form when platform changes
   useEffect(() => {
@@ -153,7 +164,7 @@ export function PostEditor({
     <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-gray-900">
-          Create Post for {platformConfig.displayName}
+          Create Post for {platformConfig?.displayName || platform}
         </h2>
         <button
           onClick={onCancel}
@@ -213,11 +224,11 @@ export function PostEditor({
             value={text}
             onChange={setText}
             placeholder={`Write your ${contentType === 'media' ? 'caption' : 'post'} here...`}
-            maxLength={platformConfig.contentLimits.maxTextLength}
+            maxLength={platformConfig?.contentLimits.maxTextLength || 500}
             disabled={loading}
           />
           <div className="text-xs text-gray-500 mt-1">
-            {text.length} / {platformConfig.contentLimits.maxTextLength} characters
+            {text.length} / {platformConfig?.contentLimits.maxTextLength || 500} characters
           </div>
         </div>
 
@@ -226,19 +237,19 @@ export function PostEditor({
           <ThreadComposer
             posts={threadPosts}
             onChange={handleThreadPostsChange}
-            maxLength={platformConfig.contentLimits.maxTextLength}
-            maxThreadLength={platformConfig.contentLimits.maxThreadLength || 10}
+            maxLength={platformConfig?.contentLimits.maxTextLength || 500}
+            maxThreadLength={platformConfig?.contentLimits.maxThreadLength || 10}
             disabled={loading}
           />
         )}
 
         {/* Media Upload */}
-        {(contentType === 'media' || (contentType !== 'thread' && platformConfig.features.media)) && (
+        {(contentType === 'media' || (contentType !== 'thread' && platformConfig?.features.media)) && (
           <MediaUpload
             files={mediaFiles}
             onChange={handleMediaFilesChange}
             platform={platform}
-            maxFiles={platformConfig.contentLimits.maxMediaFiles}
+            maxFiles={platformConfig?.contentLimits.maxMediaFiles || 10}
             required={contentType === 'media'}
             disabled={loading}
           />

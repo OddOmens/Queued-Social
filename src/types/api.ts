@@ -65,7 +65,7 @@ export interface CreatePostRequest {
   content: PostContent
   platform: Platform
   schedulingType: 'next-slot' | 'custom'
-  customTime?: string // ISO string
+  customTime?: Date
 }
 
 export interface CreatePostResponse extends ApiSuccessResponse<ScheduledPost> {}
