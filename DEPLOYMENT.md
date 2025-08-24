@@ -27,12 +27,12 @@ NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 NEXTAUTH_SECRET=your-super-secret-jwt-secret
-NEXTAUTH_URL=https://your-domain.com
+NEXTAUTH_URL=https://schedule.oddomens.com
 
 # Platform API Keys
 THREADS_CLIENT_ID=your-threads-client-id
 THREADS_CLIENT_SECRET=your-threads-client-secret
-THREADS_REDIRECT_URI=https://your-domain.com/api/auth/threads/callback
+THREADS_REDIRECT_URI=https://schedule.oddomens.com/api/auth/threads/callback
 ```
 
 ### 2. Supabase Configuration

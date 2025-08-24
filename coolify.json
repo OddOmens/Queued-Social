@@ -37,7 +37,7 @@
       "target": "/app/temp"
     }
   ],
-  "domains": [],
+  "domains": ["schedule.oddomens.com"],
   "ssl": true,
   "redirectToHttps": true,
   "deployment": {

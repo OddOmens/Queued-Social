@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
     
     // Threads OAuth authorization URL
     const authUrl = new URL('https://threads.net/oauth/authorize')
-    authUrl.searchParams.set('client_id', process.env.THREADS_APP_ID!)
+    authUrl.searchParams.set('client_id', process.env.THREADS_CLIENT_ID!)
     authUrl.searchParams.set('redirect_uri', redirectUri)
     authUrl.searchParams.set('scope', 'threads_basic,threads_content_publish')
     authUrl.searchParams.set('response_type', 'code')

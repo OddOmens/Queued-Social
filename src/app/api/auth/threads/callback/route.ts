@@ -41,8 +41,8 @@ export async function GET(request: NextRequest) {
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: new URLSearchParams({
-        client_id: process.env.THREADS_APP_ID!,
-        client_secret: process.env.THREADS_APP_SECRET!,
+        client_id: process.env.THREADS_CLIENT_ID!,
+        client_secret: process.env.THREADS_CLIENT_SECRET!,
         grant_type: 'authorization_code',
         redirect_uri: `${process.env.NEXTAUTH_URL || 'http://localhost:3000'}/api/auth/threads/callback`,
         code,
