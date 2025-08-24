@@ -2,6 +2,7 @@
 
 import React, { useMemo, useCallback, useState } from 'react'
 import { Calendar, momentLocalizer, View, Views } from 'react-big-calendar'
+import withDragAndDrop from 'react-big-calendar/lib/addons/dragAndDrop'
 import moment from 'moment'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
@@ -9,8 +10,10 @@ import { ScheduledPost, Platform, PostStatus } from '@/types'
 import PostDetailModal from './PostDetailModal'
 import PostGroupModal from './PostGroupModal'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
+import 'react-big-calendar/lib/addons/dragAndDrop/styles.css'
 
 const localizer = momentLocalizer(moment)
+const DragAndDropCalendar = withDragAndDrop(Calendar)
 
 interface CalendarEvent {
   id: string
@@ -166,7 +169,7 @@ const InteractiveCalendarView: React.FC<InteractiveCalendarViewProps> = ({
   }
 
   // Handle event selection
-  const handleSelectEvent = useCallback((event: CalendarEvent) => {
+  const handleSelectEvent = useCallback((event: any) => {
     if (event.isGroup) {
       setSelectedGroup(event.resource as ScheduledPost[])
     } else {
@@ -181,18 +184,20 @@ const InteractiveCalendarView: React.FC<InteractiveCalendarViewProps> = ({
   }, [onDateSelect])
 
   // Handle event drag start
-  const handleEventDragStart = useCallback((event: CalendarEvent) => {
+  const handleEventDragStart = useCallback((event: any) => {
     if (!event.isGroup) {
       setDraggedPost(event.resource as ScheduledPost)
     }
   }, [])
 
   // Handle event drop (reschedule)
-  const handleEventDrop = useCallback(async ({ event, start }: { event: CalendarEvent, start: Date }) => {
+  const handleEventDrop = useCallback(async (args: any) => {
+    const { event, start } = args
     if (event.isGroup || !draggedPost) return
     
     try {
-      await onPostReschedule(draggedPost.id, start)
+      const startDate = typeof start === 'string' ? new Date(start) : start
+      await onPostReschedule(draggedPost.id, startDate)
       setDraggedPost(null)
     } catch (error) {
       console.error('Failed to reschedule post:', error)
@@ -201,7 +206,7 @@ const InteractiveCalendarView: React.FC<InteractiveCalendarViewProps> = ({
   }, [draggedPost, onPostReschedule])
 
   // Custom event style based on platform, status, and grouping
-  const eventStyleGetter = useCallback((event: CalendarEvent) => {
+  const eventStyleGetter = useCallback((event: any) => {
     const platformColors = {
       threads: '#000000',
       twitter: '#1DA1F2',
@@ -211,13 +216,14 @@ const InteractiveCalendarView: React.FC<InteractiveCalendarViewProps> = ({
 
     const statusOpacity = {
       scheduled: 1,
+      publishing: 0.8,
       published: 0.7,
       failed: 0.5,
       cancelled: 0.3
     }
 
-    let backgroundColor = platformColors[event.platform] || '#6B7280'
-    const opacity = statusOpacity[event.status] || 1
+    let backgroundColor = platformColors[event.platform as keyof typeof platformColors] || '#6B7280'
+    const opacity = statusOpacity[event.status as keyof typeof statusOpacity] || 1
 
     // Special styling for groups
     if (event.isGroup) {
@@ -269,7 +275,9 @@ const InteractiveCalendarView: React.FC<InteractiveCalendarViewProps> = ({
     const viewMap = {
       [Views.MONTH]: 'month' as const,
       [Views.WEEK]: 'week' as const,
-      [Views.DAY]: 'day' as const
+      [Views.WORK_WEEK]: 'week' as const,
+      [Views.DAY]: 'day' as const,
+      [Views.AGENDA]: 'day' as const
     }
     const mappedView = viewMap[newView]
     if (mappedView) {
@@ -400,12 +408,12 @@ const InteractiveCalendarView: React.FC<InteractiveCalendarViewProps> = ({
           }
         `}</style>
         
-        <Calendar
+        <DragAndDropCalendar
           localizer={localizer}
           events={events}
-          startAccessor="start"
-          endAccessor="end"
-          titleAccessor="title"
+          startAccessor={(event: any) => event.start}
+          endAccessor={(event: any) => event.end}
+          titleAccessor={(event: any) => event.title}
           view={calendarView}
           onView={handleViewChange}
           onSelectEvent={handleSelectEvent}

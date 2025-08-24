@@ -156,7 +156,7 @@ export function FormField({
             {helpText}
           </p>
         )}
-        <InlineError error={error} />
+        <InlineError error={error ?? null} />
       </div>
     </div>
   )

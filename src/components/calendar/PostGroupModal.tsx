@@ -38,6 +38,7 @@ const PostGroupModal: React.FC<PostGroupModalProps> = ({
   const getStatusInfo = (status: PostStatus) => {
     const statusConfig = {
       scheduled: { icon: '⏰', color: 'text-blue-600', bgColor: 'bg-blue-50' },
+      publishing: { icon: '🔄', color: 'text-yellow-600', bgColor: 'bg-yellow-50' },
       published: { icon: '✅', color: 'text-green-600', bgColor: 'bg-green-50' },
       failed: { icon: '❌', color: 'text-red-600', bgColor: 'bg-red-50' },
       cancelled: { icon: '🚫', color: 'text-gray-600', bgColor: 'bg-gray-50' }

@@ -86,7 +86,7 @@ export function isNetworkError(error: unknown): boolean {
       ErrorCodes.NETWORK_ERROR,
       ErrorCodes.TIMEOUT_ERROR,
       ErrorCodes.CONNECTION_ERROR
-    ].includes(error.code as ErrorCode)
+    ].includes(error.code as any)
   }
   
   if (error instanceof Error) {

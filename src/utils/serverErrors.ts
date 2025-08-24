@@ -103,12 +103,12 @@ export function isValidationError(error: unknown): error is ServerError {
 
 export function isAuthError(error: unknown): error is ServerError {
   return isServerError(error) && 
-    [ServerErrorCodes.UNAUTHORIZED, ServerErrorCodes.FORBIDDEN, ServerErrorCodes.TOKEN_EXPIRED].includes(error.code as ServerErrorCode)
+    [ServerErrorCodes.UNAUTHORIZED, ServerErrorCodes.FORBIDDEN, ServerErrorCodes.TOKEN_EXPIRED].includes(error.code as any)
 }
 
 export function isDatabaseError(error: unknown): error is ServerError {
   return isServerError(error) && 
-    [ServerErrorCodes.DATABASE_ERROR, ServerErrorCodes.RECORD_NOT_FOUND, ServerErrorCodes.DUPLICATE_RECORD].includes(error.code as ServerErrorCode)
+    [ServerErrorCodes.DATABASE_ERROR, ServerErrorCodes.RECORD_NOT_FOUND, ServerErrorCodes.DUPLICATE_RECORD].includes(error.code as any)
 }
 
 // API error handler

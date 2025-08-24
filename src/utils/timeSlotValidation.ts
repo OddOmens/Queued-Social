@@ -8,9 +8,9 @@ import type {
   TimeSlotConfig,
   ValidationResult,
   ValidationError,
-  ErrorCode,
   DayOfWeek
 } from '../types'
+import { ErrorCode } from '../types'
 
 /**
  * Validate a single time slot

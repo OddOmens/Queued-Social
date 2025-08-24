@@ -133,6 +133,7 @@ export interface ContentLimits {
   maxMediaFiles: number
   supportedMediaTypes: string[]
   maxThreadLength?: number
+  maxMediaSize?: number
 }
 
 export interface ValidationResult {
@@ -488,6 +489,12 @@ export interface UseTimeSlotReturn {
   error: AppError | null
   updateTimeSlots: (slots: TimeSlotRequest[]) => Promise<void>
   getNextAvailableSlot: () => Date | null
+  getTimeSlotsForDay: (day: DayOfWeek) => TimeSlotConfig[]
+  getAvailableSlots: (startDate: Date, endDate: Date) => Promise<{ date: Date; available: boolean; }[]>
+  createTimeSlot: (slot: TimeSlotRequest) => Promise<TimeSlotConfig | undefined>
+  updateTimeSlot: (id: string, updates: Partial<TimeSlotRequest>) => Promise<TimeSlotConfig | undefined>
+  deleteTimeSlot: (id: string) => Promise<void>
+  refetch: () => Promise<void>
 }
 
 export interface UsePlatformReturn {

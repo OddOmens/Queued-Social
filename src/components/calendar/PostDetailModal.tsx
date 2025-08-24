@@ -36,6 +36,7 @@ const PostDetailModal: React.FC<PostDetailModalProps> = ({
   const getStatusInfo = (status: PostStatus) => {
     const statusConfig = {
       scheduled: { icon: '⏰', color: 'text-blue-600', bgColor: 'bg-blue-50', label: 'Scheduled' },
+      publishing: { icon: '🔄', color: 'text-yellow-600', bgColor: 'bg-yellow-50', label: 'Publishing' },
       published: { icon: '✅', color: 'text-green-600', bgColor: 'bg-green-50', label: 'Published' },
       failed: { icon: '❌', color: 'text-red-600', bgColor: 'bg-red-50', label: 'Failed' },
       cancelled: { icon: '🚫', color: 'text-gray-600', bgColor: 'bg-gray-50', label: 'Cancelled' }

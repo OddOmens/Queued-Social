@@ -3,7 +3,8 @@
  * Common validation functions for API endpoints
  */
 
-import type { PostContent, Platform, ValidationResult, ValidationError, ErrorCode } from '../types'
+import type { PostContent, Platform, ValidationResult, ValidationError } from '../types'
+import { ErrorCode } from '../types'
 
 /**
  * Validate post content for API requests

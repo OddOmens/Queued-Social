@@ -145,7 +145,7 @@ export function MediaUpload({
 
     setPreviews(prev => {
       // Clean up old URLs
-      const oldUrls = prev.flatMap(p => [p.url, p.thumbnailUrl].filter(Boolean))
+      const oldUrls = prev.flatMap(p => [p.url, p.thumbnailUrl].filter(Boolean) as string[])
       cleanupMediaUrls(oldUrls)
       
       return [...prev, ...processedPreviews]
@@ -250,7 +250,7 @@ export function MediaUpload({
     // Clean up removed preview URLs
     const removedPreview = previews[index]
     if (removedPreview) {
-      cleanupMediaUrls([removedPreview.url, removedPreview.thumbnailUrl].filter(Boolean))
+      cleanupMediaUrls([removedPreview.url, removedPreview.thumbnailUrl].filter(Boolean) as string[])
     }
     
     setPreviews(newPreviews)

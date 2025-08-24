@@ -12,10 +12,10 @@ import type {
   DayOfWeek,
   TimeSlotConfig,
   SchedulingError,
-  ErrorCode,
   ValidationResult,
   ValidationError
 } from '../types'
+import { ErrorCode } from '../types'
 
 export interface SchedulingOptions {
   userId: string
@@ -142,7 +142,7 @@ export class SchedulingService {
           success: false,
           error: 'Time slot conflict detected',
           conflicts,
-          suggestedTime
+          suggestedTime: suggestedTime || undefined
         }
       }
 

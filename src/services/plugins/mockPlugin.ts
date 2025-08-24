@@ -62,6 +62,6 @@ export class MockPlatformPlugin extends BasePlatformPlugin {
   }
 
   getSupportedContentTypes(): PostContentType[] {
-    return ['text', 'media', 'thread']
+    return ['single', 'media', 'thread']
   }
 }

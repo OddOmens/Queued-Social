@@ -1,7 +1,7 @@
 import cron from 'node-cron';
 import { createAdminSupabaseClient } from './supabase-server';
 import { PlatformManager } from './platformManager';
-import { ScheduledPost, PostStatus } from '../types';
+import { ScheduledPost, PostStatus, PlatformCredentials } from '../types';
 import { initializePlatformPlugins } from './plugins';
 
 export interface JobResult {
@@ -25,7 +25,7 @@ export class JobScheduler {
   private platformManager: PlatformManager;
   private isRunning: boolean = false;
   private jobQueue: Map<string, JobQueue> = new Map();
-  private cronJob?: cron.ScheduledTask;
+  private cronJob?: any;
 
   private constructor() {
     this.platformManager = PlatformManager.getInstance();
@@ -183,11 +183,8 @@ export class JobScheduler {
         };
       }
 
-      // Create post content from the stored content
-      const postContent = { text: post.content };
-
       // Validate content before publishing
-      const validation = plugin.validateContent(postContent);
+      const validation = plugin.validateContent(post.content);
       if (!validation.isValid) {
         return {
           success: false,
@@ -197,15 +194,22 @@ export class JobScheduler {
 
       // For now, use mock credentials since users haven't set up real credentials yet
       // In production, this would fetch real credentials from platform_credentials table
-      const mockCredentials = {
+      const mockCredentials: PlatformCredentials = {
+        id: 'mock-credentials-id',
+        userId: 'mock-user-id',
         platform: post.platform,
-        accessToken: 'mock_access_token',
-        refreshToken: 'mock_refresh_token',
-        expiresAt: new Date(Date.now() + 3600000) // 1 hour from now
+        credentials: {
+          accessToken: 'mock_access_token',
+          refreshToken: 'mock_refresh_token'
+        },
+        isActive: true,
+        expiresAt: new Date(Date.now() + 3600000), // 1 hour from now
+        createdAt: new Date(),
+        updatedAt: new Date()
       };
 
       // Publish the post
-      const publishResult = await plugin.publishPost(postContent, mockCredentials);
+      const publishResult = await plugin.publishPost(post.content, mockCredentials);
       
       if (publishResult.success) {
         return {

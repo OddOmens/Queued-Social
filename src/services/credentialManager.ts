@@ -273,7 +273,7 @@ export class CredentialManager {
       // Platform-specific validation
       switch (platform) {
         case 'threads':
-          return await this.validateThreadsCredentials(credentials.credentials);
+          return await this.validateThreadsCredentials(credentials.credentials as OAuthTokens);
         default:
           return {
             isValid: true,

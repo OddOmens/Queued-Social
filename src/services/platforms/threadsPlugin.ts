@@ -121,7 +121,7 @@ export class ThreadsPlugin extends BasePlatformPlugin implements IThreadsPlugin 
         case 'media':
           return await this.publishMediaPost(content, threadsCredentials)
         default:
-          return this.createPublishFailure(`Unsupported content type: ${content.type}`)
+          return this.createPublishFailure(`Unsupported content type: ${(content as any).type}`)
       }
     } catch (error) {
       return this.createPublishFailure(
@@ -257,7 +257,7 @@ export class ThreadsPlugin extends BasePlatformPlugin implements IThreadsPlugin 
       }
 
       // Create the post
-      const postData = {
+      const postData: any = {
         media_type: mediaIds.length > 0 ? 'IMAGE' : 'TEXT',
         text: content.text,
         ...(mediaIds.length > 0 && { media_ids: mediaIds }),
