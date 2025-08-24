@@ -1,50 +1,24 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Only use standalone output in production
-  ...(process.env.NODE_ENV === 'production' && { output: 'standalone' }),
   experimental: {
-    outputFileTracingRoot: undefined,
-    // Reduce memory usage during build
-    workerThreads: false,
-    esmExternals: false,
+    esmExternals: true,
+    outputFileTracingRoot: process.cwd(),
   },
-  eslint: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has ESLint errors.
-    ignoreDuringBuilds: true,
+  
+  // Ensure environment variables are available at build time
+  env: {
+    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY,
   },
-  typescript: {
-    // Warning: This allows production builds to successfully complete even if
-    // your project has TypeScript errors.
-    ignoreBuildErrors: true,
+  
+  // Add runtime configuration for dynamic environment loading
+  publicRuntimeConfig: {
+    supabaseUrl: process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL,
+    supabaseAnonKey: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY,
   },
-  // Optimize webpack for memory usage
-  webpack: (config, { isServer }) => {
-    // Reduce memory usage
-    config.optimization = {
-      ...config.optimization,
-      splitChunks: {
-        chunks: 'all',
-        cacheGroups: {
-          default: {
-            minChunks: 1,
-            priority: -20,
-            reuseExistingChunk: true,
-          },
-          vendor: {
-            test: /[\\/]node_modules[\\/]/,
-            name: 'vendors',
-            priority: -10,
-            chunks: 'all',
-          },
-        },
-      },
-    }
-    
-    // Limit parallel processing to reduce memory usage
-    config.parallelism = 1
-    
-    return config
+  
+  serverRuntimeConfig: {
+    supabaseServiceRoleKey: process.env.SUPABASE_SERVICE_ROLE_KEY,
   },
 }
 

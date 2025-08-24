@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import { Inter } from 'next/font/google'
 import { AuthProvider } from '@/components/auth/AuthProvider'
 import { ServerInitializer } from '@/components/ServerInitializer'
+import { EnvCheck } from '@/components/debug/EnvCheck'
 import './globals.css'
 
 const inter = Inter({ subsets: ['latin'] })
@@ -22,6 +23,7 @@ export default function RootLayout({
         <AuthProvider>
           <ServerInitializer />
           {children}
+          <EnvCheck />
         </AuthProvider>
       </body>
     </html>

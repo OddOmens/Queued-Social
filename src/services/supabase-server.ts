@@ -1,16 +1,33 @@
 import { createServerClient } from '@supabase/ssr'
 import { cookies } from 'next/headers'
-
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co'
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key'
-
-// Only throw error in runtime, not during build
-if (process.env.NODE_ENV === 'production' && (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY)) {
-  console.warn('Missing Supabase environment variables in production')
-}
+import { getServerEnv, validateEnv } from './env'
 
 // Server-side Supabase client for API routes and server components
 export const createServerSupabaseClient = () => {
+  const env = getServerEnv()
+  
+  // Use fallback values if environment variables are missing
+  const supabaseUrl = env.supabaseUrl || 'https://placeholder.supabase.co'
+  const supabaseAnonKey = env.supabaseAnonKey || 'placeholder-key'
+  
+  // Debug logging for environment variables
+  console.log('Server Supabase Config:', {
+    url: supabaseUrl,
+    hasKey: !!supabaseAnonKey && supabaseAnonKey !== 'placeholder-key',
+    env: env.nodeEnv,
+    hasServiceRole: !!env.supabaseServiceRoleKey,
+    isValid: validateEnv(true)
+  })
+  
+  // Only warn in production if environment variables are missing
+  if (env.nodeEnv === 'production' && (!env.supabaseUrl || !env.supabaseAnonKey)) {
+    console.error('Missing Supabase environment variables in production:', {
+      NEXT_PUBLIC_SUPABASE_URL: !!env.supabaseUrl,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: !!env.supabaseAnonKey,
+      SUPABASE_SERVICE_ROLE_KEY: !!env.supabaseServiceRoleKey
+    })
+  }
+  
   // During build time, cookies() is not available, so we provide a fallback
   let cookieStore: any
   
@@ -42,7 +59,9 @@ export const createServerSupabaseClient = () => {
 
 // Server-side client with service role key for admin operations
 export const createAdminSupabaseClient = () => {
-  const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+  const env = getServerEnv()
+  const supabaseUrl = env.supabaseUrl || 'https://placeholder.supabase.co'
+  const serviceRoleKey = env.supabaseServiceRoleKey
   
   if (!serviceRoleKey) {
     throw new Error('Missing Supabase service role key')
