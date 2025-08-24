@@ -177,7 +177,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     const viewMap = {
       [Views.MONTH]: 'month' as const,
       [Views.WEEK]: 'week' as const,
-      [Views.DAY]: 'day' as const
+      [Views.WORK_WEEK]: 'week' as const,
+      [Views.DAY]: 'day' as const,
+      [Views.AGENDA]: 'day' as const
     }
     const mappedView = viewMap[newView]
     if (mappedView) {

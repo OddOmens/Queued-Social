@@ -90,7 +90,7 @@ export function FormField({
       required,
       disabled,
       className: baseInputClasses,
-      'aria-invalid': error ? 'true' : 'false',
+      'aria-invalid': (error ? 'true' : 'false') as 'true' | 'false',
       'aria-describedby': getAriaDescribedBy(),
       maxLength,
       autoComplete

@@ -91,8 +91,8 @@ const InteractiveCalendarView: React.FC<InteractiveCalendarViewProps> = ({
         }
       } else {
         // Multiple posts in same time slot
-        const platforms = [...new Set(groupPosts.map(p => p.platform))]
-        const statuses = [...new Set(groupPosts.map(p => p.status))]
+        const platforms = Array.from(new Set(groupPosts.map(p => p.platform)))
+        const statuses = Array.from(new Set(groupPosts.map(p => p.status)))
         
         return {
           id: `group-${timeKey}`,
@@ -157,6 +157,7 @@ const InteractiveCalendarView: React.FC<InteractiveCalendarViewProps> = ({
   const getStatusIcon = (status: PostStatus): string => {
     const icons = {
       scheduled: '⏰',
+      publishing: '🚀',
       published: '✅',
       failed: '❌',
       cancelled: '🚫'
