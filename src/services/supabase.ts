@@ -5,9 +5,13 @@ import { getClientEnv, validateEnv } from './env'
 export const createClient = () => {
   const env = getClientEnv()
   
-  // Use fallback values if environment variables are missing
-  const supabaseUrl = env.supabaseUrl || 'https://placeholder.supabase.co'
-  const supabaseAnonKey = env.supabaseAnonKey || 'placeholder-key'
+  // Throw error instead of using placeholder values
+  if (!env.supabaseUrl || !env.supabaseAnonKey) {
+    throw new Error('Missing Supabase environment variables. Please check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY')
+  }
+  
+  const supabaseUrl = env.supabaseUrl
+  const supabaseAnonKey = env.supabaseAnonKey
   
   // Debug logging for environment variables
   if (typeof window !== 'undefined') {
