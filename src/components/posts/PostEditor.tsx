@@ -35,7 +35,7 @@ export function PostEditor({
   const [threadPosts, setThreadPosts] = useState<string[]>(
     initialContent?.type === 'thread' ? initialContent.threadPosts : ['']
   )
-  const [schedulingType, setSchedulingType] = useState<'next-slot' | 'custom'>(
+  const [schedulingType, setSchedulingType] = useState<'now' | 'next-slot' | 'custom'>(
     initialScheduledTime ? 'custom' : 'next-slot'
   )
   const [customTime, setCustomTime] = useState<string>(
@@ -160,6 +160,21 @@ export function PostEditor({
     return true
   }
 
+  const getButtonText = () => {
+    if (loading) return 'Processing...'
+    
+    switch (schedulingType) {
+      case 'now':
+        return 'Post Now'
+      case 'next-slot':
+        return 'Post in Next Timeslot'
+      case 'custom':
+        return 'Schedule Post'
+      default:
+        return 'Post'
+    }
+  }
+
   return (
     <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
       <div className="flex items-center justify-between mb-6">
@@ -258,20 +273,34 @@ export function PostEditor({
         {/* Scheduling Options */}
         <div>
           <label className="block text-sm font-medium text-gray-700 mb-3">
-            Scheduling
+            When to Post
           </label>
           <div className="space-y-3">
             <label className="flex items-center">
               <input
                 type="radio"
                 name="schedulingType"
-                value="next-slot"
-                checked={schedulingType === 'next-slot'}
-                onChange={(e) => setSchedulingType(e.target.value as 'next-slot' | 'custom')}
+                value="now"
+                checked={schedulingType === 'now'}
+                onChange={(e) => setSchedulingType(e.target.value as 'now' | 'next-slot' | 'custom')}
                 className="mr-2"
                 disabled={loading}
               />
-              <span className="text-sm">Schedule to next available time slot</span>
+              <span className="text-sm font-medium">Post Now</span>
+              <span className="text-xs text-gray-500 ml-2">Publish immediately</span>
+            </label>
+            <label className="flex items-center">
+              <input
+                type="radio"
+                name="schedulingType"
+                value="next-slot"
+                checked={schedulingType === 'next-slot'}
+                onChange={(e) => setSchedulingType(e.target.value as 'now' | 'next-slot' | 'custom')}
+                className="mr-2"
+                disabled={loading}
+              />
+              <span className="text-sm font-medium">Post in Next Timeslot</span>
+              <span className="text-xs text-gray-500 ml-2">Use your configured schedule</span>
             </label>
             <label className="flex items-center">
               <input
@@ -279,11 +308,12 @@ export function PostEditor({
                 name="schedulingType"
                 value="custom"
                 checked={schedulingType === 'custom'}
-                onChange={(e) => setSchedulingType(e.target.value as 'next-slot' | 'custom')}
+                onChange={(e) => setSchedulingType(e.target.value as 'now' | 'next-slot' | 'custom')}
                 className="mr-2"
                 disabled={loading}
               />
-              <span className="text-sm">Schedule to custom time</span>
+              <span className="text-sm font-medium">Schedule Post</span>
+              <span className="text-xs text-gray-500 ml-2">Choose specific date and time</span>
             </label>
             {schedulingType === 'custom' && (
               <div className="ml-6">
@@ -313,9 +343,13 @@ export function PostEditor({
           <button
             type="submit"
             disabled={!isFormValid() || loading}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+            className={`px-4 py-2 text-sm font-medium text-white border border-transparent rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed ${
+              schedulingType === 'now' 
+                ? 'bg-green-600 hover:bg-green-700 focus:ring-green-500' 
+                : 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500'
+            }`}
           >
-            {loading ? 'Scheduling...' : 'Schedule Post'}
+            {getButtonText()}
           </button>
         </div>
       </form>

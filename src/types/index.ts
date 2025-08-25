@@ -340,7 +340,7 @@ export interface ApiSuccessResponse<T> {
 export interface CreatePostRequest {
   content: PostContent
   platform: Platform
-  schedulingType: 'next-slot' | 'custom'
+  schedulingType: 'now' | 'next-slot' | 'custom'
   customTime?: Date
 }
 

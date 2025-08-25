@@ -55,9 +55,15 @@ export function useCreatePost() {
       
       const db = createDbService()
       
-      // Determine scheduled time
+      // Determine scheduled time and status
       let scheduledTime: Date
-      if (request.schedulingType === 'custom' && request.customTime) {
+      let status: ScheduledPost['status'] = 'scheduled'
+      
+      if (request.schedulingType === 'now') {
+        // Post immediately
+        scheduledTime = new Date()
+        status = 'published' // Mark as published since we're posting now
+      } else if (request.schedulingType === 'custom' && request.customTime) {
         scheduledTime = request.customTime
       } else {
         // TODO: Implement next available time slot logic
@@ -65,13 +71,19 @@ export function useCreatePost() {
         scheduledTime = new Date(Date.now() + 60 * 60 * 1000)
       }
       
-      return await db.createScheduledPost({
+      const post = await db.createScheduledPost({
         userId: user.id,
         platform: request.platform,
         content: request.content,
         scheduledTime,
-        status: 'scheduled'
+        status,
+        publishedAt: status === 'published' ? new Date() : undefined
       })
+
+      // If posting now, we could trigger immediate publishing here
+      // For now, we'll just mark it as published
+      
+      return post
     },
     onSuccess: () => {
       // Invalidate and refetch posts

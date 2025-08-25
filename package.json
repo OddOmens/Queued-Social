@@ -12,7 +12,8 @@
     "preview:prod": "vite preview --mode production",
     "test": "vitest",
     "test:ui": "vitest --ui",
-    "validate-env": "node scripts/validate-env.js"
+    "validate-env": "node scripts/validate-env.js",
+    "migrate": "node scripts/run-migration.js"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",

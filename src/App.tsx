@@ -1,8 +1,10 @@
+import { useEffect } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider } from './components/auth/AuthProvider'
 import { ErrorHandlingProvider } from './components/ErrorHandlingProvider'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { Layout } from './components/layout/Layout'
+import { appScheduler } from './services/appScheduler'
 
 // Pages
 import { LoginPage } from './pages/LoginPage'
@@ -15,6 +17,17 @@ import { ProfilePage } from './pages/ProfilePage'
 import { ThreadsCallbackPage } from './pages/ThreadsCallbackPage'
 
 function App() {
+  // Initialize the app scheduler when the app starts
+  useEffect(() => {
+    console.log('Starting app scheduler...')
+    appScheduler.start()
+    
+    // Cleanup on unmount
+    return () => {
+      appScheduler.stop()
+    }
+  }, [])
+
   return (
     <ErrorHandlingProvider>
       <AuthProvider>

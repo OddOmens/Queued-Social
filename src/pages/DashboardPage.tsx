@@ -1,6 +1,7 @@
 import { useAuthStore } from '@/stores/auth'
 import { useDashboardStats } from '@/hooks/useStats'
 import { Link } from 'react-router-dom'
+import { SchedulerDebug } from '@/components/debug/SchedulerDebug'
 
 export function DashboardPage() {
   const { user } = useAuthStore()
@@ -156,6 +157,9 @@ export function DashboardPage() {
           </div>
         </div>
       </div>
+
+      {/* Debug Section - Remove in production */}
+      <SchedulerDebug />
     </div>
   )
 }
