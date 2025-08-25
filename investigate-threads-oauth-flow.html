@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔍 Investigate Threads OAuth Flow</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; }
+        .section { background: #f5f5f5; padding: 20px; margin: 15px 0; border-radius: 8px; }
+        .error { background: #ffe6e6; border-left: 4px solid #dc3545; }
+        .warning { background: #fff3cd; border-left: 4px solid #ffc107; }
+        .info { background: #e3f2fd; border-left: 4px solid #2196f3; }
+        .success { background: #e6ffed; border-left: 4px solid #28a745; }
+        .code-block { background: #1a1a1a; color: #00ff00; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 12px; word-break: break-all; margin: 10px 0; }
+        button { background: #007cba; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; margin: 8px; }
+        button:hover { background: #005a87; }
+        .danger { background: #dc3545 !important; }
+        .danger:hover { background: #c82333 !important; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <h1>🔍 Investigate Threads OAuth Flow</h1>
+    
+    <div class="section error">
+        <h2>🚨 Current Confusing Error</h2>
+        <div class="code-block">
+{
+    "error": {
+        "message": "Missing required field: code",
+        "type": "OAuthException",
+        "code": 1
+    }
+}
+        </div>
+        <p><strong>This is strange!</strong> The "code" parameter is what you GET from OAuth authorization, not what you SEND to it.</p>
+    </div>
+
+    <div class="section warning">
+        <h2>🤔 Hypothesis: Threads Uses Different OAuth Flow</h2>
+        <p>This error suggests Threads might use a non-standard OAuth flow. Let's investigate different approaches:</p>
+        <ol>
+            <li><strong>Standard OAuth 2.0:</strong> Authorization Code flow (what we've been trying)</li>
+            <li><strong>Direct Token Exchange:</strong> Skip authorization, go straight to token</li>
+            <li><strong>Different Endpoint:</strong> Maybe different URL structure</li>
+            <li><strong>Different Parameters:</strong> Maybe different required fields</li>
+        </ol>
+    </div>
+
+    <div class="section">
+        <h2>🧪 Test Different OAuth Approaches</h2>
+        <button onclick="testStandardOAuth()">1. Standard OAuth (Current)</button>
+        <button onclick="testWithoutClientSecret()">2. Without Client Secret</button>
+        <button onclick="testDifferentEndpoint()">3. Different Endpoint</button>
+        <button onclick="testMinimalParams()">4. Minimal Parameters</button>
+        <button onclick="testDirectTokenExchange()">5. Direct Token Exchange</button>
+    </div>
+
+    <div class="section">
+        <h2>📊 Test Results</h2>
+        <div id="test-results"></div>
+    </div>
+
+    <div class="section info">
+        <h2>📚 Research: Threads OAuth Documentation</h2>
+        <p>Let's check what the official Threads API documentation says about OAuth:</p>
+        <ul>
+            <li><a href="https://developers.facebook.com/docs/threads" target="_blank">Threads API Documentation</a></li>
+            <li><a href="https://developers.facebook.com/docs/threads/get-started" target="_blank">Threads Get Started Guide</a></li>
+            <li><a href="https://developers.facebook.com/docs/threads/authentication" target="_blank">Threads Authentication</a></li>
+        </ul>
+    </div>
+
+    <div class="section">
+        <h2>🔍 Alternative OAuth Patterns</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Pattern</th>
+                    <th>URL Structure</th>
+                    <th>Parameters</th>
+                    <th>Notes</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Standard OAuth 2.0</td>
+                    <td>/oauth/authorize</td>
+                    <td>client_id, redirect_uri, scope, response_type</td>
+                    <td>What we've been trying</td>
+                </tr>
+                <tr>
+                    <td>Facebook-style OAuth</td>
+                    <td>/oauth/authorize</td>
+                    <td>client_id, redirect_uri, scope (no client_secret)</td>
+                    <td>More typical for Facebook products</td>
+                </tr>
+                <tr>
+                    <td>Direct Token Exchange</td>
+                    <td>/oauth/access_token</td>
+                    <td>client_id, client_secret, grant_type</td>
+                    <td>Skip authorization step</td>
+                </tr>
+                <tr>
+                    <td>Instagram-style</td>
+                    <td>/oauth/authorize</td>
+                    <td>Different parameter names</td>
+                    <td>Threads might follow Instagram patterns</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const CONFIG = {
+            clientId: '753393784148937',
+            clientSecret: '4cf0c65d88a7d192f89048d8c4d03c78',
+            redirectUri: 'https://schedule.oddomens.com/auth/threads/callback',
+            scope: 'threads_basic,threads_content_publish'
+        };
+
+        let testResults = [];
+
+        function addTestResult(method, url, description, expected) {
+            const result = {
+                method,
+                url,
+                description,
+                expected,
+                timestamp: new Date().toISOString()
+            };
+            
+            testResults.push(result);
+            updateTestResults();
+            
+            console.log(`🧪 Testing ${method}:`, result);
+        }
+
+        function updateTestResults() {
+            const resultsDiv = document.getElementById('test-results');
+            let html = '<h3>Test Results:</h3>';
+            
+            if (testResults.length === 0) {
+                html += '<p>No tests run yet. Click the buttons above to test different approaches.</p>';
+            } else {
+                html += '<table><thead><tr><th>Method</th><th>Description</th><th>Expected Result</th><th>Action</th></tr></thead><tbody>';
+                
+                testResults.forEach(result => {
+                    html += `<tr>
+                        <td><strong>${result.method}</strong></td>
+                        <td>${result.description}</td>
+                        <td>${result.expected}</td>
+                        <td><button onclick="tryUrl('${result.url}')" class="danger">🚀 Test</button></td>
+                    </tr>`;
+                });
+                
+                html += '</tbody></table>';
+            }
+            
+            resultsDiv.innerHTML = html;
+        }
+
+        function testStandardOAuth() {
+            const state = 'standard_' + Math.random().toString(36).substring(7);
+            const params = new URLSearchParams({
+                client_id: CONFIG.clientId,
+                client_secret: CONFIG.clientSecret,
+                redirect_uri: CONFIG.redirectUri,
+                scope: CONFIG.scope,
+                response_type: 'code',
+                state: state
+            });
+            const url = `https://graph.threads.net/oauth/authorize?${params.toString()}`;
+            
+            addTestResult(
+                'Standard OAuth',
+                url,
+                'Current approach with client_secret in authorization URL',
+                'Currently returns "Missing required field: code" error'
+            );
+        }
+
+        function testWithoutClientSecret() {
+            const state = 'no_secret_' + Math.random().toString(36).substring(7);
+            const params = new URLSearchParams({
+                client_id: CONFIG.clientId,
+                redirect_uri: CONFIG.redirectUri,
+                scope: CONFIG.scope,
+                response_type: 'code',
+                state: state
+            });
+            const url = `https://graph.threads.net/oauth/authorize?${params.toString()}`;
+            
+            addTestResult(
+                'Without Client Secret',
+                url,
+                'Standard OAuth 2.0 without client_secret (more typical)',
+                'Should either work or return "Missing client_secret" error'
+            );
+        }
+
+        function testDifferentEndpoint() {
+            const state = 'diff_endpoint_' + Math.random().toString(36).substring(7);
+            const params = new URLSearchParams({
+                client_id: CONFIG.clientId,
+                redirect_uri: CONFIG.redirectUri,
+                scope: CONFIG.scope,
+                response_type: 'code',
+                state: state
+            });
+            const url = `https://www.threads.net/oauth/authorize?${params.toString()}`;
+            
+            addTestResult(
+                'Different Endpoint',
+                url,
+                'Try www.threads.net instead of graph.threads.net',
+                'Might work if endpoint is different'
+            );
+        }
+
+        function testMinimalParams() {
+            const params = new URLSearchParams({
+                client_id: CONFIG.clientId,
+                response_type: 'code'
+            });
+            const url = `https://graph.threads.net/oauth/authorize?${params.toString()}`;
+            
+            addTestResult(
+                'Minimal Parameters',
+                url,
+                'Only client_id and response_type',
+                'Should show what other parameters are required'
+            );
+        }
+
+        function testDirectTokenExchange() {
+            const params = new URLSearchParams({
+                client_id: CONFIG.clientId,
+                client_secret: CONFIG.clientSecret,
+                grant_type: 'client_credentials'
+            });
+            const url = `https://graph.threads.net/oauth/access_token?${params.toString()}`;
+            
+            addTestResult(
+                'Direct Token Exchange',
+                url,
+                'Skip authorization, try direct token exchange',
+                'Might work if Threads uses app-only auth'
+            );
+        }
+
+        function tryUrl(url) {
+            if (confirm(`🚀 This will test the OAuth URL:\n\n${url.substring(0, 100)}...\n\nThis will open in a new tab. Continue?`)) {
+                window.open(url, '_blank');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            updateTestResults();
+            console.log('🔍 Threads OAuth Investigation Tool Loaded');
+            console.log('Configuration:', {
+                ...CONFIG,
+                clientSecret: CONFIG.clientSecret.substring(0, 8) + '...'
+            });
+        });
+    </script>
+</body>
+</html>

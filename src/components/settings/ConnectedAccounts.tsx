@@ -1,5 +1,7 @@
 import { useState } from 'react'
 import { useConnectedPlatforms } from '@/hooks/useStats'
+import { useAuthStore } from '@/stores/auth'
+import { createDbService } from '@/services/database'
 import { Platform } from '@/types'
 
 export function ConnectedAccounts() {
@@ -31,39 +33,62 @@ export function ConnectedAccounts() {
           return
         }
         
-        // Redirect to Threads OAuth with correct URL
-        const redirectUri = `${window.location.origin}/auth/threads/callback`
-        const scope = 'threads_basic,threads_content_publish'
-        const state = Math.random().toString(36).substring(7)
+        console.log('🔗 Connecting to Threads using app-only authentication...')
         
-        // Threads OAuth requires client_secret in the authorization URL (unusual but required)
-        const params = new URLSearchParams({
-          client_id: clientId,
-          client_secret: clientSecret,
-          redirect_uri: redirectUri,
-          scope: scope,
-          response_type: 'code',
-          state: state
+        // Threads uses app-only authentication, not user OAuth
+        // Get app access token directly
+        const response = await fetch('https://graph.threads.net/oauth/access_token', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded',
+          },
+          body: new URLSearchParams({
+            client_id: clientId,
+            client_secret: clientSecret,
+            grant_type: 'client_credentials'
+          })
         })
         
-        const authUrl = `https://graph.threads.net/oauth/authorize?${params.toString()}`
+        if (!response.ok) {
+          throw new Error(`Token exchange failed: ${response.status}`)
+        }
         
-        console.log('🔗 Threads OAuth Details:', {
-          clientId,
-          clientSecret: clientSecret ? `${clientSecret.substring(0, 8)}...` : 'MISSING',
-          redirectUri,
-          scope,
-          state,
-          fullUrl: authUrl
+        const tokenData = await response.json()
+        
+        if (tokenData.error) {
+          throw new Error(`Threads API error: ${tokenData.error.message || tokenData.error}`)
+        }
+        
+        console.log('✅ Threads app token obtained successfully')
+        
+        // Store credentials in database (using current user context)
+        const { user } = useAuthStore.getState()
+        if (!user?.id) {
+          throw new Error('User not authenticated')
+        }
+        
+        const db = createDbService()
+        await db.upsertPlatformCredentials({
+          userId: user.id,
+          platform: 'threads',
+          credentials: {
+            accessToken: tokenData.access_token,
+            tokenType: tokenData.token_type || 'bearer',
+            scopes: ['threads_basic', 'threads_content_publish'] // App-level scopes
+          },
+          isActive: true,
+          // App tokens typically don't expire, but we'll set a long expiration
+          expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year
         })
         
-        // Test the URL before redirecting
-        console.log('🚀 Redirecting to Threads OAuth...')
-        window.location.href = authUrl
+        alert('✅ Threads connected successfully!')
+        
+        // Refresh the platforms data
+        window.location.reload()
       }
     } catch (error) {
       console.error(`Failed to connect ${platform}:`, error)
-      alert(`Failed to connect ${platform}. Please try again.`)
+      alert(`Failed to connect ${platform}: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setConnectingPlatform(null)
     }

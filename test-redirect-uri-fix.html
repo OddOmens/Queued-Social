@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔗 Test Redirect URI Fix</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .section { background: #f5f5f5; padding: 20px; margin: 15px 0; border-radius: 8px; }
+        .success { background: #e6ffed; border-left: 4px solid #28a745; }
+        .error { background: #ffe6e6; border-left: 4px solid #dc3545; }
+        .progress { background: #e3f2fd; border-left: 4px solid #2196f3; }
+        .code-block { background: #1a1a1a; color: #00ff00; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 12px; margin: 10px 0; }
+        button { background: #007cba; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; margin: 8px; }
+        button:hover { background: #005a87; }
+        .danger { background: #dc3545 !important; }
+        .danger:hover { background: #c82333 !important; }
+        .checklist { background: white; padding: 15px; border-radius: 6px; margin: 10px 0; }
+        .checklist li { margin: 8px 0; }
+    </style>
+</head>
+<body>
+    <h1>🔗 Redirect URI Configuration Fix</h1>
+    
+    <div class="section progress">
+        <h2>🎉 Progress Update</h2>
+        <p><strong>✅ Fixed:</strong> "Missing required field: client_secret" - The client_secret fix worked!</p>
+        <p><strong>🎯 Current Issue:</strong> "Invalid redirect_uri" - Need to configure Meta Developer Console</p>
+    </div>
+
+    <div class="section error">
+        <h2>❌ Current Error</h2>
+        <div class="code-block">
+{
+    "error": {
+        "message": "Invalid redirect_uri: https://schedule.oddomens.com/auth/threads/callback",
+        "type": "OAuthException",
+        "code": 191
+    }
+}
+        </div>
+        <p><strong>What this means:</strong> The redirect URI is not configured in your Meta Developer Console Threads API settings.</p>
+    </div>
+
+    <div class="section">
+        <h2>🛠️ How to Fix in Meta Developer Console</h2>
+        
+        <div class="checklist">
+            <h3>Step 1: Access Threads API Settings</h3>
+            <ol>
+                <li>Go to <a href="https://developers.facebook.com" target="_blank">Meta Developer Console</a></li>
+                <li>Select your app (ID: <code>753393784148937</code>)</li>
+                <li>Click <strong>Products</strong> → <strong>Threads API</strong> in the left sidebar</li>
+                <li>Click <strong>Settings</strong> or <strong>Configure</strong></li>
+            </ol>
+        </div>
+
+        <div class="checklist">
+            <h3>Step 2: Add Redirect URI</h3>
+            <ol>
+                <li>Look for <strong>"Redirect URIs"</strong> or <strong>"Valid OAuth Redirect URIs"</strong> section</li>
+                <li>Add this <strong>exact</strong> URI (copy and paste):</li>
+                <div class="code-block">https://schedule.oddomens.com/auth/threads/callback</div>
+                <li>Click <strong>Save</strong> or <strong>Add</strong></li>
+            </ol>
+        </div>
+
+        <div class="checklist">
+            <h3>Step 3: Verify App Domains</h3>
+            <ol>
+                <li>Go to <strong>Settings</strong> → <strong>Basic</strong></li>
+                <li>In <strong>"App Domains"</strong> field, ensure it includes:</li>
+                <div class="code-block">schedule.oddomens.com</div>
+                <li>Save the changes</li>
+            </ol>
+        </div>
+
+        <div class="checklist">
+            <h3>Step 4: Wait and Test</h3>
+            <ol>
+                <li><strong>Wait 5-10 minutes</strong> for changes to propagate</li>
+                <li>Test the OAuth flow again</li>
+                <li>Should now work without redirect_uri error</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>🧪 Test the Fix</h2>
+        <p>After configuring the redirect URI in Meta Developer Console, test with this URL:</p>
+        <button onclick="testOAuthFlow()">🚀 Test OAuth Flow</button>
+        <button onclick="copyTestUrl()">📋 Copy Test URL</button>
+        
+        <div id="test-url" class="code-block" style="display: none;"></div>
+    </div>
+
+    <div class="section success">
+        <h2>✅ Expected Results After Fix</h2>
+        <p><strong>Before Fix:</strong></p>
+        <div class="code-block">❌ 400 Bad Request: "Invalid redirect_uri: https://schedule.oddomens.com/auth/threads/callback"</div>
+        
+        <p><strong>After Fix:</strong></p>
+        <div class="code-block">✅ 200 OK: Threads login page appears</div>
+    </div>
+
+    <div class="section">
+        <h2>🔍 Common Redirect URI Issues</h2>
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr style="background: #f0f0f0;">
+                    <th style="padding: 10px; border: 1px solid #ddd;">Issue</th>
+                    <th style="padding: 10px; border: 1px solid #ddd;">Cause</th>
+                    <th style="padding: 10px; border: 1px solid #ddd;">Solution</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Invalid redirect_uri</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">URI not in Threads API settings</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Add exact URI to Threads API config</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;">redirect_uri_mismatch</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Typo or case mismatch</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Copy and paste exact URI</td>
+                </tr>
+                <tr>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Domain not allowed</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Domain not in App Domains</td>
+                    <td style="padding: 10px; border: 1px solid #ddd;">Add domain to Basic settings</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <script>
+        const CONFIG = {
+            clientId: '753393784148937',
+            clientSecret: '4cf0c65d88a7d192f89048d8c4d03c78',
+            redirectUri: 'https://schedule.oddomens.com/auth/threads/callback',
+            scope: 'threads_basic,threads_content_publish'
+        };
+
+        function generateTestUrl() {
+            const state = 'redirect_test_' + Math.random().toString(36).substring(7);
+            const params = new URLSearchParams({
+                client_id: CONFIG.clientId,
+                client_secret: CONFIG.clientSecret,
+                redirect_uri: CONFIG.redirectUri,
+                scope: CONFIG.scope,
+                response_type: 'code',
+                state: state
+            });
+            return `https://graph.threads.net/oauth/authorize?${params.toString()}`;
+        }
+
+        function testOAuthFlow() {
+            const url = generateTestUrl();
+            document.getElementById('test-url').textContent = url;
+            document.getElementById('test-url').style.display = 'block';
+            
+            if (confirm('🚀 This will test the OAuth flow with the redirect URI.\n\nExpected results:\n- Before fix: "Invalid redirect_uri" error\n- After fix: Threads login page\n\nContinue?')) {
+                window.open(url, '_blank');
+            }
+        }
+
+        function copyTestUrl() {
+            const url = generateTestUrl();
+            navigator.clipboard.writeText(url).then(() => {
+                alert('✅ Test URL copied to clipboard!\n\nPaste this in a new browser tab to test the redirect URI configuration.');
+            }).catch(err => {
+                alert('❌ Failed to copy URL: ' + err.message);
+            });
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('🔗 Redirect URI Fix Test Tool Loaded');
+            console.log('Configuration:', {
+                ...CONFIG,
+                clientSecret: CONFIG.clientSecret.substring(0, 8) + '...'
+            });
+        });
+    </script>
+</body>
+</html>
