@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Threads OAuth Debug</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .debug-section { background: #f5f5f5; padding: 15px; margin: 10px 0; border-radius: 5px; }
+        .error { background: #fee; border: 1px solid #fcc; }
+        .success { background: #efe; border: 1px solid #cfc; }
+        .warning { background: #fff3cd; border: 1px solid #ffeaa7; }
+        code { background: #eee; padding: 2px 4px; border-radius: 3px; }
+        button { background: #007cba; color: white; padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; margin: 5px; }
+        button:hover { background: #005a87; }
+        .url-test { word-break: break-all; font-family: monospace; font-size: 12px; }
+    </style>
+</head>
+<body>
+    <h1>🧵 Threads OAuth Debug Tool</h1>
+    
+    <div class="debug-section">
+        <h2>Environment Check</h2>
+        <div id="env-check">Checking environment variables...</div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>OAuth URL Generation</h2>
+        <div id="oauth-url">Generating OAuth URL...</div>
+        <button onclick="testOAuthURL()">Test OAuth URL</button>
+        <button onclick="copyOAuthURL()">Copy URL</button>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Meta Developer Console Checklist</h2>
+        <div id="checklist">
+            <h3>Required Settings in Meta Developer Console:</h3>
+            <ol>
+                <li><strong>App Status:</strong> Must be in "Live" mode (not Development)</li>
+                <li><strong>Redirect URI:</strong> Must exactly match: <code>https://schedule.oddomens.com/auth/threads/callback</code></li>
+                <li><strong>App Domains:</strong> Must include: <code>schedule.oddomens.com</code></li>
+                <li><strong>Client ID:</strong> Must be: <code id="client-id-display">753393784148937</code></li>
+                <li><strong>Scopes:</strong> Must have approved: <code>threads_basic,threads_content_publish</code></li>
+            </ol>
+            
+            <div class="warning">
+                <h4>⚠️ Most Common Issue:</h4>
+                <p>The app is in <strong>Development mode</strong> instead of <strong>Live mode</strong>. 
+                In Development mode, only app developers can use OAuth. Switch to Live mode in the App Review section.</p>
+            </div>
+        </div>
+    </div>
+    
+    <div class="debug-section">
+        <h2>Manual Testing</h2>
+        <p>Click the button below to test the OAuth URL directly:</p>
+        <button onclick="redirectToOAuth()" style="background: #28a745;">🚀 Test OAuth Flow</button>
+        <p><small>This will redirect you to Threads OAuth. Make sure you're ready to test!</small></p>
+    </div>
+
+    <script>
+        const CLIENT_ID = '753393784148937';
+        const REDIRECT_URI = 'https://schedule.oddomens.com/auth/threads/callback';
+        const SCOPE = 'threads_basic,threads_content_publish';
+        
+        let generatedURL = '';
+        
+        function checkEnvironment() {
+            const envDiv = document.getElementById('env-check');
+            
+            const checks = [
+                { name: 'Client ID', value: CLIENT_ID, expected: '753393784148937' },
+                { name: 'Redirect URI', value: REDIRECT_URI, expected: 'https://schedule.oddomens.com/auth/threads/callback' },
+                { name: 'Scope', value: SCOPE, expected: 'threads_basic,threads_content_publish' }
+            ];
+            
+            let html = '<h3>Configuration Check:</h3>';
+            let allGood = true;
+            
+            checks.forEach(check => {
+                const isGood = check.value === check.expected;
+                if (!isGood) allGood = false;
+                
+                html += `<div class="${isGood ? 'success' : 'error'}" style="margin: 5px 0; padding: 10px;">
+                    <strong>${check.name}:</strong> ${check.value} 
+                    ${isGood ? '✅' : '❌ Expected: ' + check.expected}
+                </div>`;
+            });
+            
+            if (allGood) {
+                html += '<div class="success"><strong>✅ All configuration values are correct!</strong></div>';
+            }
+            
+            envDiv.innerHTML = html;
+        }
+        
+        function generateOAuthURL() {
+            const state = 'debug_' + Math.random().toString(36).substring(7);
+            
+            const params = new URLSearchParams({
+                client_id: CLIENT_ID,
+                redirect_uri: REDIRECT_URI,
+                scope: SCOPE,
+                response_type: 'code',
+                state: state
+            });
+            
+            generatedURL = `https://graph.threads.net/oauth/authorize?${params.toString()}`;
+            
+            const urlDiv = document.getElementById('oauth-url');
+            urlDiv.innerHTML = `
+                <h3>Generated OAuth URL:</h3>
+                <div class="url-test">${generatedURL}</div>
+                <br>
+                <h4>URL Parameters:</h4>
+                <ul>
+                    <li><strong>client_id:</strong> ${CLIENT_ID}</li>
+                    <li><strong>redirect_uri:</strong> ${REDIRECT_URI}</li>
+                    <li><strong>scope:</strong> ${SCOPE}</li>
+                    <li><strong>response_type:</strong> code</li>
+                    <li><strong>state:</strong> ${state}</li>
+                </ul>
+            `;
+        }
+        
+        function testOAuthURL() {
+            if (!generatedURL) {
+                alert('No URL generated yet!');
+                return;
+            }
+            
+            // Test if URL is valid
+            try {
+                new URL(generatedURL);
+                alert('✅ OAuth URL is valid! Check the console for details.');
+                console.log('🔗 OAuth URL Test:', {
+                    url: generatedURL,
+                    isValid: true,
+                    length: generatedURL.length
+                });
+            } catch (error) {
+                alert('❌ OAuth URL is invalid: ' + error.message);
+                console.error('❌ OAuth URL Error:', error);
+            }
+        }
+        
+        function copyOAuthURL() {
+            if (!generatedURL) {
+                alert('No URL generated yet!');
+                return;
+            }
+            
+            navigator.clipboard.writeText(generatedURL).then(() => {
+                alert('✅ OAuth URL copied to clipboard!');
+            }).catch(err => {
+                alert('❌ Failed to copy URL: ' + err.message);
+            });
+        }
+        
+        function redirectToOAuth() {
+            if (!generatedURL) {
+                alert('No URL generated yet!');
+                return;
+            }
+            
+            if (confirm('This will redirect you to Threads OAuth. Continue?')) {
+                console.log('🚀 Redirecting to OAuth:', generatedURL);
+                window.location.href = generatedURL;
+            }
+        }
+        
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            checkEnvironment();
+            generateOAuthURL();
+        });
+    </script>
+</body>
+</html>

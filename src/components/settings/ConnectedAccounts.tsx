@@ -12,7 +12,7 @@ export function ConnectedAccounts() {
     try {
       if (platform === 'threads') {
         // Check if environment variables are set
-        const clientId = import.meta.env.VITE_THREADS_CLIENT_ID || import.meta.env.THREADS_CLIENT_ID
+        const clientId = import.meta.env.VITE_THREADS_CLIENT_ID
         
         if (!clientId) {
           alert('Threads API is not configured. Please contact the administrator.')

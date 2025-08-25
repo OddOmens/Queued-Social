@@ -4,14 +4,11 @@ export function debugThreadsEnvironment() {
   const env = {
     VITE_THREADS_CLIENT_ID: import.meta.env.VITE_THREADS_CLIENT_ID,
     VITE_THREADS_CLIENT_SECRET: import.meta.env.VITE_THREADS_CLIENT_SECRET,
-    THREADS_CLIENT_ID: import.meta.env.THREADS_CLIENT_ID,
-    THREADS_CLIENT_SECRET: import.meta.env.THREADS_CLIENT_SECRET,
   }
 
   console.log('🔍 Threads Environment Debug:', {
     ...env,
     VITE_THREADS_CLIENT_SECRET: env.VITE_THREADS_CLIENT_SECRET ? `${env.VITE_THREADS_CLIENT_SECRET.substring(0, 8)}...` : undefined,
-    THREADS_CLIENT_SECRET: env.THREADS_CLIENT_SECRET ? `${env.THREADS_CLIENT_SECRET.substring(0, 8)}...` : undefined,
   })
 
   return env
@@ -20,8 +17,8 @@ export function debugThreadsEnvironment() {
 export async function testThreadsTokenExchange(code: string) {
   const env = debugThreadsEnvironment()
   
-  const clientId = env.VITE_THREADS_CLIENT_ID || env.THREADS_CLIENT_ID
-  const clientSecret = env.VITE_THREADS_CLIENT_SECRET || env.THREADS_CLIENT_SECRET
+  const clientId = env.VITE_THREADS_CLIENT_ID
+  const clientSecret = env.VITE_THREADS_CLIENT_SECRET
   const redirectUri = `${window.location.origin}/auth/threads/callback`
 
   if (!clientId) {
@@ -46,8 +43,15 @@ export async function testThreadsTokenExchange(code: string) {
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded'
     },
+    clientId: clientId,
+    clientIdLength: clientId?.length || 0,
+    clientSecret: clientSecret ? `${clientSecret.substring(0, 8)}...` : 'MISSING',
+    clientSecretLength: clientSecret?.length || 0,
+    redirectUri: redirectUri,
+    codeLength: code.length,
     body: Object.fromEntries(requestBody.entries()),
-    bodyString: requestBody.toString()
+    bodyString: requestBody.toString(),
+    hasAllRequiredFields: !!(clientId && clientSecret && code && redirectUri)
   })
 
   try {
