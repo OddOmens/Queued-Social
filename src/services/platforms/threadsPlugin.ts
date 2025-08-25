@@ -330,15 +330,15 @@ export class ThreadsPlugin extends BasePlatformPlugin implements IThreadsPlugin 
         throw new Error(`Post creation failed: ${response.status} ${response.statusText}`)
       }
 
-      const result: ThreadsApiResponse = await response.json()
+      const createResult: ThreadsApiResponse = await response.json()
       
-      if (result.error) {
-        return this.createPublishFailure(`Threads API error: ${result.error.message}`, result)
+      if (createResult.error) {
+        return this.createPublishFailure(`Threads API error: ${createResult.error.message}`, createResult)
       }
 
       // Publish the created post using URL-encoded format
       const publishParams = new URLSearchParams({
-        creation_id: result.id,
+        creation_id: createResult.id,
         access_token: validatedCredentials.credentials.accessToken
       })
 
@@ -360,17 +360,17 @@ export class ThreadsPlugin extends BasePlatformPlugin implements IThreadsPlugin 
         return this.createPublishFailure(`Threads publish error: ${publishResult.error.message}`, publishResult)
       }
 
-      const result = this.createPublishSuccess(publishResult.id, {
+      const finalResult = this.createPublishSuccess(publishResult.id, {
         permalink: publishResult.permalink,
         threadsResponse: publishResult
       })
 
       // Include updated credentials if they were corrected
       if (validatedCredentials.credentials.userId !== credentials.credentials.userId) {
-        result.updatedCredentials = validatedCredentials
+        finalResult.updatedCredentials = validatedCredentials
       }
 
-      return result
+      return finalResult
     } catch (error) {
       return this.createPublishFailure(
         `Failed to publish single post: ${error instanceof Error ? error.message : 'Unknown error'}`,
