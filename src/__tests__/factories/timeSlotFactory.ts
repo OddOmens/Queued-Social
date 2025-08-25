@@ -1,4 +1,4 @@
-import { TimeSlotConfig } from '@/types'
+import { TimeSlotConfig } from '../../types'
 
 export interface TimeSlotFactoryOptions {
   id?: string

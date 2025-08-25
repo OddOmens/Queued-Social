@@ -1,4 +1,4 @@
-import { PlatformCredentials, ContentLimits, ValidationResult, PublishResult } from '@/types'
+import { PlatformCredentials, ContentLimits, ValidationResult, PublishResult } from '../../types'
 
 export interface PlatformFactoryOptions {
   platform?: string

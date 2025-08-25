@@ -1,4 +1,4 @@
-import { ScheduledPost, PostContent } from '@/types'
+import { ScheduledPost, PostContent } from '../../types'
 
 export interface PostFactoryOptions {
   id?: string

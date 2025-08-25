@@ -13,7 +13,8 @@
     "test": "vitest",
     "test:ui": "vitest --ui",
     "validate-env": "node scripts/validate-env.js",
-    "migrate": "node scripts/run-migration.js"
+    "migrate": "node scripts/run-migration.js",
+    "start": "vite preview --host 0.0.0.0 --port 3000"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.39.0",
