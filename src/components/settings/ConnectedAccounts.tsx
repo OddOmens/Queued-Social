@@ -19,17 +19,38 @@ export function ConnectedAccounts() {
           return
         }
         
+        // Validate client ID format (should be numeric)
+        if (!/^\d+$/.test(clientId)) {
+          alert('Invalid Threads Client ID format. Please check configuration.')
+          return
+        }
+        
         // Redirect to Threads OAuth with correct URL
         const redirectUri = `${window.location.origin}/auth/threads/callback`
         const scope = 'threads_basic,threads_content_publish'
+        const state = Math.random().toString(36).substring(7)
         
-        const authUrl = `https://graph.threads.net/oauth/authorize?` +
-          `client_id=${clientId}&` +
-          `redirect_uri=${encodeURIComponent(redirectUri)}&` +
-          `scope=${scope}&` +
-          `response_type=code&` +
-          `state=${Math.random().toString(36).substring(7)}`
+        // Use URLSearchParams to properly encode all parameters
+        const params = new URLSearchParams({
+          client_id: clientId,
+          redirect_uri: redirectUri,
+          scope: scope,
+          response_type: 'code',
+          state: state
+        })
         
+        const authUrl = `https://graph.threads.net/oauth/authorize?${params.toString()}`
+        
+        console.log('🔗 Threads OAuth Details:', {
+          clientId,
+          redirectUri,
+          scope,
+          state,
+          fullUrl: authUrl
+        })
+        
+        // Test the URL before redirecting
+        console.log('🚀 Redirecting to Threads OAuth...')
         window.location.href = authUrl
       }
     } catch (error) {
