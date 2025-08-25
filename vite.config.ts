@@ -14,6 +14,16 @@ export default defineConfig(({ mode }) => ({
     port: 3000,
     host: true, // Allow external connections
   },
+  preview: {
+    port: 3000,
+    host: true,
+    allowedHosts: [
+      'schedule.oddomens.com',
+      'www.schedule.oddomens.com',
+      'localhost',
+      '127.0.0.1'
+    ]
+  },
   build: {
     outDir: 'dist',
     sourcemap: mode !== 'production',
