@@ -241,10 +241,52 @@ export class ThreadsPlugin extends BasePlatformPlugin implements IThreadsPlugin 
   // ============================================================================
 
   /**
+   * Validate and correct user ID if needed
+   */
+  private async validateAndCorrectUserId(credentials: ThreadsCredentials): Promise<ThreadsCredentials> {
+    try {
+      // Get the actual user ID from the API
+      const response = await fetch(`${this.API_BASE_URL}/${this.API_VERSION}/me?fields=id,username&access_token=${credentials.credentials.accessToken}`)
+      
+      if (!response.ok) {
+        throw new Error(`Failed to validate user ID: ${response.status} ${response.statusText}`)
+      }
+
+      const userData = await response.json()
+      const actualUserId = userData.id
+      const storedUserId = credentials.credentials.userId
+
+      // If user IDs match, return as-is
+      if (actualUserId === storedUserId) {
+        return credentials
+      }
+
+      console.warn(`User ID mismatch detected. Stored: ${storedUserId}, Actual: ${actualUserId}. Auto-correcting...`)
+
+      // Return corrected credentials
+      return {
+        ...credentials,
+        credentials: {
+          ...credentials.credentials,
+          userId: actualUserId,
+          username: userData.username
+        }
+      }
+    } catch (error) {
+      console.error('Failed to validate user ID:', error)
+      // Return original credentials if validation fails
+      return credentials
+    }
+  }
+
+  /**
    * Publish a single post to Threads
    */
   private async publishSinglePost(content: PostContent, credentials: ThreadsCredentials): Promise<PublishResult> {
     try {
+      // Validate and correct user ID if needed
+      const validatedCredentials = await this.validateAndCorrectUserId(credentials)
+      
       const mediaIds: string[] = []
 
       // Upload media if present
@@ -256,28 +298,32 @@ export class ThreadsPlugin extends BasePlatformPlugin implements IThreadsPlugin 
         }
       }
 
-      // Create the post
-      const postData: any = {
+      // Create the post using URL-encoded format
+      const postParams = new URLSearchParams({
         media_type: mediaIds.length > 0 ? 'IMAGE' : 'TEXT',
         text: content.text,
-        ...(mediaIds.length > 0 && { media_ids: mediaIds }),
         access_token: credentials.credentials.accessToken
+      })
+
+      // Add media IDs if present
+      if (mediaIds.length > 0) {
+        postParams.append('media_ids', mediaIds.join(','))
       }
 
       // Apply Threads-specific metadata
       if (content.metadata) {
         const threadsMetadata = content.metadata as ThreadsPostContent['metadata']
         if (threadsMetadata.replySettings) {
-          postData['reply_control'] = threadsMetadata.replySettings
+          postParams.append('reply_control', threadsMetadata.replySettings)
         }
       }
 
-      const response = await fetch(`${this.API_BASE_URL}/${this.API_VERSION}/${credentials.credentials.userId}/threads`, {
+      const response = await fetch(`${this.API_BASE_URL}/${this.API_VERSION}/${validatedCredentials.credentials.userId}/threads`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: JSON.stringify(postData)
+        body: postParams
       })
 
       if (!response.ok) {
@@ -290,16 +336,18 @@ export class ThreadsPlugin extends BasePlatformPlugin implements IThreadsPlugin 
         return this.createPublishFailure(`Threads API error: ${result.error.message}`, result)
       }
 
-      // Publish the created post
-      const publishResponse = await fetch(`${this.API_BASE_URL}/${this.API_VERSION}/${credentials.credentials.userId}/threads_publish`, {
+      // Publish the created post using URL-encoded format
+      const publishParams = new URLSearchParams({
+        creation_id: result.id,
+        access_token: validatedCredentials.credentials.accessToken
+      })
+
+      const publishResponse = await fetch(`${this.API_BASE_URL}/${this.API_VERSION}/${validatedCredentials.credentials.userId}/threads_publish`, {
         method: 'POST',
         headers: {
-          'Content-Type': 'application/json'
+          'Content-Type': 'application/x-www-form-urlencoded'
         },
-        body: JSON.stringify({
-          creation_id: result.id,
-          access_token: credentials.credentials.accessToken
-        })
+        body: publishParams
       })
 
       if (!publishResponse.ok) {
@@ -312,10 +360,17 @@ export class ThreadsPlugin extends BasePlatformPlugin implements IThreadsPlugin 
         return this.createPublishFailure(`Threads publish error: ${publishResult.error.message}`, publishResult)
       }
 
-      return this.createPublishSuccess(publishResult.id, {
+      const result = this.createPublishSuccess(publishResult.id, {
         permalink: publishResult.permalink,
         threadsResponse: publishResult
       })
+
+      // Include updated credentials if they were corrected
+      if (validatedCredentials.credentials.userId !== credentials.credentials.userId) {
+        result.updatedCredentials = validatedCredentials
+      }
+
+      return result
     } catch (error) {
       return this.createPublishFailure(
         `Failed to publish single post: ${error instanceof Error ? error.message : 'Unknown error'}`,

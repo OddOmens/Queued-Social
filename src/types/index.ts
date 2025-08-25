@@ -147,6 +147,7 @@ export interface PublishResult {
   postId?: string
   error?: string
   platformResponse?: any
+  updatedCredentials?: PlatformCredentials
 }
 
 export interface PlatformCredentials {

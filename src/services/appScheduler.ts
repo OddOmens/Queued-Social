@@ -157,6 +157,12 @@ export class AppScheduler {
         platformCredentials
       )
 
+      // Check if credentials were updated during publishing (e.g., user ID correction)
+      if (publishResult.updatedCredentials) {
+        console.log('Updating corrected credentials in database...')
+        await this.updateCredentialsInDatabase(publishResult.updatedCredentials)
+      }
+
       if (publishResult.success) {
         // Update post status to published
         // Note: platform_post_id column may not exist yet
@@ -208,6 +214,31 @@ export class AppScheduler {
    */
   public async triggerProcessing(): Promise<void> {
     await this.processScheduledPosts()
+  }
+
+  /**
+   * Update credentials in database (for auto-corrections)
+   */
+  private async updateCredentialsInDatabase(updatedCredentials: PlatformCredentials): Promise<void> {
+    try {
+      const supabase = createClient()
+      
+      const { error } = await supabase
+        .from('platform_credentials')
+        .update({
+          credentials: updatedCredentials.credentials,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', updatedCredentials.id)
+
+      if (error) {
+        console.error('Failed to update credentials in database:', error)
+      } else {
+        console.log('Successfully updated credentials in database')
+      }
+    } catch (error) {
+      console.error('Error updating credentials:', error)
+    }
   }
 
   /**

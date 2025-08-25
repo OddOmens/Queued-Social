@@ -45,14 +45,31 @@ export function ThreadsCallbackPage() {
           throw new Error(`Threads API error: ${tokenData.error.message || tokenData.error_description || tokenData.error}`)
         }
 
-        // Store credentials in database
+        // Get actual user info from Threads API to ensure correct user ID
+        console.log('🔍 Fetching user info from Threads API...')
+        const userInfoResponse = await fetch(`https://graph.threads.net/v1.0/me?fields=id,username&access_token=${tokenData.access_token}`)
+        
+        if (!userInfoResponse.ok) {
+          throw new Error(`Failed to fetch user info: ${userInfoResponse.status} ${userInfoResponse.statusText}`)
+        }
+
+        const userInfo = await userInfoResponse.json()
+        
+        if (userInfo.error) {
+          throw new Error(`User info error: ${userInfo.error.message}`)
+        }
+
+        console.log(`✅ Verified user ID: ${userInfo.id}, Username: ${userInfo.username}`)
+
+        // Store credentials in database with verified user info
         const db = createDbService()
         await db.upsertPlatformCredentials({
           userId: user.id,
           platform: 'threads',
           credentials: {
             accessToken: tokenData.access_token,
-            userId: tokenData.user_id,
+            userId: userInfo.id, // Use verified user ID from API
+            username: userInfo.username, // Store username too
             scopes: tokenData.scope?.split(',') || []
           },
           isActive: true,
