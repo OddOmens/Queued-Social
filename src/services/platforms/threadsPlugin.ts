@@ -241,6 +241,27 @@ export class ThreadsPlugin extends BasePlatformPlugin implements IThreadsPlugin 
   // ============================================================================
 
   /**
+   * Check publishing quota before attempting to post
+   */
+  private async checkPublishingQuota(credentials: ThreadsCredentials): Promise<void> {
+    try {
+      const response = await fetch(`${this.API_BASE_URL}/${this.API_VERSION}/me/threads_publishing_limit?access_token=${credentials.credentials.accessToken}`)
+      
+      if (response.ok) {
+        const quotaData = await response.json()
+        console.log('📊 Threads Publishing Quota:', quotaData)
+        
+        if (quotaData.data && quotaData.data[0] && quotaData.data[0].quota_usage >= 250) {
+          throw new Error('Threads publishing quota exceeded. Please wait before posting again.')
+        }
+      }
+    } catch (error) {
+      console.warn('⚠️ Could not check publishing quota:', error)
+      // Don't fail the post if quota check fails
+    }
+  }
+
+  /**
    * Validate and correct user ID if needed
    */
   private async validateAndCorrectUserId(credentials: ThreadsCredentials): Promise<ThreadsCredentials> {
@@ -284,6 +305,9 @@ export class ThreadsPlugin extends BasePlatformPlugin implements IThreadsPlugin 
    */
   private async publishSinglePost(content: PostContent, credentials: ThreadsCredentials): Promise<PublishResult> {
     try {
+      // Check publishing quota first
+      await this.checkPublishingQuota(credentials)
+      
       // Validate and correct user ID if needed
       const validatedCredentials = await this.validateAndCorrectUserId(credentials)
       
@@ -302,7 +326,7 @@ export class ThreadsPlugin extends BasePlatformPlugin implements IThreadsPlugin 
       const postParams = new URLSearchParams({
         media_type: mediaIds.length > 0 ? 'IMAGE' : 'TEXT',
         text: content.text,
-        access_token: credentials.credentials.accessToken
+        access_token: validatedCredentials.credentials.accessToken
       })
 
       // Add media IDs if present
@@ -318,16 +342,61 @@ export class ThreadsPlugin extends BasePlatformPlugin implements IThreadsPlugin 
         }
       }
 
-      const response = await fetch(`${this.API_BASE_URL}/${this.API_VERSION}/${validatedCredentials.credentials.userId}/threads`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded'
-        },
-        body: postParams
+      console.log('🔍 Threads API Request:', {
+        url: `${this.API_BASE_URL}/${this.API_VERSION}/${validatedCredentials.credentials.userId}/threads`,
+        params: Object.fromEntries(postParams.entries())
       })
 
-      if (!response.ok) {
-        throw new Error(`Post creation failed: ${response.status} ${response.statusText}`)
+      // Retry logic for 500 errors (server issues)
+      let response: Response | null = null
+      let lastError: string = ''
+      const maxRetries = 3
+      
+      for (let attempt = 1; attempt <= maxRetries; attempt++) {
+        console.log(`📡 Attempt ${attempt}/${maxRetries}...`)
+        
+        response = await fetch(`${this.API_BASE_URL}/${this.API_VERSION}/${validatedCredentials.credentials.userId}/threads`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          },
+          body: postParams
+        })
+
+        console.log('📡 Threads API Response:', {
+          attempt,
+          status: response.status,
+          statusText: response.statusText,
+          headers: Object.fromEntries(response.headers.entries())
+        })
+
+        if (response.ok) {
+          break // Success, exit retry loop
+        }
+
+        // Get error details
+        let errorBody = ''
+        try {
+          errorBody = await response.text()
+          console.error(`❌ Attempt ${attempt} failed:`, errorBody)
+          lastError = errorBody
+        } catch (e) {
+          console.error('❌ Could not read error response body')
+          lastError = `${response.status} ${response.statusText}`
+        }
+
+        // If it's a 500 error and we have retries left, wait and try again
+        if (response.status === 500 && attempt < maxRetries) {
+          const delay = attempt * 2000 // 2s, 4s delays
+          console.log(`⏳ Waiting ${delay}ms before retry...`)
+          await new Promise(resolve => setTimeout(resolve, delay))
+        } else {
+          break // Don't retry for other errors or if out of retries
+        }
+      }
+
+      if (!response || !response.ok) {
+        throw new Error(`Post creation failed after ${maxRetries} attempts: ${response?.status} ${response?.statusText}. Last response: ${lastError}`)
       }
 
       const createResult: ThreadsApiResponse = await response.json()
