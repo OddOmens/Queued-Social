@@ -5,11 +5,13 @@ import { getClientEnv, validateEnv } from './env'
 export const createClient = () => {
   const env = getClientEnv()
   
-  // During build time, allow placeholder values, but warn at runtime
+  // Log warning but don't throw to prevent app crashes
   if (!env.supabaseUrl || !env.supabaseAnonKey) {
     if (typeof window !== 'undefined') {
-      // Only throw in browser runtime, not during build
-      throw new Error('Missing Supabase environment variables. Please check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY')
+      console.warn('Missing Supabase environment variables:', {
+        NEXT_PUBLIC_SUPABASE_URL: !!env.supabaseUrl,
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: !!env.supabaseAnonKey
+      })
     }
   }
   

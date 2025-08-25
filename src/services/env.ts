@@ -37,12 +37,13 @@ export const getClientEnv = () => {
   const { publicRuntimeConfig } = getRuntimeConfig()
   
   // For debugging: log what we're getting from different sources
-  if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+  if (typeof window !== 'undefined') {
     console.debug('Environment variable sources:', {
       'process.env.NEXT_PUBLIC_SUPABASE_URL': process.env.NEXT_PUBLIC_SUPABASE_URL,
       'publicRuntimeConfig.supabaseUrl': publicRuntimeConfig.supabaseUrl,
       'process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY': !!process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
-      'publicRuntimeConfig.supabaseAnonKey': !!publicRuntimeConfig.supabaseAnonKey
+      'publicRuntimeConfig.supabaseAnonKey': !!publicRuntimeConfig.supabaseAnonKey,
+      'NODE_ENV': process.env.NODE_ENV
     })
   }
   
