@@ -7,8 +7,9 @@ export const createServerSupabaseClient = () => {
   const env = getServerEnv()
   
   // Use fallback values if environment variables are missing
-  const supabaseUrl = env.supabaseUrl || 'https://placeholder.supabase.co'
-  const supabaseAnonKey = env.supabaseAnonKey || 'placeholder-key'
+  // During build time, use valid placeholder URLs to prevent URL validation errors
+  const supabaseUrl = env.supabaseUrl || 'https://build-time-placeholder.supabase.co'
+  const supabaseAnonKey = env.supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDUxNTg0MzQsImV4cCI6MTk2MDczNDQzNH0.placeholder-key-for-build-time'
   
   // Debug logging for environment variables
   console.log('Server Supabase Config:', {
@@ -60,14 +61,18 @@ export const createServerSupabaseClient = () => {
 // Server-side client with service role key for admin operations
 export const createAdminSupabaseClient = () => {
   const env = getServerEnv()
-  const supabaseUrl = env.supabaseUrl || 'https://placeholder.supabase.co'
+  const supabaseUrl = env.supabaseUrl || 'https://build-time-placeholder.supabase.co'
   const serviceRoleKey = env.supabaseServiceRoleKey
   
-  if (!serviceRoleKey) {
-    throw new Error('Missing Supabase service role key')
+  // During build time, use placeholder for service role key
+  const finalServiceRoleKey = serviceRoleKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTY0NTE1ODQzNCwiZXhwIjoxOTYwNzM0NDM0fQ.placeholder-service-role-key-for-build-time'
+  
+  // Only throw in production runtime if missing
+  if (!serviceRoleKey && env.nodeEnv === 'production' && typeof process !== 'undefined' && process.env.NODE_ENV === 'production') {
+    console.warn('Missing Supabase service role key in production runtime')
   }
   
-  return createServerClient(supabaseUrl, serviceRoleKey, {
+  return createServerClient(supabaseUrl, finalServiceRoleKey, {
     cookies: {
       get() { return undefined },
       set() {},

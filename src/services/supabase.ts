@@ -5,13 +5,16 @@ import { getClientEnv, validateEnv } from './env'
 export const createClient = () => {
   const env = getClientEnv()
   
-  // Throw error instead of using placeholder values
+  // During build time, allow placeholder values, but warn at runtime
   if (!env.supabaseUrl || !env.supabaseAnonKey) {
-    throw new Error('Missing Supabase environment variables. Please check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY')
+    if (typeof window !== 'undefined') {
+      // Only throw in browser runtime, not during build
+      throw new Error('Missing Supabase environment variables. Please check NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY')
+    }
   }
   
-  const supabaseUrl = env.supabaseUrl
-  const supabaseAnonKey = env.supabaseAnonKey
+  const supabaseUrl = env.supabaseUrl || 'https://build-time-placeholder.supabase.co'
+  const supabaseAnonKey = env.supabaseAnonKey || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDUxNTg0MzQsImV4cCI6MTk2MDczNDQzNH0.placeholder-key-for-build-time'
   
   // Debug logging for environment variables
   if (typeof window !== 'undefined') {
