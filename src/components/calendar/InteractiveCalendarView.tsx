@@ -297,7 +297,7 @@ const InteractiveCalendarView: React.FC<InteractiveCalendarViewProps> = ({
   return (
     <DndProvider backend={HTML5Backend}>
       <div className={`interactive-calendar-container ${className}`}>
-        <style jsx global>{`
+        <style>{`
           .rbc-calendar {
             font-family: inherit;
           }

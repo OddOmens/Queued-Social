@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth'
 import { validatePassword, validateEmail, formatAuthError } from '@/utils/auth'
 import type { SignUpData } from '@/types/auth'
@@ -24,7 +24,7 @@ export function SignUpForm({ redirectTo = '/dashboard', onSuccess }: SignUpFormP
   const [emailError, setEmailError] = useState<string | null>(null)
   
   const { signUp, signInWithGoogle, loading } = useAuthStore()
-  const router = useRouter()
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -65,7 +65,7 @@ export function SignUpForm({ redirectTo = '/dashboard', onSuccess }: SignUpFormP
       
       // Redirect after a short delay to show success message
       setTimeout(() => {
-        router.push(redirectTo)
+        navigate(redirectTo)
       }, 2000)
     }
   }

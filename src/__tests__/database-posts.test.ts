@@ -34,8 +34,8 @@ vi.mock('../services/supabase', () => ({
   createClient: () => mockSupabaseClient
 }))
 
-vi.mock('../services/supabase-server', () => ({
-  createServerSupabaseClient: () => mockSupabaseClient
+vi.mock('../services/supabase', () => ({
+  createClient: () => mockSupabaseClient
 }))
 
 describe('DatabaseService - Scheduled Posts Operations', () => {

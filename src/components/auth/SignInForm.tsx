@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth'
 import { formatAuthError } from '@/utils/auth'
 import type { SignInData } from '@/types/auth'
@@ -19,7 +19,7 @@ export function SignInForm({ redirectTo = '/dashboard', onSuccess }: SignInFormP
   const [error, setError] = useState<string | null>(null)
   
   const { signIn, signInWithGoogle, loading } = useAuthStore()
-  const router = useRouter()
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -34,7 +34,7 @@ export function SignInForm({ redirectTo = '/dashboard', onSuccess }: SignInFormP
 
     if (data) {
       onSuccess?.()
-      router.push(redirectTo)
+      navigate(redirectTo)
     }
   }
 

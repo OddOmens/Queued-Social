@@ -13,7 +13,15 @@ import type {
   AuthError
 } from '@/types/auth'
 
-const supabase = createClient()
+// Create Supabase client with error handling
+const getSupabaseClient = () => {
+  try {
+    return createClient()
+  } catch (error) {
+    console.error('Failed to create Supabase client:', error)
+    return null
+  }
+}
 
 // Helper function to convert Supabase auth error to our AuthError type
 const mapAuthError = (error: any): AuthError => ({
@@ -39,6 +47,12 @@ export const useAuthStore = create<AuthStore>()(
         // Actions
         signUp: async (data: SignUpData): Promise<AuthResponse<AuthUser>> => {
           set({ loading: true })
+          
+          const supabase = getSupabaseClient()
+          if (!supabase) {
+            set({ loading: false })
+            return createAuthResponse<AuthUser>(null, { message: 'Supabase client not configured' })
+          }
           
           try {
             const { data: authData, error } = await supabase.auth.signUp({
@@ -68,6 +82,12 @@ export const useAuthStore = create<AuthStore>()(
         signIn: async (data: SignInData): Promise<AuthResponse<AuthUser>> => {
           set({ loading: true })
           
+          const supabase = getSupabaseClient()
+          if (!supabase) {
+            set({ loading: false })
+            return createAuthResponse<AuthUser>(null, { message: 'Supabase client not configured' })
+          }
+          
           try {
             const { data: authData, error } = await supabase.auth.signInWithPassword({
               email: data.email,
@@ -91,11 +111,17 @@ export const useAuthStore = create<AuthStore>()(
         signInWithGoogle: async (): Promise<AuthResponse<null>> => {
           set({ loading: true })
           
+          const supabase = getSupabaseClient()
+          if (!supabase) {
+            set({ loading: false })
+            return createAuthResponse(null, { message: 'Supabase client not configured' })
+          }
+          
           try {
-            const { data, error } = await supabase.auth.signInWithOAuth({
+            const { error } = await supabase.auth.signInWithOAuth({
               provider: 'google',
               options: {
-                redirectTo: `${window.location.origin}/auth/callback`
+                redirectTo: `${window.location.origin}/`
               }
             })
 
@@ -114,6 +140,12 @@ export const useAuthStore = create<AuthStore>()(
 
         signOut: async (): Promise<AuthResponse<null>> => {
           set({ loading: true })
+          
+          const supabase = getSupabaseClient()
+          if (!supabase) {
+            set({ loading: false })
+            return createAuthResponse(null, { message: 'Supabase client not configured' })
+          }
           
           try {
             const { error } = await supabase.auth.signOut()
@@ -134,9 +166,15 @@ export const useAuthStore = create<AuthStore>()(
         resetPassword: async (data: ResetPasswordData): Promise<AuthResponse<null>> => {
           set({ loading: true })
           
+          const supabase = getSupabaseClient()
+          if (!supabase) {
+            set({ loading: false })
+            return createAuthResponse(null, { message: 'Supabase client not configured' })
+          }
+          
           try {
             const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-              redirectTo: `${window.location.origin}/auth/reset-password`
+              redirectTo: `${window.location.origin}/reset-password`
             })
 
             set({ loading: false })
@@ -154,6 +192,12 @@ export const useAuthStore = create<AuthStore>()(
 
         updatePassword: async (data: UpdatePasswordData): Promise<AuthResponse<AuthUser>> => {
           set({ loading: true })
+          
+          const supabase = getSupabaseClient()
+          if (!supabase) {
+            set({ loading: false })
+            return createAuthResponse<AuthUser>(null, { message: 'Supabase client not configured' })
+          }
           
           try {
             const { data: authData, error } = await supabase.auth.updateUser({
@@ -176,6 +220,12 @@ export const useAuthStore = create<AuthStore>()(
 
         updateProfile: async (data: UpdateProfileData): Promise<AuthResponse<AuthUser>> => {
           set({ loading: true })
+          
+          const supabase = getSupabaseClient()
+          if (!supabase) {
+            set({ loading: false })
+            return createAuthResponse<AuthUser>(null, { message: 'Supabase client not configured' })
+          }
           
           try {
             const updateData: any = {}
@@ -216,6 +266,11 @@ export const useAuthStore = create<AuthStore>()(
         },
 
         refreshSession: async (): Promise<AuthResponse<AuthUser>> => {
+          const supabase = getSupabaseClient()
+          if (!supabase) {
+            return createAuthResponse<AuthUser>(null, { message: 'Supabase client not configured' })
+          }
+          
           try {
             const { data: { session }, error } = await supabase.auth.refreshSession()
             
@@ -241,6 +296,13 @@ export const useAuthStore = create<AuthStore>()(
 
           set({ loading: true })
 
+          const supabase = getSupabaseClient()
+          if (!supabase) {
+            console.error('Supabase client not configured')
+            set({ user: null, loading: false, initialized: true })
+            return
+          }
+
           try {
             // Get initial session
             const { data: { session }, error } = await supabase.auth.getSession()
@@ -255,7 +317,7 @@ export const useAuthStore = create<AuthStore>()(
             set({ user, loading: false, initialized: true })
 
             // Listen for auth changes
-            supabase.auth.onAuthStateChange(async (event, session) => {
+            supabase.auth.onAuthStateChange(async (event: string, session: any) => {
               const user = session?.user as AuthUser | null
               
               if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {

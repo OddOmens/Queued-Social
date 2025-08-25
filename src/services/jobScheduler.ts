@@ -1,5 +1,5 @@
 import cron from 'node-cron';
-import { createAdminSupabaseClient } from './supabase-server';
+import { createClient } from './supabase';
 import { PlatformManager } from './platformManager';
 import { ScheduledPost, PostStatus, PlatformCredentials } from '../types';
 import { initializePlatformPlugins } from './plugins';
@@ -78,7 +78,7 @@ export class JobScheduler {
   private async processScheduledPosts(): Promise<void> {
     try {
       const now = new Date();
-      const supabase = createAdminSupabaseClient();
+      const supabase = createClient();
       
       // Get posts scheduled for publishing (within the last minute to current time)
       const { data: posts, error } = await supabase
@@ -266,7 +266,7 @@ export class JobScheduler {
     publishedAt?: Date, 
     errorMessage?: string
   ): Promise<void> {
-    const supabase = createAdminSupabaseClient();
+    const supabase = createClient();
     
     const updateData: any = {
       status,
@@ -295,7 +295,7 @@ export class JobScheduler {
    * Get a post by ID
    */
   private async getPost(postId: string): Promise<ScheduledPost> {
-    const supabase = createAdminSupabaseClient();
+    const supabase = createClient();
     
     const { data, error } = await supabase
       .from('scheduled_posts')

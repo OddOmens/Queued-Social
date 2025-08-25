@@ -1,5 +1,4 @@
 import { createClient } from './supabase'
-import { createServerSupabaseClient } from './supabase-server'
 import { Platform } from '@/types'
 import { validateMediaForPlatform } from '@/utils/mediaProcessing'
 import { v4 as uuidv4 } from 'uuid'
@@ -116,7 +115,7 @@ export async function uploadMediaToStorage(
   file: File,
   userId: string
 ): Promise<MediaUploadResult> {
-  const supabase = createServerSupabaseClient()
+  const supabase = createClient()
   
   // Generate unique filename
   const fileExtension = getFileExtension(file.name)
@@ -171,7 +170,7 @@ async function generateAndUploadThumbnail(
   userId: string,
   originalFilename: string
 ): Promise<{ path: string; publicUrl: string }> {
-  const supabase = createServerSupabaseClient()
+  const supabase = createClient()
   
   // Generate thumbnail blob
   const thumbnailBlob = await createImageThumbnail(file, THUMBNAIL_SIZE)
@@ -325,7 +324,7 @@ function createImageThumbnail(
 // ============================================================================
 
 export async function createMediaRecord(record: MediaFileRecord) {
-  const supabase = createServerSupabaseClient()
+  const supabase = createClient()
   
   const { data, error } = await supabase
     .from('media_files')
@@ -354,7 +353,7 @@ export async function createMediaRecord(record: MediaFileRecord) {
 }
 
 export async function deleteMediaFile(mediaId: string, userId: string): Promise<void> {
-  const supabase = createServerSupabaseClient()
+  const supabase = createClient()
   
   // Get media file details
   const { data: mediaFile, error: fetchError } = await supabase
@@ -406,7 +405,7 @@ export async function deleteMediaFile(mediaId: string, userId: string): Promise<
 // ============================================================================
 
 export async function cleanupOrphanedFiles(userId: string): Promise<void> {
-  const supabase = createServerSupabaseClient()
+  const supabase = createClient()
   
   // Get all media files for user
   const { data: mediaFiles, error } = await supabase
@@ -469,7 +468,7 @@ export function formatFileSize(bytes: number): string {
 // ============================================================================
 
 export async function initializeStorageBuckets(): Promise<void> {
-  const supabase = createServerSupabaseClient()
+  const supabase = createClient()
   
   try {
     // Create media-files bucket if it doesn't exist

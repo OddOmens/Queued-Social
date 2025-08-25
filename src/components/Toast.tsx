@@ -1,6 +1,6 @@
 'use client'
 
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react'
+import { createContext, useContext, useState, useCallback, ReactNode } from 'react'
 import { ClientError, ErrorCodes } from '@/utils/errorHandling'
 
 export type ToastType = 'success' | 'error' | 'warning' | 'info'

@@ -1,13 +1,12 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { CredentialManager, OAuthTokens } from '../services/credentialManager';
-import { createAdminSupabaseClient, createServerSupabaseClient } from '../services/supabase';
+import { createClient } from '../services/supabase';
 import { Platform } from '../types';
 import crypto from 'crypto';
 
 // Mock dependencies
 vi.mock('../services/supabase', () => ({
-  createAdminSupabaseClient: vi.fn(),
-  createServerSupabaseClient: vi.fn(),
+  createClient: vi.fn(),
 }));
 
 vi.mock('crypto', () => ({
@@ -56,8 +55,7 @@ describe('CredentialManager', () => {
       })),
     };
     
-    (createAdminSupabaseClient as any).mockReturnValue(mockSupabase);
-    (createServerSupabaseClient as any).mockReturnValue(mockSupabase);
+    (createClient as any).mockReturnValue(mockSupabase);
   });
 
   afterEach(() => {

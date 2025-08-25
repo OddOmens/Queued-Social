@@ -71,7 +71,7 @@ const CalendarPreview: React.FC<CalendarPreviewProps> = ({
       }
     }
     
-    return `${platformIcon} ${contentPreview}`
+    return `${platformIcon} ${statusIcon} ${contentPreview}`
   }
 
   // Convert posts to calendar events
@@ -169,7 +169,7 @@ const CalendarPreview: React.FC<CalendarPreviewProps> = ({
 
   return (
     <div className={`calendar-preview ${className}`}>
-      <style jsx global>{`
+      <style>{`
         .calendar-preview .rbc-calendar {
           font-family: inherit;
           height: 100%;

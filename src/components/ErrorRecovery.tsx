@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useState } from 'react'
+import { useState } from 'react'
 import { ClientError, ErrorCodes, isNetworkError } from '@/utils/errorHandling'
 import { useNetworkStatus } from '@/hooks/useNetworkStatus'
 import { useRetryableAction } from '@/hooks/useRetryableAction'

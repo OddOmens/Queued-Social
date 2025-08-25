@@ -205,7 +205,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
 
   return (
     <div className={`calendar-container ${className}`}>
-      <style jsx global>{`
+      <style>{`
         .rbc-calendar {
           font-family: inherit;
         }

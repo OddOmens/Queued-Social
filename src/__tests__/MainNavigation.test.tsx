@@ -1,13 +1,17 @@
 import React from 'react'
 import { render, screen } from '@testing-library/react'
 import { vi, describe, it, expect, beforeEach, afterEach } from 'vitest'
-import { usePathname } from 'next/navigation'
+import { BrowserRouter } from 'react-router-dom'
 import MainNavigation from '@/components/layout/MainNavigation'
 
-// Mock Next.js navigation
-vi.mock('next/navigation', () => ({
-  usePathname: vi.fn(),
-}))
+// Mock React Router
+vi.mock('react-router-dom', async () => {
+  const actual = await vi.importActual('react-router-dom')
+  return {
+    ...actual,
+    useLocation: vi.fn(),
+  }
+})
 
 // Mock UserMenu component
 vi.mock('@/components/auth/UserMenu', () => ({
@@ -16,11 +20,12 @@ vi.mock('@/components/auth/UserMenu', () => ({
   }
 }))
 
-const mockUsePathname = vi.mocked(usePathname)
+import { useLocation } from 'react-router-dom'
+const mockUseLocation = vi.mocked(useLocation)
 
 describe('MainNavigation', () => {
   beforeEach(() => {
-    mockUsePathname.mockReturnValue('/dashboard')
+    mockUseLocation.mockReturnValue({ pathname: '/dashboard' } as any)
   })
 
   afterEach(() => {
@@ -28,13 +33,21 @@ describe('MainNavigation', () => {
   })
 
   it('renders the brand logo and name', () => {
-    render(<MainNavigation />)
+    render(
+      <BrowserRouter>
+        <MainNavigation />
+      </BrowserRouter>
+    )
     
     expect(screen.getByText('Social Scheduler')).toBeInTheDocument()
   })
 
   it('renders all navigation items', () => {
-    render(<MainNavigation />)
+    render(
+      <BrowserRouter>
+        <MainNavigation />
+      </BrowserRouter>
+    )
     
     expect(screen.getAllByText('Dashboard')).toHaveLength(2) // Desktop and mobile
     expect(screen.getAllByText('Calendar')).toHaveLength(2)
@@ -43,21 +56,33 @@ describe('MainNavigation', () => {
   })
 
   it('highlights the active navigation item', () => {
-    mockUsePathname.mockReturnValue('/calendar')
-    render(<MainNavigation />)
+    mockUseLocation.mockReturnValue({ pathname: '/calendar' } as any)
+    render(
+      <BrowserRouter>
+        <MainNavigation />
+      </BrowserRouter>
+    )
     
     const calendarLink = screen.getAllByText('Calendar')[0].closest('a')
     expect(calendarLink).toHaveClass('text-blue-600', 'bg-blue-50')
   })
 
   it('renders user menu', () => {
-    render(<MainNavigation />)
+    render(
+      <BrowserRouter>
+        <MainNavigation />
+      </BrowserRouter>
+    )
     
     expect(screen.getByTestId('user-menu')).toBeInTheDocument()
   })
 
   it('renders mobile navigation', () => {
-    render(<MainNavigation />)
+    render(
+      <BrowserRouter>
+        <MainNavigation />
+      </BrowserRouter>
+    )
     
     // Mobile navigation should contain the same items
     const dashboardLinks = screen.getAllByText('Dashboard')
@@ -69,7 +94,11 @@ describe('MainNavigation', () => {
   })
 
   it('applies correct href attributes to navigation links', () => {
-    render(<MainNavigation />)
+    render(
+      <BrowserRouter>
+        <MainNavigation />
+      </BrowserRouter>
+    )
     
     const dashboardLink = screen.getAllByText('Dashboard')[0].closest('a')
     const calendarLink = screen.getAllByText('Calendar')[0].closest('a')
@@ -83,8 +112,12 @@ describe('MainNavigation', () => {
   })
 
   it('applies inactive styles to non-active navigation items', () => {
-    mockUsePathname.mockReturnValue('/dashboard')
-    render(<MainNavigation />)
+    mockUseLocation.mockReturnValue({ pathname: '/dashboard' } as any)
+    render(
+      <BrowserRouter>
+        <MainNavigation />
+      </BrowserRouter>
+    )
     
     const calendarLink = screen.getAllByText('Calendar')[0].closest('a')
     expect(calendarLink).toHaveClass('text-gray-600')

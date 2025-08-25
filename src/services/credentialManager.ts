@@ -1,4 +1,4 @@
-import { createAdminSupabaseClient, createServerSupabaseClient } from './supabase-server';
+import { createClient } from './supabase';
 import { PlatformCredentials, Platform } from '../types';
 import crypto from 'crypto';
 
@@ -102,7 +102,7 @@ export class CredentialManager {
     tokens: OAuthTokens
   ): Promise<PlatformCredentials> {
     try {
-      const supabase = createAdminSupabaseClient();
+      const supabase = createClient();
       
       // Encrypt the tokens
       const encryptedTokens = this.encrypt(JSON.stringify(tokens));
@@ -150,7 +150,7 @@ export class CredentialManager {
    */
   async getCredentials(userId: string, platform: Platform): Promise<PlatformCredentials | null> {
     try {
-      const supabase = createServerSupabaseClient();
+      const supabase = createClient();
       
       const { data, error } = await supabase
         .from('platform_credentials')
@@ -188,7 +188,7 @@ export class CredentialManager {
    */
   async getAllCredentials(userId: string): Promise<PlatformCredentials[]> {
     try {
-      const supabase = createServerSupabaseClient();
+      const supabase = createClient();
       
       const { data, error } = await supabase
         .from('platform_credentials')
@@ -229,7 +229,7 @@ export class CredentialManager {
    */
   async removeCredentials(userId: string, platform: Platform): Promise<void> {
     try {
-      const supabase = createAdminSupabaseClient();
+      const supabase = createClient();
       
       const { error } = await supabase
         .from('platform_credentials')
@@ -392,7 +392,7 @@ export class CredentialManager {
   getThreadsOAuthConfig(): OAuthConfig {
     const clientId = process.env.THREADS_CLIENT_ID;
     const clientSecret = process.env.THREADS_CLIENT_SECRET;
-    const redirectUri = process.env.THREADS_REDIRECT_URI || `${process.env.NEXT_PUBLIC_APP_URL}/api/auth/threads/callback`;
+    const redirectUri = process.env.THREADS_REDIRECT_URI || `${import.meta.env.VITE_APP_URL}/api/auth/threads/callback`;
 
     if (!clientId || !clientSecret) {
       throw new Error('Threads OAuth configuration missing. Set THREADS_CLIENT_ID and THREADS_CLIENT_SECRET');

@@ -1,8 +1,7 @@
 'use client'
 
 import React from 'react'
-import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { Link, useLocation } from 'react-router-dom'
 import { UserMenu } from '@/components/auth/UserMenu'
 
 interface NavigationItem {
@@ -53,7 +52,8 @@ const navigationItems: NavigationItem[] = [
 ]
 
 export default function MainNavigation() {
-  const pathname = usePathname()
+  const location = useLocation()
+  const pathname = location.pathname
 
   return (
     <header className="bg-white shadow-sm border-b border-gray-200">
@@ -61,7 +61,7 @@ export default function MainNavigation() {
         <div className="flex justify-between items-center h-16">
           {/* Logo and Brand */}
           <div className="flex items-center">
-            <Link href="/dashboard" className="flex items-center space-x-2">
+            <Link to="/dashboard" className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
                 <svg className="w-5 h-5 text-white" fill="currentColor" viewBox="0 0 24 24">
                   <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />
@@ -80,7 +80,7 @@ export default function MainNavigation() {
               return (
                 <Link
                   key={item.name}
-                  href={item.href}
+                  to={item.href}
                   className={`flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                     isActive
                       ? 'text-blue-600 bg-blue-50'
@@ -109,7 +109,7 @@ export default function MainNavigation() {
             return (
               <Link
                 key={item.name}
-                href={item.href}
+                to={item.href}
                 className={`flex items-center space-x-3 px-3 py-2 rounded-md text-sm font-medium transition-colors ${
                   isActive
                     ? 'text-blue-600 bg-blue-50'

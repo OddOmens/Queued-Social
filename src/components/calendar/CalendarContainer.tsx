@@ -37,9 +37,7 @@ const CalendarContainer: React.FC<CalendarContainerProps> = ({
     setView(newView)
   }, [])
 
-  const handleToday = useCallback(() => {
-    setCurrentDate(new Date())
-  }, [])
+
 
   const handlePostSelect = useCallback((post: ScheduledPost) => {
     onPostSelect(post)

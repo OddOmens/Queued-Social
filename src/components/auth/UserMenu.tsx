@@ -1,18 +1,18 @@
 'use client'
 
 import { useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth'
 
 export function UserMenu() {
   const [isOpen, setIsOpen] = useState(false)
   const { user, signOut, loading } = useAuthStore()
-  const router = useRouter()
+  const navigate = useNavigate()
 
   const handleSignOut = async () => {
     const { error } = await signOut()
     if (!error) {
-      router.push('/auth/signin')
+      navigate('/login')
     }
   }
 
@@ -62,7 +62,7 @@ export function UserMenu() {
               <button
                 onClick={() => {
                   setIsOpen(false)
-                  router.push('/profile')
+                  navigate('/profile')
                 }}
                 className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >
@@ -72,7 +72,7 @@ export function UserMenu() {
               <button
                 onClick={() => {
                   setIsOpen(false)
-                  router.push('/settings')
+                  navigate('/settings')
                 }}
                 className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
               >

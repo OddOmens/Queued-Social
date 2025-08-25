@@ -4,7 +4,6 @@
  */
 
 import { createClient } from './supabase'
-import { createServerSupabaseClient } from './supabase-server'
 import type {
   UserProfile,
   TimeSlotConfig,
@@ -63,10 +62,10 @@ export const convertDbPlatformCredentials = (db: DbPlatformCredentials): Platfor
 
 // Database service class
 export class DatabaseService {
-  private client: ReturnType<typeof createServerSupabaseClient>
+  private client: ReturnType<typeof createClient>
 
   constructor(useServiceRole = false) {
-    this.client = createServerSupabaseClient()
+    this.client = createClient()
   }
 
   // User Profile operations
