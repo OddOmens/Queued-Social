@@ -71,8 +71,8 @@ src/
 
 Required environment variables (see `.env.local.example`):
 
-- `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+- `VITE_SUPABASE_URL` - Your Supabase project URL
+- `VITE_SUPABASE_ANON_KEY` - Your Supabase anonymous key
 - `SUPABASE_SERVICE_ROLE_KEY` - Your Supabase service role key
 - `NEXTAUTH_SECRET` - Secret for NextAuth.js
 - `THREADS_CLIENT_ID` - Threads API client ID

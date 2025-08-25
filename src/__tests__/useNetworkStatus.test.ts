@@ -70,10 +70,9 @@ describe('useNetworkStatus', () => {
 
   it('should handle missing connection API', () => {
     const originalConnection = navigator.connection
-    Object.defineProperty(navigator, 'connection', {
-      value: undefined,
-      configurable: true
-    })
+    
+    // Delete the property first
+    delete (navigator as any).connection
     
     const { result } = renderHook(() => useNetworkStatus())
     
@@ -82,7 +81,8 @@ describe('useNetworkStatus', () => {
     expect(result.current.isSlowConnection).toBe(false)
     
     // Restore
-    Object.defineProperty(navigator, 'connection', {
+    if (originalConnection) {
+      Object.defineProperty(navigator, 'connection', {
       value: originalConnection,
       configurable: true
     })
@@ -183,9 +183,11 @@ describe('useOfflineDetection', () => {
     expect(result.current.justCameOnline).toBe(true)
   })
 
-  it('should reset justCameOnline after being online', () => {
+  it('should reset justCameOnline after being online', async () => {
+    vi.useFakeTimers()
+    
     navigator.onLine = false
-    const { result, rerender } = renderHook(() => useOfflineDetection())
+    const { result } = renderHook(() => useOfflineDetection())
     
     // Go offline then online
     act(() => {
@@ -199,9 +201,13 @@ describe('useOfflineDetection', () => {
     
     expect(result.current.justCameOnline).toBe(true)
     
-    // Rerender should reset justCameOnline
-    rerender()
+    // Fast-forward time to trigger the timeout
+    act(() => {
+      vi.advanceTimersByTime(150)
+    })
     
     expect(result.current.justCameOnline).toBe(false)
+    
+    vi.useRealTimers()
   })
 })

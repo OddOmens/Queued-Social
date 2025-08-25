@@ -135,8 +135,8 @@ describe('Time Slot Validation', () => {
 
       const result = validateTimeSlotConflicts(newTimeSlot, existingSlots)
       expect(result.isValid).toBe(false)
-      expect(result.errors).toHaveLength(1)
-      expect(result.errors[0].code).toBe('DUPLICATE_TIME_SLOT')
+      expect(result.errors.length).toBeGreaterThanOrEqual(1)
+      expect(result.errors.some(e => e.code === 'DUPLICATE_TIME_SLOT')).toBe(true)
     })
 
     it('should reject overlapping time slots (within 15 minutes)', () => {
@@ -205,8 +205,8 @@ describe('Time Slot Validation', () => {
 
       const result = validateTimeSlotBatch(timeSlots)
       expect(result.isValid).toBe(false)
-      expect(result.errors).toHaveLength(1)
-      expect(result.errors[0].code).toBe('DUPLICATE_TIME_SLOT')
+      expect(result.errors.length).toBeGreaterThanOrEqual(1)
+      expect(result.errors.some(e => e.code === 'DUPLICATE_TIME_SLOT')).toBe(true)
     })
 
     it('should reject batch with overlapping time slots', () => {

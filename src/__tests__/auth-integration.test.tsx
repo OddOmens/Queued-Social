@@ -11,11 +11,11 @@ import { ProtectedRoute } from '@/components/auth/ProtectedRoute'
 import { useAuthStore } from '@/stores/auth'
 
 // Mock Next.js router
-const mockPush = vi.fn()
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: mockPush,
-  }),
+// Mock React Router navigation if needed
+const mockNavigate = vi.fn()
+vi.mock('react-router-dom', () => ({
+  ...vi.importActual('react-router-dom'),
+  useNavigate: () => mockNavigate,
 }))
 
 // Mock Supabase client

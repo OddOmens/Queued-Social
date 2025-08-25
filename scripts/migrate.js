@@ -12,12 +12,12 @@ const path = require('path');
 // Load environment variables
 require('dotenv').config({ path: '.env.local' });
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const supabaseUrl = process.env.VITE_SUPABASE_URL;
 const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
 if (!supabaseUrl || !serviceRoleKey) {
   console.error('❌ Missing required environment variables:');
-  console.error('   - NEXT_PUBLIC_SUPABASE_URL');
+  console.error('   - VITE_SUPABASE_URL');
   console.error('   - SUPABASE_SERVICE_ROLE_KEY');
   process.exit(1);
 }

@@ -7,19 +7,8 @@ process.env.VITE_SUPABASE_ANON_KEY = 'test-anon-key'
 process.env.SUPABASE_SERVICE_ROLE_KEY = 'test-service-role-key'
 process.env.NODE_ENV = 'test'
 
-// Mock Next.js router
-vi.mock('next/navigation', () => ({
-  useRouter: () => ({
-    push: vi.fn(),
-    replace: vi.fn(),
-    back: vi.fn(),
-    forward: vi.fn(),
-    refresh: vi.fn(),
-    prefetch: vi.fn(),
-  }),
-  usePathname: () => '/',
-  useSearchParams: () => new URLSearchParams(),
-}))
+// Mock React Router (if needed)
+// Note: React Router mocks would go here if using react-router-dom
 
 // Mock Supabase client
 vi.mock('@/services/supabase', () => ({

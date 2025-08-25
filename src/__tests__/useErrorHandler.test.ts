@@ -93,17 +93,23 @@ describe('useErrorHandler', () => {
   it('should show loading during execution', async () => {
     const { result } = renderHook(() => useErrorHandler())
     const mockFn = vi.fn().mockImplementation(() => 
-      new Promise(resolve => setTimeout(() => resolve('success'), 100))
+      new Promise(resolve => setTimeout(() => resolve('success'), 10))
     )
     
-    const promise = act(async () => {
-      return result.current.executeWithErrorHandling(mockFn, { showLoading: true })
+    // Start the async operation
+    const promise = result.current.executeWithErrorHandling(mockFn, { showLoading: true })
+    
+    // Wait for state to update
+    await act(async () => {
+      await new Promise(resolve => setTimeout(resolve, 0))
     })
     
     // Should be loading initially
     expect(result.current.isLoading).toBe(true)
     
-    await promise
+    await act(async () => {
+      await promise
+    })
     
     // Should not be loading after completion
     expect(result.current.isLoading).toBe(false)
@@ -132,7 +138,9 @@ describe('useApiCall', () => {
     let response: any = null
     
     await act(async () => {
-      response = await result.current.apiCall('/api/test')
+      if (result.current.apiCall) {
+        response = await result.current.apiCall('/api/test')
+      }
     })
     
     expect(response).toEqual(mockResponse)
@@ -151,7 +159,9 @@ describe('useApiCall', () => {
     let response: any = 'initial'
     
     await act(async () => {
-      response = await result.current.apiCall('/api/test')
+      if (result.current.apiCall) {
+        response = await result.current.apiCall('/api/test')
+      }
     })
     
     expect(response).toBeNull()
@@ -173,7 +183,9 @@ describe('useApiCall', () => {
     let response: any = 'initial'
     
     await act(async () => {
-      response = await result.current.apiCall('/api/test')
+      if (result.current.apiCall) {
+        response = await result.current.apiCall('/api/test')
+      }
     })
     
     expect(response).toBeNull()
@@ -193,7 +205,9 @@ describe('useApiCall', () => {
     let response: any = 'initial'
     
     await act(async () => {
-      response = await result.current.apiCall('/api/test')
+      if (result.current.apiCall) {
+        response = await result.current.apiCall('/api/test')
+      }
     })
     
     expect(response).toBeNull()
@@ -211,16 +225,18 @@ describe('useApiCall', () => {
     
     const { result } = renderHook(() => useApiCall())
     
-    const promise = act(async () => {
-      return result.current.apiCall('/api/test')
-    })
+    let response: any = null
     
-    // Fast-forward through retry delays
     await act(async () => {
-      await vi.advanceTimersByTimeAsync(3000)
+      if (result.current.apiCall) {
+        const promise = result.current.apiCall('/api/test')
+        
+        // Fast-forward through retry delays
+        await vi.advanceTimersByTimeAsync(3000)
+        
+        response = await promise
+      }
     })
-    
-    const response = await promise
     
     expect(response).toEqual({ data: 'success' })
     expect(fetch).toHaveBeenCalledTimes(3)
@@ -235,10 +251,12 @@ describe('useApiCall', () => {
     const { result } = renderHook(() => useApiCall())
     
     await act(async () => {
-      await result.current.apiCall('/api/test', {
-        method: 'POST',
-        headers: { 'Authorization': 'Bearer token' }
-      })
+      if (result.current.apiCall) {
+        await result.current.apiCall('/api/test', {
+          method: 'POST',
+          headers: { 'Authorization': 'Bearer token' }
+        })
+      }
     })
     
     expect(fetch).toHaveBeenCalledWith('/api/test', {

@@ -14,19 +14,40 @@ import type {
 
 // Mock Supabase client
 const mockSupabaseClient = {
-  from: vi.fn(() => mockSupabaseClient),
-  select: vi.fn(() => mockSupabaseClient),
-  insert: vi.fn(() => mockSupabaseClient),
-  update: vi.fn(() => mockSupabaseClient),
-  delete: vi.fn(() => mockSupabaseClient),
-  eq: vi.fn(() => mockSupabaseClient),
-  gte: vi.fn(() => mockSupabaseClient),
-  lte: vi.fn(() => mockSupabaseClient),
-  in: vi.fn(() => mockSupabaseClient),
-  order: vi.fn(() => mockSupabaseClient),
-  limit: vi.fn(() => mockSupabaseClient),
-  range: vi.fn(() => mockSupabaseClient),
-  single: vi.fn(() => mockSupabaseClient)
+  from: vi.fn(() => ({
+    select: vi.fn(() => ({
+      eq: vi.fn(() => ({
+        gte: vi.fn(() => ({
+          lte: vi.fn(() => ({
+            in: vi.fn(() => ({
+              order: vi.fn(() => ({
+                limit: vi.fn(() => ({
+                  range: vi.fn(() => ({
+                    single: vi.fn(() => Promise.resolve({ data: null, error: null }))
+                  }))
+                }))
+              }))
+            }))
+          }))
+        }))
+      }))
+    })),
+    insert: vi.fn(() => ({
+      select: vi.fn(() => ({
+        single: vi.fn(() => Promise.resolve({ data: null, error: null }))
+      }))
+    })),
+    update: vi.fn(() => ({
+      eq: vi.fn(() => ({
+        select: vi.fn(() => ({
+          single: vi.fn(() => Promise.resolve({ data: null, error: null }))
+        }))
+      }))
+    })),
+    delete: vi.fn(() => ({
+      eq: vi.fn(() => Promise.resolve({ error: null }))
+    }))
+  }))
 }
 
 // Mock the supabase module

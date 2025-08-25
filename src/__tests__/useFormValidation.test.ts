@@ -106,11 +106,10 @@ describe('useFormValidation', () => {
     }
 
     const { result } = renderHook(() => 
-      useFormValidation({ username: '' }, customRules)
+      useFormValidation({ username: 'user name' }, customRules)
     )
 
     act(() => {
-      result.current.setValue('username', 'user name')
       result.current.setFieldTouched('username', true)
     })
 

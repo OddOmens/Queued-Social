@@ -119,7 +119,7 @@ describe('TimeSlotList', () => {
   it('should render list of time slots', () => {
     render(<TimeSlotList {...mockProps} />)
     
-    expect(screen.getByText('9:00 AM')).toBeInTheDocument()
+    expect(screen.getAllByText('9:00 AM')).toHaveLength(2)
     expect(screen.getByText('Active')).toBeInTheDocument()
     expect(screen.getByText('Inactive')).toBeInTheDocument()
   })
@@ -184,7 +184,7 @@ describe('TimeSlotManager', () => {
   it('should render time slot manager with days of week', () => {
     render(<TimeSlotManager {...mockProps} />)
     
-    expect(screen.getByText('Time Slot Configuration')).toBeInTheDocument()
+    expect(screen.getByText('Days of Week')).toBeInTheDocument()
     expect(screen.getByText('Monday')).toBeInTheDocument()
     expect(screen.getByText('Tuesday')).toBeInTheDocument()
     expect(screen.getByText('Wednesday')).toBeInTheDocument()

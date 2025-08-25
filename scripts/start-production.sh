@@ -31,8 +31,8 @@ check_environment() {
     print_status "Checking environment configuration..."
     
     local required_vars=(
-        "NEXT_PUBLIC_SUPABASE_URL"
-        "NEXT_PUBLIC_SUPABASE_ANON_KEY"
+        "VITE_SUPABASE_URL"
+        "VITE_SUPABASE_ANON_KEY"
         "SUPABASE_SERVICE_ROLE_KEY"
         "NEXTAUTH_SECRET"
     )

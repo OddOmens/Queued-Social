@@ -32,7 +32,7 @@ Sets up Row Level Security (RLS) policies to ensure:
 
 1. Ensure your environment variables are set in `.env.local`:
    ```
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_URL=your_supabase_url
    SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
    ```
 
@@ -127,10 +127,10 @@ Row Level Security (RLS) ensures:
 
 ```bash
 # Public Supabase URL
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_URL=https://your-project.supabase.co
 
 # Public anonymous key (for client-side operations)
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+VITE_SUPABASE_ANON_KEY=your_anon_key
 
 # Service role key (for server-side operations and migrations)
 SUPABASE_SERVICE_ROLE_KEY=your_service_role_key

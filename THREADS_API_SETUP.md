@@ -144,8 +144,8 @@ Update the connect button in `/settings/platforms`:
 ```typescript
 const handleConnectThreads = () => {
   const authUrl = new URL('https://graph.threads.net/oauth/authorize')
-  authUrl.searchParams.set('client_id', process.env.NEXT_PUBLIC_THREADS_APP_ID!)
-  authUrl.searchParams.set('redirect_uri', process.env.NEXT_PUBLIC_THREADS_REDIRECT_URI!)
+  authUrl.searchParams.set('client_id', import.meta.env.VITE_THREADS_APP_ID!)
+  authUrl.searchParams.set('redirect_uri', import.meta.env.VITE_THREADS_REDIRECT_URI!)
   authUrl.searchParams.set('scope', 'threads_basic,threads_content_publish')
   authUrl.searchParams.set('response_type', 'code')
   authUrl.searchParams.set('state', generateRandomState())

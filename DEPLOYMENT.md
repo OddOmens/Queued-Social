@@ -23,8 +23,8 @@ Edit `.env.production` with your actual values:
 
 ```bash
 # Required Variables
-NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
+VITE_SUPABASE_URL=https://your-project.supabase.co
+VITE_SUPABASE_ANON_KEY=your-supabase-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
 NEXTAUTH_SECRET=your-super-secret-jwt-secret
 NEXTAUTH_URL=https://schedule.oddomens.com
@@ -226,7 +226,7 @@ Configure in `coolify.json`:
    curl http://localhost:3000/api/ready
    
    # Check Supabase configuration
-   echo $NEXT_PUBLIC_SUPABASE_URL
+   echo $VITE_SUPABASE_URL
    ```
 
 3. **Health Check Failures**
