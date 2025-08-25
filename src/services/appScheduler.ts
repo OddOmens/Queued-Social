@@ -112,34 +112,70 @@ export class AppScheduler {
         updatedAt: new Date(dbPost.updated_at),
       }
 
-      // For now, simulate publishing by marking as published
-      // In a real implementation, you'd call the platform APIs here
-      console.log(`Simulating publish for post ${post.id} on ${post.platform}`)
+      console.log(`Publishing post ${post.id} to ${post.platform}`)
 
-      // Update post status to published
-      const { error: updateError } = await supabase
-        .from('scheduled_posts')
-        .update({
+      // Get user credentials for the platform
+      const { data: credentials, error: credError } = await supabase
+        .from('platform_credentials')
+        .select('*')
+        .eq('user_id', post.userId)
+        .eq('platform', post.platform)
+        .eq('is_active', true)
+        .single()
+
+      if (credError || !credentials) {
+        throw new Error(`No active credentials found for ${post.platform}: ${credError?.message || 'Not found'}`)
+      }
+
+      // Prepare content for publishing
+      const postContent = {
+        type: 'single' as const,
+        text: typeof post.content === 'string' ? post.content : post.content.text || '',
+        mediaUrls: dbPost.media_urls || undefined
+      }
+
+      // Prepare platform credentials - credentials are stored as JSONB
+      const platformCredentials: PlatformCredentials = {
+        platform: post.platform,
+        credentials: credentials.credentials // This is already a JSON object
+      }
+
+      // Actually publish the post using the platform manager
+      const publishResult = await this.platformManager.publishPost(
+        post.platform,
+        postContent,
+        platformCredentials
+      )
+
+      if (publishResult.success) {
+        // Update post status to published
+        // Note: platform_post_id column may not exist yet
+        const updateData: any = {
           status: 'published',
           published_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-        })
-        .eq('id', post.id)
-
-      if (updateError) {
-        console.error(`Error updating post ${post.id}:`, updateError)
+        }
         
-        // Mark as failed
-        await supabase
+        // Try to add platform_post_id if the column exists
+        try {
+          updateData.platform_post_id = publishResult.postId
+        } catch (e) {
+          // Column doesn't exist yet, that's ok
+        }
+        
+        const { error: updateError } = await supabase
           .from('scheduled_posts')
-          .update({
-            status: 'failed',
-            error_message: updateError.message,
-            updated_at: new Date().toISOString()
-          })
+          .update(updateData)
           .eq('id', post.id)
+
+        if (updateError) {
+          console.error(`Error updating post ${post.id}:`, updateError)
+          throw new Error(`Database update failed: ${updateError.message}`)
+        } else {
+          console.log(`Successfully published post ${post.id} to ${post.platform} (ID: ${publishResult.postId})`)
+        }
       } else {
-        console.log(`Successfully processed post ${post.id}`)
+        throw new Error(`Publishing failed: ${publishResult.error}`)
       }
 
     } catch (error) {

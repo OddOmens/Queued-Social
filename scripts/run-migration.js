@@ -4,12 +4,18 @@
  * Script to run the cron job migration
  */
 
-const { createClient } = require('@supabase/supabase-js')
-const fs = require('fs')
-const path = require('path')
+import { createClient } from '@supabase/supabase-js'
+import fs from 'fs'
+import path from 'path'
+import { fileURLToPath } from 'url'
+import dotenv from 'dotenv'
+
+// Get current directory for ES modules
+const __filename = fileURLToPath(import.meta.url)
+const __dirname = path.dirname(__filename)
 
 // Load environment variables
-require('dotenv').config({ path: '.env.local' })
+dotenv.config({ path: '.env.local' })
 
 const supabaseUrl = process.env.VITE_SUPABASE_URL
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
@@ -21,13 +27,13 @@ if (!supabaseUrl || !supabaseServiceKey) {
   process.exit(1)
 }
 
-async function runMigration() {
+async function runMigration(migrationFile = '004_cron_job.sql') {
   try {
     console.log('Connecting to Supabase...')
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
 
     // Read the migration file
-    const migrationPath = path.join(__dirname, '../supabase/migrations/004_cron_job.sql')
+    const migrationPath = path.join(__dirname, '../supabase/migrations/', migrationFile)
     const migrationSql = fs.readFileSync(migrationPath, 'utf8')
 
     console.log('Running cron job migration...')
@@ -167,8 +173,10 @@ async function createExecSqlFunction() {
   }
 }
 
-if (require.main === module) {
-  runMigration().catch(async (error) => {
+// Check if this is the main module
+if (import.meta.url === `file://${process.argv[1]}`) {
+  const migrationFile = process.argv[2] ? path.basename(process.argv[2]) : '004_cron_job.sql'
+  runMigration(migrationFile).catch(async (error) => {
     if (error.message.includes('exec_sql')) {
       await createExecSqlFunction()
     } else {
@@ -178,4 +186,4 @@ if (require.main === module) {
   })
 }
 
-module.exports = { runMigration }
+export { runMigration }

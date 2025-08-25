@@ -5,6 +5,7 @@ import { ErrorHandlingProvider } from './components/ErrorHandlingProvider'
 import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { Layout } from './components/layout/Layout'
 import { appScheduler } from './services/appScheduler'
+import { initializePlatformPlugins } from './services/platforms'
 
 // Pages
 import { LoginPage } from './pages/LoginPage'
@@ -17,8 +18,11 @@ import { ProfilePage } from './pages/ProfilePage'
 import { ThreadsCallbackPage } from './pages/ThreadsCallbackPage'
 
 function App() {
-  // Initialize the app scheduler when the app starts
+  // Initialize platform plugins and app scheduler when the app starts
   useEffect(() => {
+    console.log('Initializing platform plugins...')
+    initializePlatformPlugins()
+    
     console.log('Starting app scheduler...')
     appScheduler.start()
     
