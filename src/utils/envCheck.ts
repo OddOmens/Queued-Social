@@ -1,70 +1,88 @@
-/**
- * Environment Variable Validation Utility
- * Helps debug environment variable issues in production
- */
+interface EnvironmentConfig {
+  supabaseUrl: string | undefined
+  supabaseAnonKey: string | undefined
+  threadsClientId: string | undefined
+  threadsClientSecret: string | undefined
+  nodeEnv: string | undefined
+  appUrl: string | undefined
+}
 
-export interface EnvCheckResult {
+interface EnvironmentCheck {
   isValid: boolean
   errors: string[]
   warnings: string[]
-  config: {
-    supabaseUrl: string
-    hasAnonKey: boolean
-    appUrl: string
-    mode: string
-  }
+  config: EnvironmentConfig
 }
 
-export function checkEnvironmentVariables(): EnvCheckResult {
+export function checkEnvironmentVariables(): EnvironmentCheck {
+  const config: EnvironmentConfig = {
+    supabaseUrl: import.meta.env.VITE_SUPABASE_URL,
+    supabaseAnonKey: import.meta.env.VITE_SUPABASE_ANON_KEY,
+    threadsClientId: import.meta.env.VITE_THREADS_CLIENT_ID || import.meta.env.THREADS_CLIENT_ID,
+    threadsClientSecret: import.meta.env.VITE_THREADS_CLIENT_SECRET || import.meta.env.THREADS_CLIENT_SECRET,
+    nodeEnv: import.meta.env.NODE_ENV,
+    appUrl: import.meta.env.VITE_APP_URL || import.meta.env.APP_URL
+  }
+
   const errors: string[] = []
   const warnings: string[] = []
-  
-  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
-  const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY
-  const appUrl = import.meta.env.VITE_APP_URL
-  const mode = import.meta.env.MODE
 
-  // Check required variables
-  if (!supabaseUrl) {
-    errors.push('VITE_SUPABASE_URL is not set')
-  } else if (supabaseUrl.includes('your-project') || supabaseUrl.includes('placeholder')) {
-    errors.push('VITE_SUPABASE_URL is using placeholder value')
+  // Critical environment variables
+  if (!config.supabaseUrl) {
+    errors.push('VITE_SUPABASE_URL is required')
+  } else if (!config.supabaseUrl.startsWith('https://')) {
+    errors.push('VITE_SUPABASE_URL must be a valid HTTPS URL')
   }
 
-  if (!supabaseAnonKey) {
-    errors.push('VITE_SUPABASE_ANON_KEY is not set')
-  } else if (supabaseAnonKey.includes('placeholder') || supabaseAnonKey.includes('your-supabase')) {
-    errors.push('VITE_SUPABASE_ANON_KEY is using placeholder value')
+  if (!config.supabaseAnonKey) {
+    errors.push('VITE_SUPABASE_ANON_KEY is required')
   }
 
-  // Check optional variables
-  if (!appUrl && mode === 'production') {
-    warnings.push('VITE_APP_URL is not set in production')
+  // Platform-specific checks
+  if (!config.threadsClientId) {
+    warnings.push('THREADS_CLIENT_ID is not set - Threads integration will not work')
+  }
+
+  if (!config.threadsClientSecret) {
+    warnings.push('THREADS_CLIENT_SECRET is not set - Threads integration will not work')
+  }
+
+  // Production-specific checks
+  if (config.nodeEnv === 'production') {
+    if (!config.appUrl) {
+      errors.push('APP_URL is required in production')
+    } else if (!config.appUrl.startsWith('https://')) {
+      errors.push('APP_URL must be HTTPS in production')
+    }
+
+    if (config.supabaseUrl?.includes('localhost')) {
+      errors.push('Cannot use localhost Supabase URL in production')
+    }
   }
 
   return {
     isValid: errors.length === 0,
     errors,
     warnings,
-    config: {
-      supabaseUrl: supabaseUrl || 'NOT SET',
-      hasAnonKey: !!supabaseAnonKey,
-      appUrl: appUrl || 'NOT SET',
-      mode: mode || 'unknown'
+    config
+  }
+}
+
+export function logEnvironmentStatus(): void {
+  const check = checkEnvironmentStatus()
+  
+  if (check.isValid) {
+    console.log('✅ Environment configuration is valid')
+    if (check.warnings.length > 0) {
+      console.warn('⚠️ Environment warnings:', check.warnings)
+    }
+  } else {
+    console.error('❌ Environment configuration errors:', check.errors)
+    if (check.warnings.length > 0) {
+      console.warn('⚠️ Environment warnings:', check.warnings)
     }
   }
 }
 
-// Auto-check in development
-if (import.meta.env.MODE === 'development') {
-  const check = checkEnvironmentVariables()
-  if (!check.isValid) {
-    console.error('❌ Environment Variable Errors:', check.errors)
-  }
-  if (check.warnings.length > 0) {
-    console.warn('⚠️ Environment Variable Warnings:', check.warnings)
-  }
-  if (check.isValid && check.warnings.length === 0) {
-    console.log('✅ Environment variables are properly configured')
-  }
-}
+// Alias for backward compatibility
+export const checkEnvironmentStatus = checkEnvironmentVariables

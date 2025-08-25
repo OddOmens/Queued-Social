@@ -12,6 +12,7 @@ import { CalendarPage } from './pages/CalendarPage'
 import { PostsPage } from './pages/PostsPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { ProfilePage } from './pages/ProfilePage'
+import { ThreadsCallbackPage } from './pages/ThreadsCallbackPage'
 
 function App() {
   return (
@@ -21,6 +22,9 @@ function App() {
           {/* Public routes */}
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignUpPage />} />
+          
+          {/* OAuth callback routes */}
+          <Route path="/auth/threads/callback" element={<ProtectedRoute><ThreadsCallbackPage /></ProtectedRoute>} />
           
           {/* Protected routes */}
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>

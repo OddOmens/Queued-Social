@@ -18,3 +18,9 @@ export { useTimeSlots } from './useTimeSlots'
 
 // Media Upload
 export { useMediaUpload } from './useMediaUpload'
+
+// Posts
+export { usePosts, usePostsCount, useCreatePost, useUpdatePost, useDeletePost } from './usePosts'
+
+// Stats
+export { useDashboardStats, useConnectedPlatforms } from './useStats'
