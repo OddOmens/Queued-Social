@@ -1,0 +1,15 @@
+[phases.build]
+providers = ["node"]
+
+[variables]
+NODE_VERSION = "22"
+
+[build]
+ignorePaths = [
+  "src/__tests__/factories.bak",
+  "supabase/functions",
+  "*.test.ts",
+  "*.test.tsx",
+  "*.spec.ts",
+  "*.spec.tsx"
+]

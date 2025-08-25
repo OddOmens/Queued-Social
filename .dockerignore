@@ -4,7 +4,9 @@ node_modules
 .env.production
 dist
 .next
-supabase/functions
+supabase/functions/**
+supabase/
+src/__tests__/factories.bak
 src/__tests__
 *.test.ts
 *.test.tsx
