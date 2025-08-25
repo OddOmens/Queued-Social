@@ -3,11 +3,16 @@ import { Link } from 'react-router-dom'
 import { ConnectedAccounts } from '@/components/settings/ConnectedAccounts'
 import { TimeSlotManager } from '@/components/timeSlots/TimeSlotManager'
 import { NotificationSettings } from '@/components/settings/NotificationSettings'
+import { EnvDebug } from '@/components/debug/EnvDebug'
+import { useAuth } from '@/hooks/useAuth'
+import { useTimeSlots } from '@/hooks/useTimeSlots'
 
 type SettingsTab = 'overview' | 'accounts' | 'timeslots' | 'notifications'
 
 export function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>('overview')
+  const { user } = useAuth()
+  const { timeSlots, updateTimeSlots, loading: timeSlotsLoading, error: timeSlotsError } = useTimeSlots(user?.id || '')
 
   const tabs = [
     { id: 'overview', label: 'Overview', icon: '⚙️' },
@@ -21,16 +26,22 @@ export function SettingsPage() {
       case 'accounts':
         return <ConnectedAccounts />
       case 'timeslots':
-        return <TimeSlotManager onSave={async (slots) => {
-          try {
-            // TODO: Implement proper time slot saving with database
-            console.log('Saving time slots:', slots)
-            alert('Time slots saved successfully!')
-          } catch (error) {
-            console.error('Failed to save time slots:', error)
-            alert('Failed to save time slots. Please try again.')
-          }
-        }} />
+        return (
+          <div className="space-y-4">
+            {timeSlotsError && (
+              <div className="bg-red-50 border border-red-200 rounded-md p-4">
+                <div className="text-sm text-red-700">
+                  Failed to load time slots: {timeSlotsError.message}
+                </div>
+              </div>
+            )}
+            <TimeSlotManager 
+              timeSlots={timeSlots}
+              loading={timeSlotsLoading}
+              onSave={updateTimeSlots}
+            />
+          </div>
+        )
       case 'notifications':
         return <NotificationSettings />
       default:
@@ -140,6 +151,9 @@ export function SettingsPage() {
 
       {/* Tab Content */}
       {renderContent()}
+      
+      {/* Debug component for troubleshooting */}
+      <EnvDebug />
     </div>
   )
 }

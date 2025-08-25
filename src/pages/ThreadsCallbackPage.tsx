@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth'
 import { createDbService } from '@/services/database'
+import { testThreadsTokenExchange } from '@/utils/threadsDebug'
 
 export function ThreadsCallbackPage() {
   const [searchParams] = useSearchParams()
@@ -29,50 +30,16 @@ export function ThreadsCallbackPage() {
           throw new Error('User not authenticated')
         }
 
-        // Exchange code for access token directly with Threads API
-        // Note: In production, this should be done server-side to protect client_secret
-        const clientId = import.meta.env.VITE_THREADS_CLIENT_ID || import.meta.env.THREADS_CLIENT_ID
-        const clientSecret = import.meta.env.VITE_THREADS_CLIENT_SECRET || import.meta.env.THREADS_CLIENT_SECRET
-        const redirectUri = `${window.location.origin}/auth/threads/callback`
-
-        if (!clientId || !clientSecret) {
-          throw new Error('Threads API credentials not configured')
+        // Use debug utility to test token exchange
+        console.log('🔄 Starting Threads token exchange...')
+        
+        const result = await testThreadsTokenExchange(code)
+        
+        if (!result.success) {
+          throw new Error(`Token exchange failed: ${JSON.stringify(result.data)}`)
         }
 
-        console.log('Exchanging code for token...', { clientId, redirectUri, codeLength: code.length })
-
-        const tokenResponse = await fetch('https://graph.threads.net/oauth/access_token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            client_id: clientId,
-            client_secret: clientSecret,
-            grant_type: 'authorization_code',
-            redirect_uri: redirectUri,
-            code: code
-          })
-        })
-
-        console.log('Token response status:', tokenResponse.status)
-
-        if (!tokenResponse.ok) {
-          const errorText = await tokenResponse.text()
-          console.error('Token exchange failed:', errorText)
-          
-          let errorData
-          try {
-            errorData = JSON.parse(errorText)
-          } catch {
-            errorData = { error: errorText }
-          }
-          
-          throw new Error(`Failed to exchange code for token: ${errorData.error?.message || errorData.error || tokenResponse.statusText}`)
-        }
-
-        const tokenData = await tokenResponse.json()
-        console.log('Token data received:', { ...tokenData, access_token: tokenData.access_token ? '[REDACTED]' : undefined })
+        const tokenData = result.data
         
         if (tokenData.error) {
           throw new Error(`Threads API error: ${tokenData.error.message || tokenData.error_description || tokenData.error}`)
