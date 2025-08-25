@@ -14,6 +14,54 @@ export function debugThreadsEnvironment() {
   return env
 }
 
+export function generateThreadsOAuthUrl(includeSecret = false) {
+  const env = debugThreadsEnvironment()
+  
+  const clientId = env.VITE_THREADS_CLIENT_ID
+  const clientSecret = env.VITE_THREADS_CLIENT_SECRET
+  const redirectUri = `${window.location.origin}/auth/threads/callback`
+  const scope = 'threads_basic,threads_content_publish'
+  const state = 'debug_' + Math.random().toString(36).substring(7)
+
+  if (!clientId) {
+    throw new Error('❌ Client ID not found in environment')
+  }
+
+  const params = new URLSearchParams({
+    client_id: clientId,
+    redirect_uri: redirectUri,
+    scope: scope,
+    response_type: 'code',
+    state: state
+  })
+
+  // Add client_secret if requested (Threads appears to require this)
+  if (includeSecret) {
+    if (!clientSecret) {
+      throw new Error('❌ Client Secret not found in environment')
+    }
+    params.set('client_secret', clientSecret)
+  }
+
+  const authUrl = `https://graph.threads.net/oauth/authorize?${params.toString()}`
+
+  console.log('🔗 Generated Threads OAuth URL:', {
+    includeSecret,
+    clientId,
+    clientSecret: clientSecret ? `${clientSecret.substring(0, 8)}...` : 'MISSING',
+    redirectUri,
+    scope,
+    state,
+    url: authUrl
+  })
+
+  return {
+    url: authUrl,
+    params: Object.fromEntries(params),
+    state
+  }
+}
+
 export async function testThreadsTokenExchange(code: string) {
   const env = debugThreadsEnvironment()
   

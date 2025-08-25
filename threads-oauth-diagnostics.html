@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧵 Threads OAuth Diagnostics</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 1000px; margin: 0 auto; padding: 20px; line-height: 1.6; }
+        .section { background: #f8f9fa; padding: 20px; margin: 15px 0; border-radius: 8px; border-left: 4px solid #007cba; }
+        .error { background: #fff5f5; border-left-color: #e53e3e; }
+        .success { background: #f0fff4; border-left-color: #38a169; }
+        .warning { background: #fffbeb; border-left-color: #d69e2e; }
+        .critical { background: #fed7d7; border-left-color: #e53e3e; font-weight: bold; }
+        code { background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-family: monospace; }
+        .url-box { background: #1a202c; color: #e2e8f0; padding: 15px; border-radius: 6px; font-family: monospace; font-size: 12px; word-break: break-all; margin: 10px 0; }
+        button { background: #007cba; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; margin: 8px 4px; font-size: 14px; }
+        button:hover { background: #005a87; }
+        button.danger { background: #e53e3e; }
+        button.danger:hover { background: #c53030; }
+        .checklist { background: white; padding: 15px; border-radius: 6px; margin: 10px 0; }
+        .checklist li { margin: 8px 0; }
+        .step { background: #edf2f7; padding: 15px; margin: 10px 0; border-radius: 6px; border-left: 3px solid #4299e1; }
+        .step h4 { margin-top: 0; color: #2d3748; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 12px; text-align: left; border-bottom: 1px solid #e2e8f0; }
+        th { background: #f7fafc; font-weight: 600; }
+        .status-indicator { display: inline-block; width: 12px; height: 12px; border-radius: 50%; margin-right: 8px; }
+        .status-good { background: #38a169; }
+        .status-bad { background: #e53e3e; }
+        .status-unknown { background: #d69e2e; }
+    </style>
+</head>
+<body>
+    <h1>🧵 Threads OAuth Diagnostics Tool</h1>
+    <p>This tool will help diagnose the 400 Bad Request error you're experiencing.</p>
+
+    <div class="critical section">
+        <h2>🚨 Current Status: 400 Bad Request Error</h2>
+        <p>Your OAuth request is being rejected by Meta's servers. This is almost always a configuration issue in Meta Developer Console.</p>
+    </div>
+
+    <div class="section">
+        <h2>📊 Configuration Analysis</h2>
+        <div id="config-analysis">Analyzing configuration...</div>
+    </div>
+
+    <div class="section">
+        <h2>🔗 OAuth URL Testing</h2>
+        <div id="oauth-testing">
+            <p>Current OAuth URL:</p>
+            <div class="url-box" id="oauth-url-display"></div>
+            <button onclick="testOAuthURL()">🧪 Test OAuth URL</button>
+            <button onclick="copyOAuthURL()">📋 Copy URL</button>
+            <button onclick="openOAuthURL()" class="danger">🚀 Try OAuth Flow</button>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>✅ Meta Developer Console Checklist</h2>
+        <div class="step">
+            <h4>Step 1: Check App Status (MOST IMPORTANT)</h4>
+            <ol>
+                <li>Go to <a href="https://developers.facebook.com" target="_blank">Meta Developer Console</a></li>
+                <li>Select your app (ID: <code>753393784148937</code>)</li>
+                <li>Navigate to <strong>App Review</strong> → <strong>Permissions and Features</strong></li>
+                <li>Look for the app status toggle</li>
+                <li><strong>Critical:</strong> Ensure it's set to <strong>"Live"</strong> not <strong>"Development"</strong></li>
+            </ol>
+            <div class="warning">
+                <strong>⚠️ 90% of 400 errors are caused by apps being in Development mode!</strong><br>
+                In Development mode, only app developers can use OAuth.
+            </div>
+        </div>
+
+        <div class="step">
+            <h4>Step 2: Verify Threads API Settings</h4>
+            <ol>
+                <li>In Meta Developer Console, go to <strong>Products</strong> → <strong>Threads API</strong></li>
+                <li>Click <strong>Settings</strong> or <strong>Configure</strong></li>
+                <li>Verify <strong>Redirect URIs</strong> contains exactly:</li>
+                <div class="url-box">https://schedule.oddomens.com/auth/threads/callback</div>
+                <li>Check <strong>App Domains</strong> includes:</li>
+                <div class="url-box">schedule.oddomens.com</div>
+            </ol>
+        </div>
+
+        <div class="step">
+            <h4>Step 3: Verify Basic App Settings</h4>
+            <ol>
+                <li>Go to <strong>Settings</strong> → <strong>Basic</strong></li>
+                <li>Confirm <strong>App ID</strong> is: <code>753393784148937</code></li>
+                <li>Ensure <strong>App Domains</strong> includes: <code>schedule.oddomens.com</code></li>
+                <li>Verify you have a valid <strong>App Secret</strong> (don't share this!)</li>
+            </ol>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>🔍 Common 400 Error Causes</h2>
+        <table>
+            <thead>
+                <tr>
+                    <th>Issue</th>
+                    <th>Symptoms</th>
+                    <th>Solution</th>
+                    <th>Priority</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td><strong>App in Development Mode</strong></td>
+                    <td>400 error for all users except developers</td>
+                    <td>Switch to Live mode in App Review</td>
+                    <td><span class="status-indicator status-bad"></span>Critical</td>
+                </tr>
+                <tr>
+                    <td><strong>Wrong Redirect URI</strong></td>
+                    <td>400 error with redirect_uri_mismatch</td>
+                    <td>Fix redirect URI in Threads API settings</td>
+                    <td><span class="status-indicator status-bad"></span>High</td>
+                </tr>
+                <tr>
+                    <td><strong>Missing App Domain</strong></td>
+                    <td>400 error, domain not allowed</td>
+                    <td>Add domain to App Settings → Basic</td>
+                    <td><span class="status-indicator status-bad"></span>High</td>
+                </tr>
+                <tr>
+                    <td><strong>Invalid Client ID</strong></td>
+                    <td>400 error, app not found</td>
+                    <td>Verify Client ID is correct</td>
+                    <td><span class="status-indicator status-unknown"></span>Medium</td>
+                </tr>
+                <tr>
+                    <td><strong>Unapproved Scopes</strong></td>
+                    <td>400 error with invalid_scope</td>
+                    <td>Request scope approval in App Review</td>
+                    <td><span class="status-indicator status-unknown"></span>Medium</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+
+    <div class="section">
+        <h2>🛠️ Debugging Actions</h2>
+        <button onclick="generateNewState()">🔄 Generate New OAuth URL</button>
+        <button onclick="validateConfiguration()">✅ Validate Configuration</button>
+        <button onclick="showDetailedLogs()">📋 Show Detailed Logs</button>
+        <button onclick="exportDiagnostics()">💾 Export Diagnostics</button>
+    </div>
+
+    <div class="section">
+        <h2>📞 Next Steps</h2>
+        <div class="checklist">
+            <h4>Immediate Actions:</h4>
+            <ol>
+                <li><strong>Check App Mode:</strong> Verify your app is in "Live" mode (not Development)</li>
+                <li><strong>Wait for Propagation:</strong> After making changes, wait 5-10 minutes</li>
+                <li><strong>Test Again:</strong> Try the OAuth URL after changes</li>
+                <li><strong>Clear Cache:</strong> Try in incognito/private browsing mode</li>
+            </ol>
+            
+            <h4>If Still Not Working:</h4>
+            <ol>
+                <li>Double-check all redirect URIs match exactly</li>
+                <li>Verify app domains are configured</li>
+                <li>Check Meta Developer Console status page</li>
+                <li>Contact Meta Developer Support</li>
+            </ol>
+        </div>
+    </div>
+
+    <div id="debug-logs" class="section" style="display: none;">
+        <h2>🔍 Debug Logs</h2>
+        <div id="logs-content"></div>
+    </div>
+
+    <script>
+        const CONFIG = {
+            clientId: '753393784148937',
+            redirectUri: 'https://schedule.oddomens.com/auth/threads/callback',
+            scope: 'threads_basic,threads_content_publish',
+            baseUrl: 'https://graph.threads.net/oauth/authorize'
+        };
+
+        let currentOAuthUrl = '';
+        let diagnosticsData = {};
+
+        function generateOAuthUrl() {
+            const state = 'diag_' + Math.random().toString(36).substring(2, 15);
+            
+            const params = new URLSearchParams({
+                client_id: CONFIG.clientId,
+                redirect_uri: CONFIG.redirectUri,
+                scope: CONFIG.scope,
+                response_type: 'code',
+                state: state
+            });
+
+            currentOAuthUrl = `${CONFIG.baseUrl}?${params.toString()}`;
+            
+            document.getElementById('oauth-url-display').textContent = currentOAuthUrl;
+            
+            return { url: currentOAuthUrl, state, params: Object.fromEntries(params) };
+        }
+
+        function analyzeConfiguration() {
+            const analysis = {
+                clientId: {
+                    value: CONFIG.clientId,
+                    valid: CONFIG.clientId === '753393784148937',
+                    issue: CONFIG.clientId !== '753393784148937' ? 'Client ID does not match expected value' : null
+                },
+                redirectUri: {
+                    value: CONFIG.redirectUri,
+                    valid: CONFIG.redirectUri === 'https://schedule.oddomens.com/auth/threads/callback',
+                    issue: CONFIG.redirectUri !== 'https://schedule.oddomens.com/auth/threads/callback' ? 'Redirect URI does not match expected value' : null
+                },
+                scope: {
+                    value: CONFIG.scope,
+                    valid: CONFIG.scope === 'threads_basic,threads_content_publish',
+                    issue: CONFIG.scope !== 'threads_basic,threads_content_publish' ? 'Scope does not match expected value' : null
+                }
+            };
+
+            let html = '<table><thead><tr><th>Parameter</th><th>Value</th><th>Status</th><th>Issue</th></tr></thead><tbody>';
+            
+            Object.entries(analysis).forEach(([key, data]) => {
+                const statusClass = data.valid ? 'status-good' : 'status-bad';
+                const statusText = data.valid ? 'Valid' : 'Invalid';
+                html += `<tr>
+                    <td><strong>${key}</strong></td>
+                    <td><code>${data.value}</code></td>
+                    <td><span class="status-indicator ${statusClass}"></span>${statusText}</td>
+                    <td>${data.issue || 'None'}</td>
+                </tr>`;
+            });
+            
+            html += '</tbody></table>';
+            
+            const allValid = Object.values(analysis).every(item => item.valid);
+            if (allValid) {
+                html += '<div class="success"><strong>✅ All configuration parameters are correct!</strong><br>The issue is likely in Meta Developer Console settings.</div>';
+            } else {
+                html += '<div class="error"><strong>❌ Configuration issues detected!</strong><br>Fix these issues first before checking Meta Developer Console.</div>';
+            }
+
+            document.getElementById('config-analysis').innerHTML = html;
+            diagnosticsData.configAnalysis = analysis;
+        }
+
+        function testOAuthURL() {
+            if (!currentOAuthUrl) {
+                alert('No OAuth URL generated yet!');
+                return;
+            }
+
+            console.log('🧪 Testing OAuth URL:', currentOAuthUrl);
+            
+            // Test URL validity
+            try {
+                const url = new URL(currentOAuthUrl);
+                console.log('✅ URL is valid:', {
+                    protocol: url.protocol,
+                    hostname: url.hostname,
+                    pathname: url.pathname,
+                    searchParams: Object.fromEntries(url.searchParams)
+                });
+                
+                alert('✅ OAuth URL is structurally valid!\n\nCheck the browser console for detailed logs.\n\nThe 400 error is coming from Meta\'s servers, indicating a configuration issue in Meta Developer Console.');
+            } catch (error) {
+                console.error('❌ URL is invalid:', error);
+                alert('❌ OAuth URL is invalid: ' + error.message);
+            }
+        }
+
+        function copyOAuthURL() {
+            if (!currentOAuthUrl) {
+                alert('No OAuth URL generated yet!');
+                return;
+            }
+
+            navigator.clipboard.writeText(currentOAuthUrl).then(() => {
+                alert('✅ OAuth URL copied to clipboard!\n\nYou can paste this in a new browser tab to test manually.');
+            }).catch(err => {
+                alert('❌ Failed to copy URL: ' + err.message);
+                console.error('Copy failed:', err);
+            });
+        }
+
+        function openOAuthURL() {
+            if (!currentOAuthUrl) {
+                alert('No OAuth URL generated yet!');
+                return;
+            }
+
+            if (confirm('🚀 This will redirect you to the Threads OAuth page.\n\nIf you get a 400 error, it confirms the Meta Developer Console configuration issue.\n\nContinue?')) {
+                console.log('🚀 Opening OAuth URL:', currentOAuthUrl);
+                window.open(currentOAuthUrl, '_blank');
+            }
+        }
+
+        function generateNewState() {
+            const result = generateOAuthUrl();
+            console.log('🔄 Generated new OAuth URL:', result);
+            alert('✅ New OAuth URL generated with fresh state: ' + result.state);
+        }
+
+        function validateConfiguration() {
+            analyzeConfiguration();
+            alert('✅ Configuration validation complete! Check the Configuration Analysis section above.');
+        }
+
+        function showDetailedLogs() {
+            const logsDiv = document.getElementById('debug-logs');
+            const logsContent = document.getElementById('logs-content');
+            
+            const logs = {
+                timestamp: new Date().toISOString(),
+                config: CONFIG,
+                currentUrl: currentOAuthUrl,
+                userAgent: navigator.userAgent,
+                diagnostics: diagnosticsData
+            };
+
+            logsContent.innerHTML = `<pre>${JSON.stringify(logs, null, 2)}</pre>`;
+            logsDiv.style.display = 'block';
+            logsDiv.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        function exportDiagnostics() {
+            const diagnostics = {
+                timestamp: new Date().toISOString(),
+                config: CONFIG,
+                currentUrl: currentOAuthUrl,
+                userAgent: navigator.userAgent,
+                diagnosticsData: diagnosticsData,
+                recommendations: [
+                    'Check if app is in Live mode (not Development)',
+                    'Verify redirect URI matches exactly',
+                    'Ensure app domains are configured',
+                    'Wait 5-10 minutes after making changes',
+                    'Test in incognito mode'
+                ]
+            };
+
+            const blob = new Blob([JSON.stringify(diagnostics, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `threads-oauth-diagnostics-${Date.now()}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            alert('✅ Diagnostics exported! You can share this file with Meta Developer Support if needed.');
+        }
+
+        // Initialize on page load
+        document.addEventListener('DOMContentLoaded', () => {
+            generateOAuthUrl();
+            analyzeConfiguration();
+            
+            console.log('🧵 Threads OAuth Diagnostics Tool Loaded');
+            console.log('Current configuration:', CONFIG);
+            console.log('Generated OAuth URL:', currentOAuthUrl);
+        });
+    </script>
+</body>
+</html>

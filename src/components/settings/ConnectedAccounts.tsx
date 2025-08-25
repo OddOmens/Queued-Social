@@ -13,9 +13,15 @@ export function ConnectedAccounts() {
       if (platform === 'threads') {
         // Check if environment variables are set
         const clientId = import.meta.env.VITE_THREADS_CLIENT_ID
+        const clientSecret = import.meta.env.VITE_THREADS_CLIENT_SECRET
         
         if (!clientId) {
           alert('Threads API is not configured. Please contact the administrator.')
+          return
+        }
+        
+        if (!clientSecret) {
+          alert('Threads Client Secret is not configured. Please contact the administrator.')
           return
         }
         
@@ -30,9 +36,10 @@ export function ConnectedAccounts() {
         const scope = 'threads_basic,threads_content_publish'
         const state = Math.random().toString(36).substring(7)
         
-        // Use URLSearchParams to properly encode all parameters
+        // Threads OAuth requires client_secret in the authorization URL (unusual but required)
         const params = new URLSearchParams({
           client_id: clientId,
+          client_secret: clientSecret,
           redirect_uri: redirectUri,
           scope: scope,
           response_type: 'code',
@@ -43,6 +50,7 @@ export function ConnectedAccounts() {
         
         console.log('🔗 Threads OAuth Details:', {
           clientId,
+          clientSecret: clientSecret ? `${clientSecret.substring(0, 8)}...` : 'MISSING',
           redirectUri,
           scope,
           state,

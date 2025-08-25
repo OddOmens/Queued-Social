@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Direct Threads OAuth Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        .test-section { background: #f5f5f5; padding: 20px; margin: 15px 0; border-radius: 8px; }
+        .error { background: #fee; border: 1px solid #fcc; }
+        .success { background: #efe; border: 1px solid #cfc; }
+        .url-display { background: #1a1a1a; color: #00ff00; padding: 15px; border-radius: 5px; font-family: monospace; font-size: 12px; word-break: break-all; margin: 10px 0; }
+        button { background: #007cba; color: white; padding: 12px 24px; border: none; border-radius: 6px; cursor: pointer; margin: 8px; }
+        button:hover { background: #005a87; }
+        .danger { background: #e53e3e !important; }
+        .danger:hover { background: #c53030 !important; }
+        table { width: 100%; border-collapse: collapse; margin: 15px 0; }
+        th, td { padding: 10px; text-align: left; border-bottom: 1px solid #ddd; }
+        th { background: #f0f0f0; }
+    </style>
+</head>
+<body>
+    <h1>🧵 Direct Threads OAuth Test</h1>
+    
+    <div class="test-section">
+        <h2>🎯 Problem Analysis</h2>
+        <p>You're getting a 400 error even though your Meta Developer Console settings appear correct. Let's test different URL formats to isolate the issue.</p>
+    </div>
+
+    <div class="test-section">
+        <h2>📊 URL Comparison Test</h2>
+        <div id="url-comparison"></div>
+    </div>
+
+    <div class="test-section">
+        <h2>🧪 Test Different URL Formats</h2>
+        <button onclick="testMethod1()">Method 1: URLSearchParams</button>
+        <button onclick="testMethod2()">Method 2: Manual Encoding</button>
+        <button onclick="testMethod3()">Method 3: No Encoding</button>
+        <button onclick="testMethod4()">Method 4: Alternative Format</button>
+    </div>
+
+    <div class="test-section">
+        <h2>🔍 Current Test Results</h2>
+        <div id="test-results"></div>
+    </div>
+
+    <div class="test-section error">
+        <h2>🚨 Known Working Examples</h2>
+        <p>Let's test against known working Threads OAuth URLs from other apps:</p>
+        <button onclick="testKnownWorking()">Test Known Working Format</button>
+    </div>
+
+    <script>
+        const CONFIG = {
+            clientId: '753393784148937',
+            redirectUri: 'https://schedule.oddomens.com/auth/threads/callback',
+            scope: 'threads_basic,threads_content_publish',
+            baseUrl: 'https://graph.threads.net/oauth/authorize'
+        };
+
+        let testResults = [];
+
+        function generateMethod1() {
+            // Current method using URLSearchParams
+            const state = 'method1_' + Math.random().toString(36).substring(7);
+            const params = new URLSearchParams({
+                client_id: CONFIG.clientId,
+                redirect_uri: CONFIG.redirectUri,
+                scope: CONFIG.scope,
+                response_type: 'code',
+                state: state
+            });
+            return `${CONFIG.baseUrl}?${params.toString()}`;
+        }
+
+        function generateMethod2() {
+            // Manual encoding
+            const state = 'method2_' + Math.random().toString(36).substring(7);
+            const url = CONFIG.baseUrl +
+                '?client_id=' + encodeURIComponent(CONFIG.clientId) +
+                '&redirect_uri=' + encodeURIComponent(CONFIG.redirectUri) +
+                '&scope=' + encodeURIComponent(CONFIG.scope) +
+                '&response_type=code' +
+                '&state=' + encodeURIComponent(state);
+            return url;
+        }
+
+        function generateMethod3() {
+            // No encoding (risky but let's test)
+            const state = 'method3_' + Math.random().toString(36).substring(7);
+            const url = CONFIG.baseUrl +
+                '?client_id=' + CONFIG.clientId +
+                '&redirect_uri=' + CONFIG.redirectUri +
+                '&scope=' + CONFIG.scope +
+                '&response_type=code' +
+                '&state=' + state;
+            return url;
+        }
+
+        function generateMethod4() {
+            // Alternative format with different parameter order
+            const state = 'method4_' + Math.random().toString(36).substring(7);
+            const params = new URLSearchParams();
+            params.append('response_type', 'code');
+            params.append('client_id', CONFIG.clientId);
+            params.append('state', state);
+            params.append('scope', CONFIG.scope);
+            params.append('redirect_uri', CONFIG.redirectUri);
+            return `${CONFIG.baseUrl}?${params.toString()}`;
+        }
+
+        function generateKnownWorking() {
+            // Based on Meta's official documentation format
+            const state = 'known_' + Math.random().toString(36).substring(7);
+            return 'https://graph.threads.net/oauth/authorize' +
+                '?client_id=753393784148937' +
+                '&redirect_uri=https%3A//schedule.oddomens.com/auth/threads/callback' +
+                '&scope=threads_basic%2Cthreads_content_publish' +
+                '&response_type=code' +
+                '&state=' + state;
+        }
+
+        function displayUrlComparison() {
+            const methods = [
+                { name: 'Method 1 (URLSearchParams)', url: generateMethod1() },
+                { name: 'Method 2 (Manual Encoding)', url: generateMethod2() },
+                { name: 'Method 3 (No Encoding)', url: generateMethod3() },
+                { name: 'Method 4 (Alternative Order)', url: generateMethod4() },
+                { name: 'Known Working Format', url: generateKnownWorking() }
+            ];
+
+            let html = '<table><thead><tr><th>Method</th><th>URL Length</th><th>URL Preview</th></tr></thead><tbody>';
+            
+            methods.forEach(method => {
+                html += `<tr>
+                    <td><strong>${method.name}</strong></td>
+                    <td>${method.url.length}</td>
+                    <td><div class="url-display">${method.url.substring(0, 100)}...</div></td>
+                </tr>`;
+            });
+            
+            html += '</tbody></table>';
+            document.getElementById('url-comparison').innerHTML = html;
+        }
+
+        function testUrl(url, methodName) {
+            console.log(`🧪 Testing ${methodName}:`, url);
+            
+            // Test URL validity
+            try {
+                const urlObj = new URL(url);
+                const params = Object.fromEntries(urlObj.searchParams);
+                
+                console.log(`✅ ${methodName} URL is valid:`, {
+                    length: url.length,
+                    params: params,
+                    scopeEncoding: urlObj.searchParams.get('scope'),
+                    redirectEncoding: urlObj.searchParams.get('redirect_uri')
+                });
+
+                testResults.push({
+                    method: methodName,
+                    url: url,
+                    valid: true,
+                    params: params,
+                    timestamp: new Date().toISOString()
+                });
+
+                updateTestResults();
+                return true;
+            } catch (error) {
+                console.error(`❌ ${methodName} URL is invalid:`, error);
+                testResults.push({
+                    method: methodName,
+                    url: url,
+                    valid: false,
+                    error: error.message,
+                    timestamp: new Date().toISOString()
+                });
+                updateTestResults();
+                return false;
+            }
+        }
+
+        function updateTestResults() {
+            const resultsDiv = document.getElementById('test-results');
+            let html = '<h3>Test Results:</h3><table><thead><tr><th>Method</th><th>Status</th><th>Action</th></tr></thead><tbody>';
+            
+            testResults.forEach(result => {
+                const statusClass = result.valid ? 'success' : 'error';
+                html += `<tr class="${statusClass}">
+                    <td><strong>${result.method}</strong></td>
+                    <td>${result.valid ? '✅ Valid' : '❌ Invalid: ' + result.error}</td>
+                    <td><button onclick="tryUrl('${result.url}')" class="${result.valid ? '' : 'danger'}">Try This URL</button></td>
+                </tr>`;
+            });
+            
+            html += '</tbody></table>';
+            
+            if (testResults.length > 0) {
+                html += '<div class="test-section"><h4>🎯 Recommendation:</h4>';
+                const validResults = testResults.filter(r => r.valid);
+                if (validResults.length > 0) {
+                    html += `<p>All URL formats appear valid. The 400 error is likely from Meta's server-side validation. Try each URL above to see which one works.</p>`;
+                } else {
+                    html += `<p>❌ All URL formats are invalid. There may be a fundamental configuration issue.</p>`;
+                }
+                html += '</div>';
+            }
+            
+            resultsDiv.innerHTML = html;
+        }
+
+        function tryUrl(url) {
+            if (confirm(`🚀 This will open the OAuth URL in a new tab:\n\n${url.substring(0, 100)}...\n\nContinue?`)) {
+                window.open(url, '_blank');
+            }
+        }
+
+        function testMethod1() {
+            const url = generateMethod1();
+            testUrl(url, 'Method 1 (URLSearchParams)');
+        }
+
+        function testMethod2() {
+            const url = generateMethod2();
+            testUrl(url, 'Method 2 (Manual Encoding)');
+        }
+
+        function testMethod3() {
+            const url = generateMethod3();
+            testUrl(url, 'Method 3 (No Encoding)');
+        }
+
+        function testMethod4() {
+            const url = generateMethod4();
+            testUrl(url, 'Method 4 (Alternative Order)');
+        }
+
+        function testKnownWorking() {
+            const url = generateKnownWorking();
+            testUrl(url, 'Known Working Format');
+            
+            // Also try this one immediately
+            if (confirm('🚀 Try the known working format immediately?\n\nThis format is based on Meta\'s official documentation.')) {
+                window.open(url, '_blank');
+            }
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            displayUrlComparison();
+            console.log('🧵 Direct Threads OAuth Test Tool Loaded');
+            console.log('Configuration:', CONFIG);
+        });
+    </script>
+</body>
+</html>
