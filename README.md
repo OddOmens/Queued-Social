@@ -4,8 +4,8 @@ A SaaS social media scheduling tool that enables users to schedule and manage po
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14 with React 18, TypeScript, Tailwind CSS
-- **Backend**: Next.js API Routes, Supabase (PostgreSQL + Auth + Storage)
+- **Frontend**: Vite + React 18, TypeScript, Tailwind CSS
+- **Backend**: Supabase (PostgreSQL + Auth + Storage)
 - **Deployment**: Coolify on VPS
 - **State Management**: Zustand for client-side state
 - **UI Components**: Radix UI primitives with custom styling
@@ -14,10 +14,7 @@ A SaaS social media scheduling tool that enables users to schedule and manage po
 
 ```
 src/
-├── app/                 # Next.js 14 app router
-│   ├── globals.css     # Global styles with Tailwind
-│   ├── layout.tsx      # Root layout component
-│   └── page.tsx        # Home page
+├── pages/              # React pages (Login, SignUp, Dashboard, etc.)
 ├── components/         # React components
 │   ├── ui/            # Reusable UI components
 │   ├── calendar/      # Calendar-related components
@@ -43,10 +40,29 @@ src/
 
 ## Getting Started
 
+### Local Development
+
 1. **Install dependencies**:
    ```bash
    npm install
    ```
+
+2. **Set up environment variables**:
+   Copy `.env.local.example` to `.env.local` and fill in your values:
+   ```bash
+   cp .env.local.example .env.local
+   ```
+
+3. **Start development server**:
+   ```bash
+   npm run dev
+   ```
+
+### Production Deployment
+
+For production deployment with Coolify, see [COOLIFY_DEPLOYMENT.md](./COOLIFY_DEPLOYMENT.md) for detailed instructions.
+
+**Important**: No local `.env` files are used in production. All environment variables must be set in Coolify.
 
 2. **Set up environment variables**:
    Copy `.env.local.example` to `.env.local` and fill in your Supabase credentials:
