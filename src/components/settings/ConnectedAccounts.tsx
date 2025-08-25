@@ -2,11 +2,15 @@ import { useState } from 'react'
 import { useConnectedPlatforms } from '@/hooks/useStats'
 import { useAuthStore } from '@/stores/auth'
 import { createDbService } from '@/services/database'
+import { useToast } from '@/components/Toast'
 import { Platform } from '@/types'
 
 export function ConnectedAccounts() {
   const { data: platforms, isLoading, error } = useConnectedPlatforms()
   const [connectingPlatform, setConnectingPlatform] = useState<Platform | null>(null)
+  const [disconnectingPlatform, setDisconnectingPlatform] = useState<Platform | null>(null)
+  const [confirmDisconnect, setConfirmDisconnect] = useState<Platform | null>(null)
+  const { showSuccess, showError } = useToast()
 
   const handleConnectPlatform = async (platform: Platform) => {
     setConnectingPlatform(platform)
@@ -18,92 +22,84 @@ export function ConnectedAccounts() {
         const clientSecret = import.meta.env.VITE_THREADS_CLIENT_SECRET
         
         if (!clientId) {
-          alert('Threads API is not configured. Please contact the administrator.')
+          showError('Threads API is not configured. Please contact the administrator.')
           return
         }
         
         if (!clientSecret) {
-          alert('Threads Client Secret is not configured. Please contact the administrator.')
+          showError('Threads Client Secret is not configured. Please contact the administrator.')
           return
         }
         
         // Validate client ID format (should be numeric)
         if (!/^\d+$/.test(clientId)) {
-          alert('Invalid Threads Client ID format. Please check configuration.')
+          showError('Invalid Threads Client ID format. Please check configuration.')
           return
         }
         
-        console.log('🔗 Connecting to Threads using app-only authentication...')
+        console.log('🔗 Starting Threads OAuth flow...')
         
-        // Threads uses app-only authentication, not user OAuth
-        // Get app access token directly
-        const response = await fetch('https://graph.threads.net/oauth/access_token', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
-          },
-          body: new URLSearchParams({
-            client_id: clientId,
-            client_secret: clientSecret,
-            grant_type: 'client_credentials'
-          })
-        })
+        // Threads requires user OAuth, not app-only authentication
+        // Redirect to Threads OAuth authorization
+        const redirectUri = `${window.location.origin}/auth/threads/callback`
+        const scopes = 'threads_basic,threads_content_publish'
         
-        if (!response.ok) {
-          throw new Error(`Token exchange failed: ${response.status}`)
-        }
+        const authUrl = new URL('https://threads.net/oauth/authorize')
+        authUrl.searchParams.set('client_id', clientId)
+        authUrl.searchParams.set('redirect_uri', redirectUri)
+        authUrl.searchParams.set('scope', scopes)
+        authUrl.searchParams.set('response_type', 'code')
         
-        const tokenData = await response.json()
+        console.log('🌐 Redirecting to Threads OAuth:', authUrl.toString())
         
-        if (tokenData.error) {
-          throw new Error(`Threads API error: ${tokenData.error.message || tokenData.error}`)
-        }
+        // Redirect to Threads OAuth
+        window.location.href = authUrl.toString()
+        return // Don't continue with the rest of the function
         
-        console.log('✅ Threads app token obtained successfully')
-        
-        // Store credentials in database (using current user context)
-        const { user } = useAuthStore.getState()
-        if (!user?.id) {
-          throw new Error('User not authenticated')
-        }
-        
-        const db = createDbService()
-        await db.upsertPlatformCredentials({
-          userId: user.id,
-          platform: 'threads',
-          credentials: {
-            accessToken: tokenData.access_token,
-            tokenType: tokenData.token_type || 'bearer',
-            scopes: ['threads_basic', 'threads_content_publish'] // App-level scopes
-          },
-          isActive: true,
-          // App tokens typically don't expire, but we'll set a long expiration
-          expiresAt: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000) // 1 year
-        })
-        
-        alert('✅ Threads connected successfully!')
-        
-        // Refresh the platforms data
-        window.location.reload()
+        // This won't be reached since we redirect to OAuth
+        return
       }
     } catch (error) {
       console.error(`Failed to connect ${platform}:`, error)
-      alert(`Failed to connect ${platform}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+      showError(`Failed to connect ${platform}: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setConnectingPlatform(null)
     }
   }
 
-  const handleDisconnectPlatform = async (platform: Platform) => {
-    if (confirm(`Are you sure you want to disconnect ${platform}?`)) {
-      try {
-        // TODO: Implement disconnect logic
-        alert(`${platform} disconnection coming soon!`)
-      } catch (error) {
-        console.error(`Failed to disconnect ${platform}:`, error)
-        alert(`Failed to disconnect ${platform}. Please try again.`)
+  const handleDisconnectClick = (platform: Platform) => {
+    setConfirmDisconnect(platform)
+  }
+
+  const handleConfirmDisconnect = async () => {
+    if (!confirmDisconnect) return
+    
+    setDisconnectingPlatform(confirmDisconnect)
+    setConfirmDisconnect(null)
+    
+    try {
+      const { user } = useAuthStore.getState()
+      if (!user?.id) {
+        throw new Error('User not authenticated')
       }
+
+      const db = createDbService()
+      await db.deletePlatformCredentials(user.id, confirmDisconnect)
+      
+      showSuccess(`${confirmDisconnect} disconnected successfully!`)
+      
+      // Refresh the platforms data
+      window.location.reload()
+    } catch (error) {
+      console.error(`Failed to disconnect ${confirmDisconnect}:`, error)
+      showError(`Failed to disconnect ${confirmDisconnect}: ${error instanceof Error ? error.message : 'Unknown error'}`)
+    } finally {
+      setDisconnectingPlatform(null)
     }
+  }
+
+  const handleCancelDisconnect = () => {
+    setConfirmDisconnect(null)
   }
 
   const availablePlatforms: { platform: Platform; name: string; description: string; icon: string }[] = [
@@ -137,6 +133,7 @@ export function ConnectedAccounts() {
           const connectedPlatform = platforms?.find(p => p.platform === platformInfo.platform && p.isActive)
           const isConnected = !!connectedPlatform
           const isConnecting = connectingPlatform === platformInfo.platform
+          const isDisconnecting = disconnectingPlatform === platformInfo.platform
 
           return (
             <div key={platformInfo.platform} className="bg-white border border-gray-200 rounded-lg p-6">
@@ -169,10 +166,11 @@ export function ConnectedAccounts() {
                         Connected
                       </span>
                       <button
-                        onClick={() => handleDisconnectPlatform(platformInfo.platform)}
-                        className="text-red-600 hover:text-red-800 text-sm font-medium"
+                        onClick={() => handleDisconnectClick(platformInfo.platform)}
+                        disabled={isDisconnecting}
+                        className="text-red-600 hover:text-red-800 text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
                       >
-                        Disconnect
+                        {isDisconnecting ? 'Disconnecting...' : 'Disconnect'}
                       </button>
                     </>
                   ) : (
@@ -209,6 +207,46 @@ export function ConnectedAccounts() {
                   <li>Connections may expire and need to be renewed periodically</li>
                   <li>You can disconnect and reconnect platforms at any time</li>
                 </ul>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Disconnect Confirmation Modal */}
+      {confirmDisconnect && (
+        <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+            <div className="mt-3 text-center">
+              <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
+                <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+                </svg>
+              </div>
+              <h3 className="text-lg leading-6 font-medium text-gray-900 mt-4">
+                Disconnect {confirmDisconnect}?
+              </h3>
+              <div className="mt-2 px-7 py-3">
+                <p className="text-sm text-gray-500">
+                  Are you sure you want to disconnect your {confirmDisconnect} account? 
+                  This will stop all scheduled posts for this platform and you'll need to reconnect to schedule new posts.
+                </p>
+              </div>
+              <div className="items-center px-4 py-3">
+                <div className="flex space-x-3">
+                  <button
+                    onClick={handleCancelDisconnect}
+                    className="px-4 py-2 bg-gray-500 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-gray-600 focus:outline-none focus:ring-2 focus:ring-gray-300"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleConfirmDisconnect}
+                    className="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md w-full shadow-sm hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-300"
+                  >
+                    Disconnect
+                  </button>
+                </div>
               </div>
             </div>
           </div>

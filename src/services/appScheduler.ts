@@ -5,7 +5,7 @@
 
 import { createClient } from './supabase'
 import { PlatformManager } from './platformManager'
-import type { ScheduledPost, PostStatus, PlatformCredentials } from '../types'
+import type { ScheduledPost, PlatformCredentials, PostContent } from '../types'
 
 export class AppScheduler {
   private static instance: AppScheduler
@@ -128,16 +128,26 @@ export class AppScheduler {
       }
 
       // Prepare content for publishing
-      const postContent = {
+      const postContent: PostContent = {
         type: 'single' as const,
         text: typeof post.content === 'string' ? post.content : post.content.text || '',
-        mediaUrls: dbPost.media_urls || undefined
+        mediaUrls: dbPost.media_urls || undefined,
+        metadata: {
+          allowReplies: true,
+          replySettings: 'everyone'
+        }
       }
 
       // Prepare platform credentials - credentials are stored as JSONB
       const platformCredentials: PlatformCredentials = {
+        id: credentials.id,
+        userId: credentials.user_id,
         platform: post.platform,
-        credentials: credentials.credentials // This is already a JSON object
+        credentials: credentials.credentials, // This is already a JSON object
+        isActive: credentials.is_active,
+        expiresAt: credentials.expires_at ? new Date(credentials.expires_at) : undefined,
+        createdAt: new Date(credentials.created_at),
+        updatedAt: new Date(credentials.updated_at || credentials.created_at)
       }
 
       // Actually publish the post using the platform manager

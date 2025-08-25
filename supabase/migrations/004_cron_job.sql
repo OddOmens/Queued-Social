@@ -1,6 +1,15 @@
 -- Enable pg_cron extension for scheduled jobs
 CREATE EXTENSION IF NOT EXISTS pg_cron;
 
+-- Add platform_post_id column to scheduled_posts table if it doesn't exist
+ALTER TABLE scheduled_posts 
+ADD COLUMN IF NOT EXISTS platform_post_id VARCHAR(255);
+
+-- Add index for platform post ID lookups
+CREATE INDEX IF NOT EXISTS idx_scheduled_posts_platform_post_id 
+ON scheduled_posts(platform_post_id) 
+WHERE platform_post_id IS NOT NULL;
+
 -- Create a function to call our Edge Function
 CREATE OR REPLACE FUNCTION process_scheduled_posts()
 RETURNS void
@@ -74,6 +83,7 @@ BEGIN
     LOOP
         BEGIN
             -- Update post to published status
+            -- Note: This is just a simulation - real publishing happens in the app
             UPDATE scheduled_posts 
             SET 
                 status = 'published',
