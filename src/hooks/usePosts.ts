@@ -1,13 +1,13 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth'
 import { createDbService } from '@/services/database'
-import type { ScheduledPost, CreatePostRequest } from '@/types'
+import type { ScheduledPost, CreatePostRequest, Platform } from '@/types'
 
 export function usePosts(filters?: {
   status?: ScheduledPost['status']
   startDate?: Date
   endDate?: Date
-  platform?: string
+  platform?: Platform
   limit?: number
   offset?: number
 }) {
@@ -29,7 +29,7 @@ export function usePostsCount(filters?: {
   status?: ScheduledPost['status']
   startDate?: Date
   endDate?: Date
-  platform?: string
+  platform?: Platform
 }) {
   const { user } = useAuthStore()
   

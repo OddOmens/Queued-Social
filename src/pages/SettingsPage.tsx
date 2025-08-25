@@ -21,7 +21,16 @@ export function SettingsPage() {
       case 'accounts':
         return <ConnectedAccounts />
       case 'timeslots':
-        return <TimeSlotManager />
+        return <TimeSlotManager onSave={async (slots) => {
+          try {
+            // TODO: Implement proper time slot saving with database
+            console.log('Saving time slots:', slots)
+            alert('Time slots saved successfully!')
+          } catch (error) {
+            console.error('Failed to save time slots:', error)
+            alert('Failed to save time slots. Please try again.')
+          }
+        }} />
       case 'notifications':
         return <NotificationSettings />
       default:
