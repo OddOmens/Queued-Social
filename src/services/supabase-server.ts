@@ -8,6 +8,16 @@ const getEnvVars = () => {
   const supabaseServiceRoleKey = import.meta.env.VITE_SUPABASE_SERVICE_ROLE_KEY
   const nodeEnv = import.meta.env.MODE || 'development'
 
+  // Log environment variables for debugging (only in development)
+  if (nodeEnv === 'development') {
+    console.log('🔧 Environment Variables Debug:', {
+      VITE_SUPABASE_URL: supabaseUrl,
+      VITE_SUPABASE_ANON_KEY: supabaseAnonKey ? `${supabaseAnonKey.substring(0, 20)}...` : 'NOT SET',
+      MODE: nodeEnv,
+      hasServiceRole: !!supabaseServiceRoleKey
+    })
+  }
+
   return {
     supabaseUrl,
     supabaseAnonKey,
