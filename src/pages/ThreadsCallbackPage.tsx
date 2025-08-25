@@ -29,7 +29,7 @@ export function ThreadsCallbackPage() {
           throw new Error('User not authenticated')
         }
 
-        // Exchange code for access token
+        // Exchange code for access token using serverless function
         const tokenResponse = await fetch('/api/auth/threads/token', {
           method: 'POST',
           headers: {
@@ -39,11 +39,15 @@ export function ThreadsCallbackPage() {
         })
 
         if (!tokenResponse.ok) {
-          const errorData = await tokenResponse.json()
-          throw new Error(errorData.message || 'Failed to exchange code for token')
+          const errorData = await tokenResponse.json().catch(() => ({ error: 'Unknown error' }))
+          throw new Error(errorData.message || errorData.error || 'Failed to exchange code for token')
         }
 
         const tokenData = await tokenResponse.json()
+        
+        if (tokenData.error) {
+          throw new Error(`Threads API error: ${tokenData.error_description || tokenData.error}`)
+        }
 
         // Store credentials in database
         const db = createDbService()

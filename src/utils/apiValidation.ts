@@ -116,7 +116,7 @@ export function validatePlatform(platform: any): ValidationResult {
     return { isValid: false, errors }
   }
 
-  const validPlatforms: Platform[] = ['threads', 'twitter', 'instagram', 'linkedin']
+  const validPlatforms: Platform[] = ['threads']
   if (!validPlatforms.includes(platform)) {
     errors.push({
       field: 'platform',

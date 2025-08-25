@@ -56,15 +56,9 @@ export function PostsPage() {
           </p>
         </div>
         <div className="flex items-center space-x-4">
-          <select
-            value={selectedPlatform}
-            onChange={(e) => setSelectedPlatform(e.target.value as Platform)}
-            className="px-3 py-2 border border-gray-300 rounded-md text-sm"
-          >
-            <option value="threads">Threads</option>
-            <option value="twitter">Twitter</option>
-            <option value="instagram">Instagram</option>
-          </select>
+          <div className="flex items-center px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50">
+            <span className="text-gray-700">🧵 Threads</span>
+          </div>
           <button 
             onClick={() => setShowEditor(true)}
             className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-md"

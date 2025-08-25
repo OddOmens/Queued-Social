@@ -11,21 +11,26 @@ export function ConnectedAccounts() {
     
     try {
       if (platform === 'threads') {
-        // Redirect to Threads OAuth
-        const clientId = import.meta.env.VITE_THREADS_CLIENT_ID
-        const redirectUri = `${window.location.origin}/api/auth/threads/callback`
+        // Check if environment variables are set
+        const clientId = import.meta.env.VITE_THREADS_CLIENT_ID || import.meta.env.THREADS_CLIENT_ID
+        
+        if (!clientId) {
+          alert('Threads API is not configured. Please contact the administrator.')
+          return
+        }
+        
+        // Redirect to Threads OAuth with correct URL
+        const redirectUri = `${window.location.origin}/auth/threads/callback`
         const scope = 'threads_basic,threads_content_publish'
         
-        const authUrl = `https://threads.net/oauth/authorize?` +
+        const authUrl = `https://graph.threads.net/oauth/authorize?` +
           `client_id=${clientId}&` +
           `redirect_uri=${encodeURIComponent(redirectUri)}&` +
           `scope=${scope}&` +
-          `response_type=code`
+          `response_type=code&` +
+          `state=${Math.random().toString(36).substring(7)}`
         
         window.location.href = authUrl
-      } else {
-        // TODO: Implement other platform connections
-        alert(`${platform} connection coming soon!`)
       }
     } catch (error) {
       console.error(`Failed to connect ${platform}:`, error)
@@ -51,20 +56,8 @@ export function ConnectedAccounts() {
     {
       platform: 'threads',
       name: 'Threads',
-      description: 'Connect your Meta Threads account',
+      description: 'Connect your Meta Threads account to schedule posts',
       icon: '🧵'
-    },
-    {
-      platform: 'twitter',
-      name: 'Twitter/X',
-      description: 'Connect your Twitter account',
-      icon: '🐦'
-    },
-    {
-      platform: 'instagram',
-      name: 'Instagram',
-      description: 'Connect your Instagram account',
-      icon: '📷'
     }
   ]
 

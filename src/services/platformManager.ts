@@ -357,7 +357,7 @@ export class PlatformManager {
    * Get plugin registration status
    */
   getPluginStatus(): Record<Platform, boolean> {
-    const allPlatforms: Platform[] = ['threads', 'twitter', 'instagram', 'linkedin']
+    const allPlatforms: Platform[] = ['threads']
     const status: Record<Platform, boolean> = {} as Record<Platform, boolean>
 
     for (const platform of allPlatforms) {

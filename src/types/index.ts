@@ -22,7 +22,7 @@ export interface UserProfile {
 
 export type PostContentType = 'single' | 'thread' | 'media'
 export type PostStatus = 'scheduled' | 'publishing' | 'published' | 'failed' | 'cancelled'
-export type Platform = 'threads' | 'twitter' | 'instagram' | 'linkedin'
+export type Platform = 'threads'
 
 // Base interface for all post content
 export interface BasePostContent {

@@ -40,11 +40,11 @@ export function checkEnvironmentVariables(): EnvironmentCheck {
 
   // Platform-specific checks
   if (!config.threadsClientId) {
-    warnings.push('THREADS_CLIENT_ID is not set - Threads integration will not work')
+    errors.push('THREADS_CLIENT_ID is required for Threads integration')
   }
 
   if (!config.threadsClientSecret) {
-    warnings.push('THREADS_CLIENT_SECRET is not set - Threads integration will not work')
+    errors.push('THREADS_CLIENT_SECRET is required for Threads integration')
   }
 
   // Production-specific checks

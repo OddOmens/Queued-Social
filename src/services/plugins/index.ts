@@ -15,10 +15,7 @@ export function initializePlatformPlugins(): void {
   // In production, these would be replaced with real platform plugins
   
   const platforms = [
-    { name: 'threads' as const, displayName: 'Threads' },
-    { name: 'twitter' as const, displayName: 'Twitter/X' },
-    { name: 'instagram' as const, displayName: 'Instagram' },
-    { name: 'linkedin' as const, displayName: 'LinkedIn' }
+    { name: 'threads' as const, displayName: 'Threads' }
   ]
 
   platforms.forEach(({ name, displayName }) => {

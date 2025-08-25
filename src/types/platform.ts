@@ -52,33 +52,7 @@ export interface ThreadsMediaUploadResponse {
 // FUTURE PLATFORM TYPES (for extensibility)
 // ============================================================================
 
-export interface TwitterCredentials extends PlatformCredentials {
-  platform: 'twitter'
-  credentials: {
-    accessToken: string
-    accessTokenSecret: string
-    userId: string
-    username: string
-  }
-}
-
-export interface InstagramCredentials extends PlatformCredentials {
-  platform: 'instagram'
-  credentials: {
-    accessToken: string
-    userId: string
-    username: string
-  }
-}
-
-export interface LinkedInCredentials extends PlatformCredentials {
-  platform: 'linkedin'
-  credentials: {
-    accessToken: string
-    userId: string
-    organizationId?: string
-  }
-}
+// Other platform types can be added here when needed
 
 // ============================================================================
 // PLATFORM CONFIGURATION TYPES
@@ -106,7 +80,7 @@ export const PLATFORM_CONFIGS: Record<Platform, PlatformConfig> = {
     displayName: 'Threads',
     icon: 'threads',
     color: '#000000',
-    authUrl: '/api/auth/threads',
+    authUrl: '/auth/threads',
     contentLimits: {
       maxTextLength: 500,
       maxMediaFiles: 10,
@@ -119,66 +93,6 @@ export const PLATFORM_CONFIGS: Record<Platform, PlatformConfig> = {
       media: true,
       scheduling: true,
       analytics: false
-    }
-  },
-  twitter: {
-    platform: 'twitter',
-    displayName: 'Twitter/X',
-    icon: 'twitter',
-    color: '#1DA1F2',
-    authUrl: '/api/auth/twitter',
-    contentLimits: {
-      maxTextLength: 280,
-      maxMediaFiles: 4,
-      supportedMediaTypes: ['image/jpeg', 'image/png', 'image/gif', 'video/mp4'],
-      maxThreadLength: 25
-    },
-    supportedContentTypes: ['single', 'thread', 'media'],
-    features: {
-      threads: true,
-      media: true,
-      scheduling: true,
-      analytics: true
-    }
-  },
-  instagram: {
-    platform: 'instagram',
-    displayName: 'Instagram',
-    icon: 'instagram',
-    color: '#E4405F',
-    authUrl: '/api/auth/instagram',
-    contentLimits: {
-      maxTextLength: 2200,
-      maxMediaFiles: 10,
-      supportedMediaTypes: ['image/jpeg', 'image/png', 'video/mp4'],
-      maxThreadLength: 1
-    },
-    supportedContentTypes: ['single', 'media'],
-    features: {
-      threads: false,
-      media: true,
-      scheduling: true,
-      analytics: true
-    }
-  },
-  linkedin: {
-    platform: 'linkedin',
-    displayName: 'LinkedIn',
-    icon: 'linkedin',
-    color: '#0077B5',
-    authUrl: '/api/auth/linkedin',
-    contentLimits: {
-      maxTextLength: 3000,
-      maxMediaFiles: 9,
-      supportedMediaTypes: ['image/jpeg', 'image/png', 'video/mp4', 'application/pdf'],
-      maxThreadLength: 1
-    },
-    supportedContentTypes: ['single', 'media'],
-    features: {
-      threads: false,
-      media: true,
-      scheduling: true,
-      analytics: true
     }
   }
 }
