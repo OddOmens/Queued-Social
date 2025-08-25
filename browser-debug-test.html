@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Browser Threads API Debug</title>
+</head>
+<body>
+    <h1>Browser Threads API Debug Test</h1>
+    <p>Open browser console (F12) and run the test</p>
+    
+    <script>
+        // Test function to run in browser console
+        async function debugBrowserRequest() {
+            console.log('🔍 Testing Threads API from browser...');
+            
+            // Use the exact same credentials as Node.js test
+            const accessToken = 'THAAKtNSjhU8lBUVJYRWhqbHBGMFdiZA2c0UDBsSnJqWWkyaHpEMTJObVUwcHFrTlJHSHJkWFVza1ZAUU0E0YnlfVk41UHBjb21JUnR3MXh3TW9aRnpKMk9OTVJLRmlQX2V5a3NyWWtpZA29GaTIta1RDdmstVWRnSXpNTHktejlKMzc4SmdlbFdLTVRoZAFE5TEhmUVFnU3NadnFVelNaWTJuQW1kSUsZD';
+            const userId = '31057074893906982';
+            
+            console.log('Current domain:', window.location.hostname);
+            console.log('Current origin:', window.location.origin);
+            
+            // Test 1: Basic user info (should work)
+            console.log('\n1. Testing basic user info...');
+            try {
+                const response = await fetch(`https://graph.threads.net/v1.0/me?fields=id,username&access_token=${accessToken}`);
+                console.log('User info status:', response.status);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    console.log('✅ User info works:', data);
+                } else {
+                    const error = await response.text();
+                    console.log('❌ User info failed:', error);
+                }
+            } catch (error) {
+                console.log('❌ User info error:', error);
+            }
+            
+            // Test 2: Post creation (the failing one)
+            console.log('\n2. Testing post creation...');
+            try {
+                const params = new URLSearchParams({
+                    media_type: 'TEXT',
+                    text: `Browser test from ${window.location.hostname} - ${new Date().toISOString()}`,
+                    access_token: accessToken
+                });
+                
+                console.log('Request params:', Object.fromEntries(params.entries()));
+                console.log('Request URL:', `https://graph.threads.net/v1.0/${userId}/threads`);
+                
+                const response = await fetch(`https://graph.threads.net/v1.0/${userId}/threads`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: params
+                });
+                
+                console.log('Post creation status:', response.status);
+                console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+                
+                const responseText = await response.text();
+                console.log('Response body:', responseText);
+                
+                if (response.ok) {
+                    console.log('✅ Post creation works from browser!');
+                } else {
+                    console.log('❌ Post creation failed from browser');
+                    
+                    // Try to parse error
+                    try {
+                        const errorData = JSON.parse(responseText);
+                        if (errorData.error) {
+                            console.log('Error details:', errorData.error);
+                        }
+                    } catch (e) {
+                        console.log('Could not parse error response');
+                    }
+                }
+            } catch (error) {
+                console.log('❌ Post creation error:', error);
+            }
+            
+            // Test 3: Check if it's a CORS preflight issue
+            console.log('\n3. Testing CORS preflight...');
+            try {
+                const response = await fetch(`https://graph.threads.net/v1.0/${userId}/threads`, {
+                    method: 'OPTIONS'
+                });
+                console.log('OPTIONS status:', response.status);
+                console.log('CORS headers:', {
+                    'access-control-allow-origin': response.headers.get('access-control-allow-origin'),
+                    'access-control-allow-methods': response.headers.get('access-control-allow-methods'),
+                    'access-control-allow-headers': response.headers.get('access-control-allow-headers')
+                });
+            } catch (error) {
+                console.log('❌ CORS preflight error:', error);
+            }
+        }
+        
+        // Auto-run the test
+        window.addEventListener('load', () => {
+            console.log('🚀 Auto-running browser debug test...');
+            debugBrowserRequest();
+        });
+        
+        // Also make it available globally
+        window.debugBrowserRequest = debugBrowserRequest;
+    </script>
+</body>
+</html>
