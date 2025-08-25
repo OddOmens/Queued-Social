@@ -5,6 +5,11 @@ node_modules
 dist
 .next
 supabase/functions
+src/__tests__
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
 *.log
 npm-debug.log*
 yarn-debug.log*
