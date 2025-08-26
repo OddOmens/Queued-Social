@@ -60,6 +60,8 @@ export function ThreadsCallbackPage() {
         }
 
         console.log(`✅ Verified user ID: ${userInfo.id}, Username: ${userInfo.username}`)
+        console.log('🔍 Token response scopes:', tokenData.scope)
+        console.log('🔍 Full token data:', JSON.stringify(tokenData, null, 2))
 
         // Store credentials in database with verified user info
         const db = createDbService()
