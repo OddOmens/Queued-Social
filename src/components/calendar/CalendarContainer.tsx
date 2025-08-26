@@ -11,6 +11,7 @@ interface CalendarContainerProps {
   onDateSelect: (date: Date) => void
   loading?: boolean
   className?: string
+  initialView?: 'month' | 'week' | 'day'
 }
 
 const CalendarContainer: React.FC<CalendarContainerProps> = ({
@@ -19,10 +20,16 @@ const CalendarContainer: React.FC<CalendarContainerProps> = ({
   onPostSelect,
   onDateSelect,
   loading = false,
-  className = ''
+  className = '',
+  initialView = 'month'
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date())
-  const [view, setView] = useState<'month' | 'week' | 'day'>('month')
+  const [view, setView] = useState<'month' | 'week' | 'day'>(initialView)
+
+  // Update view when initialView changes
+  React.useEffect(() => {
+    setView(initialView)
+  }, [initialView])
 
   // Filter posts based on current view and date range
   const filteredPosts = useMemo(() => {

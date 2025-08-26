@@ -11,8 +11,7 @@ import { initializePlatformPlugins } from './services/platforms'
 import { LoginPage } from './pages/LoginPage'
 import { SignUpPage } from './pages/SignUpPage'
 import { DashboardPage } from './pages/DashboardPage'
-import { CalendarPage } from './pages/CalendarPage'
-import { PostsPage } from './pages/PostsPage'
+import { UnifiedCalendarPage } from './pages/UnifiedCalendarPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { ThreadsCallbackPage } from './pages/ThreadsCallbackPage'
@@ -47,8 +46,7 @@ function App() {
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="calendar" element={<CalendarPage />} />
-            <Route path="posts" element={<PostsPage />} />
+            <Route path="calendar" element={<UnifiedCalendarPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="settings/profile" element={<ProfilePage />} />
           </Route>
