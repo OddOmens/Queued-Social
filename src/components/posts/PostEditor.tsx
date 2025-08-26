@@ -8,6 +8,37 @@ import { RichTextEditor } from './RichTextEditor'
 import { MediaUpload } from './MediaUpload'
 import { ThreadComposer } from './ThreadComposer'
 
+// Content type configurations - moved outside component to prevent re-initialization
+const CONTENT_TYPE_ICONS = {
+  single: (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
+    </svg>
+  ),
+  thread: (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+    </svg>
+  ),
+  media: (
+    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  )
+} as const
+
+const CONTENT_TYPE_LABELS = {
+  single: 'Single Post',
+  thread: 'Thread',
+  media: 'Media Post'
+} as const
+
+const CONTENT_TYPE_DESCRIPTIONS = {
+  single: 'Simple text post with optional media',
+  thread: 'Multiple connected posts',
+  media: 'Media-focused post with caption'
+} as const
+
 interface PostEditorProps {
   platform: Platform
   onSave: (post: CreatePostRequest) => void
@@ -202,35 +233,6 @@ export function PostEditor({
             <div className="grid grid-cols-3 gap-3">
               {supportedTypes.map((type) => {
                 const isSelected = contentType === type
-                const icons = {
-                  single: (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 8h10M7 12h4m1 8l-4-4H5a2 2 0 01-2-2V6a2 2 0 012-2h14a2 2 0 012 2v8a2 2 0 01-2 2h-3l-4 4z" />
-                    </svg>
-                  ),
-                  thread: (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-                    </svg>
-                  ),
-                  media: (
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                    </svg>
-                  )
-                }
-                
-                const labels = {
-                  single: 'Single Post',
-                  thread: 'Thread',
-                  media: 'Media Post'
-                }
-                
-                const descriptions = {
-                  single: 'Simple text post with optional media',
-                  thread: 'Multiple connected posts',
-                  media: 'Media-focused post with caption'
-                }
 
                 return (
                   <button
@@ -249,13 +251,13 @@ export function PostEditor({
                   >
                     <div className="flex flex-col items-center space-y-2">
                       <div className={`${isSelected ? 'text-blue-400' : 'text-gray-500'}`}>
-                        {icons[type as keyof typeof icons]}
+                        {CONTENT_TYPE_ICONS[type as keyof typeof CONTENT_TYPE_ICONS]}
                       </div>
                       <div className="text-sm font-medium">
-                        {labels[type as keyof typeof labels]}
+                        {CONTENT_TYPE_LABELS[type as keyof typeof CONTENT_TYPE_LABELS]}
                       </div>
                       <div className="text-xs text-center opacity-75">
-                        {descriptions[type as keyof typeof descriptions]}
+                        {CONTENT_TYPE_DESCRIPTIONS[type as keyof typeof CONTENT_TYPE_DESCRIPTIONS]}
                       </div>
                     </div>
                     {isSelected && (
