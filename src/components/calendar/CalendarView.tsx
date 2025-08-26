@@ -172,7 +172,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     return {
       style: {
         backgroundColor,
-        position: 'relative'
+        position: 'relative' as const
       }
     }
   }, [getTimeSlotsForDay])
