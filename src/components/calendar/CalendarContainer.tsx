@@ -2,10 +2,11 @@
 
 import React, { useState, useCallback, useMemo } from 'react'
 import CalendarView from './CalendarView'
-import { ScheduledPost } from '@/types'
+import { ScheduledPost, TimeSlotConfig } from '@/types'
 
 interface CalendarContainerProps {
   posts: ScheduledPost[]
+  timeSlots?: TimeSlotConfig[]
   onPostSelect: (post: ScheduledPost) => void
   onDateSelect: (date: Date) => void
   loading?: boolean
@@ -14,6 +15,7 @@ interface CalendarContainerProps {
 
 const CalendarContainer: React.FC<CalendarContainerProps> = ({
   posts,
+  timeSlots = [],
   onPostSelect,
   onDateSelect,
   loading = false,
@@ -51,6 +53,7 @@ const CalendarContainer: React.FC<CalendarContainerProps> = ({
     <div className={`calendar-container relative ${className}`}>
       <CalendarView
         posts={filteredPosts}
+        timeSlots={timeSlots}
         onPostSelect={handlePostSelect}
         onDateSelect={handleDateSelect}
         view={view}

@@ -122,8 +122,8 @@ export function ConnectedAccounts() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold text-gray-900">Connected Accounts</h2>
-        <p className="mt-2 text-gray-600">
+        <h2 className="text-2xl font-bold text-white">Connected Accounts</h2>
+        <p className="mt-2 text-gray-300">
           Manage your social media platform connections.
         </p>
       </div>
@@ -136,15 +136,15 @@ export function ConnectedAccounts() {
           const isDisconnecting = disconnectingPlatform === platformInfo.platform
 
           return (
-            <div key={platformInfo.platform} className="bg-white border border-gray-200 rounded-lg p-6">
+            <div key={platformInfo.platform} className="bg-gray-800 border border-gray-600 rounded-lg p-6">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-4">
                   <div className="text-2xl">{platformInfo.icon}</div>
                   <div>
-                    <h3 className="text-lg font-medium text-gray-900">
+                    <h3 className="text-lg font-medium text-white">
                       {platformInfo.name}
                     </h3>
-                    <p className="text-sm text-gray-500">
+                    <p className="text-sm text-gray-400">
                       {platformInfo.description}
                     </p>
                     {isConnected && connectedPlatform && (
@@ -190,7 +190,7 @@ export function ConnectedAccounts() {
       </div>
 
       {platforms && platforms.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+        <div className="bg-blue-900/20 border border-blue-600 rounded-lg p-4">
           <div className="flex">
             <div className="flex-shrink-0">
               <svg className="h-5 w-5 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
@@ -198,10 +198,10 @@ export function ConnectedAccounts() {
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-blue-800">
+              <h3 className="text-sm font-medium text-blue-200">
                 Platform Connection Tips
               </h3>
-              <div className="mt-2 text-sm text-blue-700">
+              <div className="mt-2 text-sm text-blue-300">
                 <ul className="list-disc list-inside space-y-1">
                   <li>Make sure you have the necessary permissions on each platform</li>
                   <li>Connections may expire and need to be renewed periodically</li>
@@ -216,18 +216,18 @@ export function ConnectedAccounts() {
       {/* Disconnect Confirmation Modal */}
       {confirmDisconnect && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50">
-          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-white">
+          <div className="relative top-20 mx-auto p-5 border w-96 shadow-lg rounded-md bg-gray-800">
             <div className="mt-3 text-center">
               <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
                 <svg className="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
                 </svg>
               </div>
-              <h3 className="text-lg leading-6 font-medium text-gray-900 mt-4">
+              <h3 className="text-lg leading-6 font-medium text-white mt-4">
                 Disconnect {confirmDisconnect}?
               </h3>
               <div className="mt-2 px-7 py-3">
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-gray-300">
                   Are you sure you want to disconnect your {confirmDisconnect} account? 
                   This will stop all scheduled posts for this platform and you'll need to reconnect to schedule new posts.
                 </p>

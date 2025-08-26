@@ -3,7 +3,7 @@
 import React, { useMemo, useCallback } from 'react'
 import { Calendar, momentLocalizer, View, Views } from 'react-big-calendar'
 import moment from 'moment'
-import { ScheduledPost, Platform, PostStatus } from '@/types'
+import { ScheduledPost, Platform, PostStatus, TimeSlotConfig, DayOfWeek } from '@/types'
 import 'react-big-calendar/lib/css/react-big-calendar.css'
 
 const localizer = momentLocalizer(moment)
@@ -20,6 +20,7 @@ interface CalendarEvent {
 
 export interface CalendarViewProps {
   posts: ScheduledPost[]
+  timeSlots?: TimeSlotConfig[]
   onPostSelect: (post: ScheduledPost) => void
   onDateSelect: (date: Date) => void
   view: 'month' | 'week' | 'day'
@@ -32,6 +33,7 @@ export interface CalendarViewProps {
 
 const CalendarView: React.FC<CalendarViewProps> = ({
   posts,
+  timeSlots = [],
   onPostSelect,
   onDateSelect,
   view,
@@ -146,21 +148,65 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     }
   }, [])
 
-  // Custom day prop getter for highlighting
+  // Get time slots for a specific day
+  const getTimeSlotsForDay = useCallback((date: Date): TimeSlotConfig[] => {
+    const dayOfWeek = date.getDay() as DayOfWeek
+    return timeSlots.filter(slot => slot.dayOfWeek === dayOfWeek && slot.isActive)
+  }, [timeSlots])
+
+  // Custom day prop getter for highlighting and showing time slots
   const dayPropGetter = useCallback((date: Date) => {
     const today = new Date()
     const isToday = moment(date).isSame(today, 'day')
+    const dayTimeSlots = getTimeSlotsForDay(date)
+    const hasTimeSlots = dayTimeSlots.length > 0
+    
+    let backgroundColor = '#0f172a'
     
     if (isToday) {
-      return {
-        style: {
-          backgroundColor: '#1e3a8a'
-        }
-      }
+      backgroundColor = '#1e40af'
+    } else if (hasTimeSlots) {
+      backgroundColor = '#064e3b' // Dark green tint for days with time slots
     }
     
-    return {}
-  }, [])
+    return {
+      style: {
+        backgroundColor,
+        position: 'relative'
+      }
+    }
+  }, [getTimeSlotsForDay])
+
+  // Custom date cell component
+  const DateCellWrapper = useCallback(({ children, value }: { children: React.ReactNode, value: Date }) => {
+    const dayTimeSlots = getTimeSlotsForDay(value)
+    
+    return (
+      <div className="relative h-full">
+        {children}
+        {view === 'month' && dayTimeSlots.length > 0 && (
+          <div className="absolute bottom-1 left-1 right-1">
+            <div className="flex flex-wrap gap-0.5">
+              {dayTimeSlots.slice(0, 3).map((slot, index) => (
+                <div
+                  key={slot.id}
+                  className="bg-green-600 text-white text-xs px-1 py-0.5 rounded flex-shrink-0"
+                  title={`${slot.time}`}
+                >
+                  {slot.time}
+                </div>
+              ))}
+              {dayTimeSlots.length > 3 && (
+                <div className="bg-green-600 text-white text-xs px-1 py-0.5 rounded">
+                  +{dayTimeSlots.length - 3}
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+      </div>
+    )
+  }, [view, getTimeSlotsForDay])
 
   // Convert view prop to react-big-calendar View type
   const calendarView = useMemo((): View => {
@@ -273,6 +319,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           border-bottom: 1px solid #374151;
           aspect-ratio: 1;
           min-height: 120px;
+          position: relative;
         }
         
         .rbc-date-cell:hover {
@@ -391,6 +438,9 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         selectable
         eventPropGetter={eventStyleGetter}
         dayPropGetter={dayPropGetter}
+        components={{
+          dateCellWrapper: DateCellWrapper
+        }}
         popup
         showMultiDayTimes
         step={30}

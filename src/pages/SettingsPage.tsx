@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { ConnectedAccounts } from '@/components/settings/ConnectedAccounts'
 import { TimeSlotManager } from '@/components/timeSlots/TimeSlotManager'
 import { NotificationSettings } from '@/components/settings/NotificationSettings'
-import { EnvDebug } from '@/components/debug/EnvDebug'
 import { useAuth } from '@/hooks/useAuth'
 import { useTimeSlots } from '@/hooks/useTimeSlots'
 
@@ -151,9 +150,6 @@ export function SettingsPage() {
 
       {/* Tab Content */}
       {renderContent()}
-      
-      {/* Debug component for troubleshooting */}
-      <EnvDebug />
     </div>
   )
 }

@@ -1,7 +1,7 @@
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import { usePosts, useCreatePost, useDeletePost } from '@/hooks/usePosts'
 import { PostEditor } from '@/components/posts/PostEditor'
-import { Platform, CreatePostRequest } from '@/types'
+import { Platform, CreatePostRequest, ScheduledPost } from '@/types'
 
 export function PostsPage() {
   const [showEditor, setShowEditor] = useState(false)
@@ -15,6 +15,52 @@ export function PostsPage() {
   
   const createPostMutation = useCreatePost()
   const deletePostMutation = useDeletePost()
+
+  // Group posts by date
+  const groupedPosts = useMemo(() => {
+    if (!posts || posts.length === 0) return []
+    
+    const groups = new Map<string, ScheduledPost[]>()
+    
+    posts.forEach(post => {
+      const date = new Date(post.scheduledTime)
+      const dateKey = date.toDateString()
+      
+      if (!groups.has(dateKey)) {
+        groups.set(dateKey, [])
+      }
+      groups.get(dateKey)!.push(post)
+    })
+    
+    // Sort groups by date (most recent first) and posts within groups by time
+    return Array.from(groups.entries())
+      .sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime())
+      .map(([date, posts]) => ({
+        date: new Date(date),
+        dateKey: date,
+        posts: posts.sort((a, b) => new Date(a.scheduledTime).getTime() - new Date(b.scheduledTime).getTime())
+      }))
+  }, [posts])
+
+  const formatDateHeader = (date: Date) => {
+    const today = new Date()
+    const tomorrow = new Date(today)
+    tomorrow.setDate(today.getDate() + 1)
+    
+    const isToday = date.toDateString() === today.toDateString()
+    const isTomorrow = date.toDateString() === tomorrow.toDateString()
+    
+    if (isToday) return 'Today'
+    if (isTomorrow) return 'Tomorrow'
+    
+    const isThisYear = date.getFullYear() === today.getFullYear()
+    return date.toLocaleDateString(undefined, {
+      weekday: 'long',
+      month: 'long',
+      day: 'numeric',
+      year: isThisYear ? undefined : 'numeric'
+    })
+  }
 
   const handleCreatePost = async (request: CreatePostRequest) => {
     try {
@@ -103,54 +149,73 @@ export function PostsPage() {
             <div className="text-center py-12">
               <div className="text-gray-400">Loading posts...</div>
             </div>
-          ) : posts && posts.length > 0 ? (
-            <div className="space-y-4">
-              {posts.map((post) => (
-                <div key={post.id} className="border border-gray-800 rounded-lg p-4 bg-gray-800/50">
-                  <div className="flex items-start justify-between">
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center space-x-2 mb-2">
-                        <span className="text-sm font-medium text-white capitalize">
-                          {post.platform}
-                        </span>
-                        <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${
-                          post.status === 'published' 
-                            ? 'bg-green-900/50 text-green-300'
-                            : post.status === 'scheduled'
-                            ? 'bg-blue-900/50 text-blue-300'
-                            : post.status === 'failed'
-                            ? 'bg-red-900/50 text-red-300'
-                            : 'bg-gray-800 text-gray-300'
-                        }`}>
-                          {post.status}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-200 mb-2">
-                        {post.content.text || 'Media post'}
-                      </p>
-                      <div className="text-xs text-gray-400">
-                        Scheduled for: {new Date(post.scheduledTime).toLocaleString()}
-                        {post.publishedAt && (
-                          <span className="ml-4">
-                            Published: {new Date(post.publishedAt).toLocaleString()}
-                          </span>
-                        )}
-                      </div>
-                      {post.errorMessage && (
-                        <div className="text-xs text-red-400 mt-1">
-                          Error: {post.errorMessage}
+          ) : groupedPosts.length > 0 ? (
+            <div className="space-y-8">
+              {groupedPosts.map(({ date, dateKey, posts }) => (
+                <div key={dateKey}>
+                  <div className="flex items-center mb-4">
+                    <h2 className="text-lg font-semibold text-white">
+                      {formatDateHeader(date)}
+                    </h2>
+                    <div className="ml-3 text-sm text-gray-400">
+                      {posts.length} post{posts.length !== 1 ? 's' : ''}
+                    </div>
+                    <div className="flex-1 ml-4 border-t border-gray-800"></div>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    {posts.map((post) => (
+                      <div key={post.id} className="border border-gray-800 rounded-lg p-4 bg-gray-800/50">
+                        <div className="flex items-start justify-between">
+                          <div className="flex-1 min-w-0">
+                            <div className="flex items-center space-x-2 mb-2">
+                              <span className="text-xs text-gray-400">
+                                {new Date(post.scheduledTime).toLocaleTimeString(undefined, {
+                                  hour: '2-digit',
+                                  minute: '2-digit'
+                                })}
+                              </span>
+                              <span className="text-sm font-medium text-white capitalize">
+                                {post.platform}
+                              </span>
+                              <span className={`inline-flex px-3 py-1 text-xs font-medium rounded-full ${
+                                post.status === 'published' 
+                                  ? 'bg-green-900/50 text-green-300'
+                                  : post.status === 'scheduled'
+                                  ? 'bg-blue-900/50 text-blue-300'
+                                  : post.status === 'failed'
+                                  ? 'bg-red-900/50 text-red-300'
+                                  : 'bg-gray-800 text-gray-300'
+                              }`}>
+                                {post.status}
+                              </span>
+                            </div>
+                            <p className="text-sm text-gray-200 mb-2">
+                              {post.content.text || 'Media post'}
+                            </p>
+                            {post.publishedAt && (
+                              <div className="text-xs text-gray-400">
+                                Published: {new Date(post.publishedAt).toLocaleString()}
+                              </div>
+                            )}
+                            {post.errorMessage && (
+                              <div className="text-xs text-red-400 mt-1">
+                                Error: {post.errorMessage}
+                              </div>
+                            )}
+                          </div>
+                          <div className="flex items-center space-x-2">
+                            <button
+                              onClick={() => handleDeletePost(post.id)}
+                              disabled={deletePostMutation.isPending}
+                              className="text-red-400 hover:text-red-300 text-sm font-medium"
+                            >
+                              Delete
+                            </button>
+                          </div>
                         </div>
-                      )}
-                    </div>
-                    <div className="flex items-center space-x-2">
-                      <button
-                        onClick={() => handleDeletePost(post.id)}
-                        disabled={deletePostMutation.isPending}
-                        className="text-red-400 hover:text-red-300 text-sm font-medium"
-                      >
-                        Delete
-                      </button>
-                    </div>
+                      </div>
+                    ))}
                   </div>
                 </div>
               ))}
