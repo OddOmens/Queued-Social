@@ -342,20 +342,20 @@ export function UnifiedCalendarPage() {
               </div>
             ) : groupedPosts.length > 0 ? (
               <div className="space-y-8">
-                {groupedPosts.map(({ date, dateKey, posts }) => (
+                {groupedPosts.map(({ date, dateKey, posts: groupPosts }) => (
                   <div key={dateKey}>
                     <div className="flex items-center mb-4">
                       <h2 className="text-lg font-semibold text-white">
                         {formatDateHeader(date)}
                       </h2>
                       <div className="ml-3 text-sm text-gray-400">
-                        {posts.length} post{posts.length !== 1 ? 's' : ''}
+                        {groupPosts.length} post{groupPosts.length !== 1 ? 's' : ''}
                       </div>
                       <div className="flex-1 ml-4 border-t border-gray-800"></div>
                     </div>
                     
                     <div className="space-y-3">
-                      {posts.map((post) => (
+                      {groupPosts.map((post) => (
                         <div key={post.id} className="border border-gray-800 rounded-lg p-4 bg-gray-800/50">
                           <div className="flex items-start justify-between">
                             <div className="flex-1 min-w-0">
