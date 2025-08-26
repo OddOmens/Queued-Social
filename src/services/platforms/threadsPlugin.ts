@@ -357,6 +357,10 @@ export class ThreadsPlugin extends BasePlatformPlugin implements IThreadsPlugin 
         if (threadsMetadata.replySettings) {
           postParams.append('reply_control', threadsMetadata.replySettings)
         }
+        // Handle reply_to_id for thread posts
+        if (threadsMetadata.reply_to_id) {
+          postParams.append('reply_to_id', threadsMetadata.reply_to_id)
+        }
       }
 
       console.log('🔍 Threads API Request:', {

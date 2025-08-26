@@ -58,26 +58,28 @@ export function MediaUpload({
   const supportedExtensions = getSupportedExtensions(platform)
   const acceptedTypes = supportedExtensions.join(',')
 
-  // Upload files to server
-  const uploadFiles = useCallback(async (filesToUpload: File[]) => {
-    const formData = new FormData()
-    filesToUpload.forEach(file => {
-      formData.append('files', file)
-    })
-    formData.append('platform', platform)
+  // Mock upload files to server (simulate upload for now)
+  const uploadFiles = useCallback(async (filesToUpload: File[]): Promise<{ success: boolean; uploads: any[] }> => {
+    // Simulate upload delay
+    await new Promise(resolve => setTimeout(resolve, 1000))
+    
+    const uploads = filesToUpload.map((file, index) => ({
+      id: `mock_${Date.now()}_${index}`,
+      filename: `${Date.now()}_${file.name}`,
+      originalFilename: file.name,
+      url: URL.createObjectURL(file), // Use object URL for preview
+      thumbnailUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
+      fileSize: file.size,
+      mimeType: file.type,
+      width: undefined, // Could be extracted client-side
+      height: undefined,
+      duration: undefined
+    }))
 
-    const response = await fetch('/api/media/upload', {
-      method: 'POST',
-      body: formData
-    })
-
-    if (!response.ok) {
-      const error = await response.json()
-      throw new Error(error.error || 'Upload failed')
+    return {
+      success: true,
+      uploads
     }
-
-    const result = await response.json()
-    return result
   }, [platform])
 
   // Process files and create previews

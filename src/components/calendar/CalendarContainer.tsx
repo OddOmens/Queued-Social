@@ -1,7 +1,7 @@
 'use client'
 
 import React, { useState, useCallback, useMemo } from 'react'
-import CalendarView from './CalendarView'
+import NewCalendar, { ViewType } from './NewCalendar'
 import { ScheduledPost, TimeSlotConfig } from '@/types'
 
 interface CalendarContainerProps {
@@ -23,62 +23,105 @@ const CalendarContainer: React.FC<CalendarContainerProps> = ({
   className = '',
   initialView = 'month'
 }) => {
-  const [currentDate, setCurrentDate] = useState(new Date())
-  const [view, setView] = useState<'month' | 'week' | 'day'>(initialView)
+  const [view, setView] = useState<ViewType>(initialView === 'day' ? 'week' : initialView as ViewType)
 
   // Update view when initialView changes
   React.useEffect(() => {
-    setView(initialView)
+    setView(initialView === 'day' ? 'week' : initialView as ViewType)
   }, [initialView])
 
-  // Filter posts based on current view and date range
-  const filteredPosts = useMemo(() => {
-    // For now, return all posts. In a real implementation, you might want to
-    // filter based on the current view's date range for performance
-    return posts
+  // Convert posts to calendar events
+  const events = useMemo(() => {
+    return posts.map(post => ({
+      id: post.id,
+      title: getPostTitle(post),
+      time: new Date(post.scheduledTime),
+      platform: post.platform,
+      status: post.status
+    }))
   }, [posts])
 
-  const handleDateChange = useCallback((date: Date) => {
-    setCurrentDate(date)
-  }, [])
+  // Convert time slots to the new format
+  const convertedTimeSlots = useMemo(() => {
+    return timeSlots.map(slot => ({
+      id: slot.id,
+      time: slot.time,
+      hour: parseInt(slot.time.split(':')[0]),
+      minute: parseInt(slot.time.split(':')[1]) || 0
+    }))
+  }, [timeSlots])
 
-  const handleViewChange = useCallback((newView: 'month' | 'week' | 'day') => {
+  const getPostTitle = (post: ScheduledPost): string => {
+    const platformIcon = getPlatformIcon(post.platform)
+    let preview = ''
+    
+    if (post.content.type === 'thread') {
+      preview = `Thread: ${post.content.text.substring(0, 30)}...`
+    } else {
+      preview = post.content.text.substring(0, 30)
+      if (post.content.text.length > 30) {
+        preview += '...'
+      }
+    }
+    
+    return `${platformIcon} ${preview}`
+  }
+
+  const getPlatformIcon = (platform: string): string => {
+    const icons = {
+      threads: '🧵',
+      twitter: '🐦',
+      instagram: '📷',
+      linkedin: '💼'
+    }
+    return icons[platform as keyof typeof icons] || '📱'
+  }
+
+  const handleViewChange = useCallback((newView: ViewType) => {
     setView(newView)
   }, [])
 
+  const handleTimeSlotClick = useCallback((date: Date, timeSlot: any) => {
+    // Set the time on the date based on the time slot
+    const scheduledTime = new Date(date)
+    scheduledTime.setHours(timeSlot.hour, timeSlot.minute, 0, 0)
+    onDateSelect(scheduledTime)
+  }, [onDateSelect])
 
-
-  const handlePostSelect = useCallback((post: ScheduledPost) => {
-    onPostSelect(post)
-  }, [onPostSelect])
-
-  const handleDateSelect = useCallback((date: Date) => {
+  const handleDateClick = useCallback((date: Date) => {
     onDateSelect(date)
   }, [onDateSelect])
 
+  const handleEventClick = useCallback((event: any) => {
+    // Find the original post from the event ID
+    const post = posts.find(p => p.id === event.id)
+    if (post) {
+      onPostSelect(post)
+    }
+  }, [posts, onPostSelect])
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center h-96 bg-white rounded-lg shadow-sm border border-gray-200">
+        <div className="flex items-center space-x-2">
+          <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
+          <span className="text-gray-600">Loading calendar...</span>
+        </div>
+      </div>
+    )
+  }
+
   return (
-    <div className={`calendar-container relative ${className}`}>
-      <CalendarView
-        posts={filteredPosts}
-        timeSlots={timeSlots}
-        onPostSelect={handlePostSelect}
-        onDateSelect={handleDateSelect}
+    <div className={`calendar-container ${className}`}>
+      <NewCalendar
         view={view}
         onViewChange={handleViewChange}
-        loading={loading}
-        currentDate={currentDate}
-        onDateChange={handleDateChange}
+        events={events}
+        timeSlots={convertedTimeSlots}
+        onTimeSlotClick={handleTimeSlotClick}
+        onDateClick={handleDateClick}
+        onEventClick={handleEventClick}
       />
-
-      {/* Loading overlay */}
-      {loading && (
-        <div className="absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
-          <div className="flex items-center space-x-2">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400"></div>
-            <span className="text-gray-300">Loading posts...</span>
-          </div>
-        </div>
-      )}
     </div>
   )
 }

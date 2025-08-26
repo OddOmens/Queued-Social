@@ -26,6 +26,7 @@ export interface ThreadsPostContent {
   metadata: {
     replySettings?: 'everyone' | 'accounts_you_follow' | 'mentioned_only'
     allowReplies?: boolean
+    reply_to_id?: string // For threaded replies
   }
 }
 

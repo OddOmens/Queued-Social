@@ -263,16 +263,6 @@ export function UnifiedCalendarPage() {
             >
               Week
             </button>
-            <button
-              onClick={() => setCalendarView('day')}
-              className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
-                calendarView === 'day'
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'text-gray-300 hover:text-white hover:bg-gray-600'
-              }`}
-            >
-              Day
-            </button>
           </div>
           
           <div className="flex items-center space-x-4 text-sm text-gray-400">
