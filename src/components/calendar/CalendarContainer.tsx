@@ -102,10 +102,10 @@ const CalendarContainer: React.FC<CalendarContainerProps> = ({
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center h-96 bg-white rounded-lg shadow-sm border border-gray-200">
+      <div className="flex items-center justify-center h-96 bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700">
         <div className="flex items-center space-x-2">
           <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-          <span className="text-gray-600">Loading calendar...</span>
+          <span className="text-gray-600 dark:text-gray-300">Loading calendar...</span>
         </div>
       </div>
     )

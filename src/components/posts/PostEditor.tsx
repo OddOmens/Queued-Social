@@ -207,14 +207,14 @@ export function PostEditor({
   }
 
   return (
-    <div className="max-w-2xl mx-auto card p-8">
+    <div className="max-w-2xl mx-auto card bg-gray-900 dark:bg-gray-900 border border-gray-800 dark:border-gray-800 p-8">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-white">
+        <h2 className="text-2xl font-bold text-white dark:text-white">
           Create Post for {platformConfig?.displayName || platform}
         </h2>
         <button
           onClick={onCancel}
-          className="text-gray-400 hover:text-white"
+          className="text-gray-400 dark:text-gray-400 hover:text-white dark:hover:text-white"
           disabled={loading}
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -227,7 +227,7 @@ export function PostEditor({
         {/* Content Type Selection */}
         {supportedTypes.length > 1 && (
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-3">
+            <label className="block text-sm font-medium text-gray-300 dark:text-gray-300 mb-3">
               Content Type
             </label>
             <div className="grid grid-cols-3 gap-3">
@@ -276,7 +276,7 @@ export function PostEditor({
 
         {/* Error Display */}
         {errors.length > 0 && (
-          <div className="bg-red-900/50 border border-red-800 text-red-200 px-4 py-3 rounded">
+          <div className="bg-red-900/50 dark:bg-red-900/50 border border-red-800 dark:border-red-800 text-red-200 dark:text-red-200 px-4 py-3 rounded">
             <ul className="list-disc list-inside space-y-1">
               {errors.map((error, index) => (
                 <li key={index}>{error}</li>
@@ -289,7 +289,7 @@ export function PostEditor({
         <div className="space-y-4">
           {/* Main Text Content - Always show */}
           <div>
-            <label className="block text-sm font-medium text-gray-300 mb-2">
+            <label className="block text-sm font-medium text-gray-300 dark:text-gray-300 mb-2">
               {contentType === 'media' ? 'Caption' : contentType === 'thread' ? 'Thread Starter' : 'Post Content'}
               {contentType !== 'media' && <span className="text-red-500 ml-1">*</span>}
             </label>
@@ -306,13 +306,13 @@ export function PostEditor({
               maxLength={platformConfig?.contentLimits.maxTextLength || 500}
               disabled={loading}
             />
-            <div className="text-xs text-gray-400 mt-1">
+            <div className="text-xs text-gray-400 dark:text-gray-400 mt-1">
               {text.length} / {platformConfig?.contentLimits.maxTextLength || 500} characters
             </div>
           </div>
 
-          {/* Media Upload - Show for all types except when thread has no media support */}
-          {(contentType === 'media' || platformConfig?.features.media) && (
+          {/* Media Upload - Hide for single posts, show for media and threads */}
+          {(contentType === 'media' || (contentType === 'thread' && platformConfig?.features.media)) && (
             <MediaUpload
               files={mediaFiles}
               onChange={handleMediaFilesChange}
@@ -326,7 +326,7 @@ export function PostEditor({
           {/* Thread Composer - Only for thread type */}
           {contentType === 'thread' && (
             <div>
-              <div className="border-t border-gray-700 pt-4">
+              <div className="border-t border-gray-700 dark:border-gray-700 pt-4">
                 <ThreadComposer
                   posts={threadPosts}
                   onChange={handleThreadPostsChange}
@@ -339,20 +339,20 @@ export function PostEditor({
           )}
 
           {/* Content Preview */}
-          <div className="bg-gray-800/50 border border-gray-700 rounded-lg p-4">
-            <h4 className="text-sm font-medium text-gray-300 mb-2">Preview</h4>
+          <div className="bg-gray-800/50 dark:bg-gray-800/50 border border-gray-700 dark:border-gray-700 rounded-lg p-4">
+            <h4 className="text-sm font-medium text-gray-300 dark:text-gray-300 mb-2">Preview</h4>
             <div className="space-y-2">
               <div className="flex items-start space-x-3">
                 <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex-shrink-0"></div>
                 <div className="flex-1 min-w-0">
-                  <div className="text-sm font-medium text-white">Your Account</div>
-                  <div className="text-sm text-gray-300 whitespace-pre-wrap">
+                  <div className="text-sm font-medium text-white dark:text-white">Your Account</div>
+                  <div className="text-sm text-gray-300 dark:text-gray-300 whitespace-pre-wrap">
                     {text || `Preview of your ${contentType} post will appear here...`}
                   </div>
                   {mediaFiles.length > 0 && (
                     <div className="mt-2 grid grid-cols-2 gap-2">
                       {mediaFiles.slice(0, 4).map((file, index) => (
-                        <div key={index} className="aspect-square bg-gray-700 rounded overflow-hidden">
+                        <div key={index} className="aspect-square bg-gray-700 dark:bg-gray-700 rounded overflow-hidden">
                           {file.type.startsWith('image/') ? (
                             <img
                               src={URL.createObjectURL(file)}
@@ -361,7 +361,7 @@ export function PostEditor({
                             />
                           ) : (
                             <div className="w-full h-full flex items-center justify-center">
-                              <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-8 h-8 text-gray-400 dark:text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z" />
                               </svg>
                             </div>
@@ -369,14 +369,14 @@ export function PostEditor({
                         </div>
                       ))}
                       {mediaFiles.length > 4 && (
-                        <div className="aspect-square bg-gray-700 rounded flex items-center justify-center">
-                          <span className="text-sm text-gray-400">+{mediaFiles.length - 4}</span>
+                        <div className="aspect-square bg-gray-700 dark:bg-gray-700 rounded flex items-center justify-center">
+                          <span className="text-sm text-gray-400 dark:text-gray-400">+{mediaFiles.length - 4}</span>
                         </div>
                       )}
                     </div>
                   )}
                   {contentType === 'thread' && threadPosts.some(post => post.trim()) && (
-                    <div className="mt-2 text-xs text-blue-400">
+                    <div className="mt-2 text-xs text-blue-400 dark:text-blue-400">
                       Thread continues with {threadPosts.filter(post => post.trim()).length} more posts...
                     </div>
                   )}
@@ -391,67 +391,79 @@ export function PostEditor({
           <label className="block text-sm font-medium text-gray-300 mb-3">
             When to Post
           </label>
-          <div className="space-y-3">
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="schedulingType"
-                value="now"
-                checked={schedulingType === 'now'}
-                onChange={(e) => setSchedulingType(e.target.value as 'now' | 'next-slot' | 'custom')}
-                className="mr-2"
-                disabled={loading}
-              />
-              <span className="text-sm font-medium text-gray-300">Post Now</span>
-              <span className="text-xs text-gray-400 ml-2">Publish immediately</span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="schedulingType"
-                value="next-slot"
-                checked={schedulingType === 'next-slot'}
-                onChange={(e) => setSchedulingType(e.target.value as 'now' | 'next-slot' | 'custom')}
-                className="mr-2"
-                disabled={loading}
-              />
-              <span className="text-sm font-medium text-gray-300">Post in Next Timeslot</span>
-              <span className="text-xs text-gray-400 ml-2">Use your configured schedule</span>
-            </label>
-            <label className="flex items-center">
-              <input
-                type="radio"
-                name="schedulingType"
-                value="custom"
-                checked={schedulingType === 'custom'}
-                onChange={(e) => setSchedulingType(e.target.value as 'now' | 'next-slot' | 'custom')}
-                className="mr-2"
-                disabled={loading}
-              />
-              <span className="text-sm font-medium text-gray-300">Schedule Post</span>
-              <span className="text-xs text-gray-400 ml-2">Choose specific date and time</span>
-            </label>
-            {schedulingType === 'custom' && (
-              <div className="ml-6">
-                <input
-                  type="datetime-local"
-                  value={customTime}
-                  onChange={(e) => setCustomTime(e.target.value)}
-                  className="input-dark px-3 py-2"
+          <div className="grid grid-cols-3 gap-3">
+            {[{value: 'now', label: 'Post Now', description: 'Publish immediately', icon: (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
+              </svg>
+            )}, {value: 'next-slot', label: 'Next Timeslot', description: 'Use your configured schedule', icon: (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            )}, {value: 'custom', label: 'Schedule Post', description: 'Choose specific time', icon: (
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2-2v16a2 2 0 002 2z" />
+              </svg>
+            )}].map((option) => {
+              const isSelected = schedulingType === option.value
+              
+              return (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setSchedulingType(option.value as 'now' | 'next-slot' | 'custom')}
                   disabled={loading}
-                  required
-                />
-              </div>
-            )}
+                  className={`
+                    relative p-4 border-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900
+                    ${isSelected 
+                      ? 'border-blue-400 bg-blue-900/30 text-blue-300' 
+                      : 'border-gray-700 bg-gray-800/50 text-gray-400 hover:border-gray-600 hover:bg-gray-800/70 hover:text-gray-300'
+                    }
+                    ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                  `}
+                >
+                  <div className="flex flex-col items-center space-y-2">
+                    <div className={`${isSelected ? 'text-blue-400' : 'text-gray-500'}`}>
+                      {option.icon}
+                    </div>
+                    <div className="text-sm font-medium">
+                      {option.label}
+                    </div>
+                    <div className="text-xs text-center opacity-75">
+                      {option.description}
+                    </div>
+                  </div>
+                  {isSelected && (
+                    <div className="absolute -top-2 -right-2 w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
+                      <svg className="w-3 h-3 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                    </div>
+                  )}
+                </button>
+              )
+            })}
           </div>
+          {schedulingType === 'custom' && (
+            <div className="mt-4">
+              <input
+                type="datetime-local"
+                value={customTime}
+                onChange={(e) => setCustomTime(e.target.value)}
+                className="input-dark px-3 py-2 w-full bg-gray-800 dark:bg-gray-800 border border-gray-600 dark:border-gray-600 text-white dark:text-white rounded-md"
+                disabled={loading}
+                required
+              />
+            </div>
+          )}
         </div>
 
         {/* Action Buttons */}
-        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700">
+        <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700 dark:border-gray-700">
           <button
             type="button"
             onClick={onCancel}
-            className="btn-secondary"
+            className="btn-secondary bg-gray-700 dark:bg-gray-700 text-gray-300 dark:text-gray-300 border border-gray-600 dark:border-gray-600 hover:bg-gray-600 dark:hover:bg-gray-600 px-4 py-2 rounded-md"
             disabled={loading}
           >
             Cancel

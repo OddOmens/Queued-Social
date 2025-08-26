@@ -61,46 +61,46 @@ const NewCalendar: React.FC<NewCalendarProps> = ({
   }
 
   return (
-    <div className={`bg-white rounded-lg shadow-sm border border-gray-200 ${className}`}>
+    <div className={`bg-white dark:bg-gray-800 rounded-lg shadow-sm border border-gray-200 dark:border-gray-700 ${className}`}>
       {/* Header */}
       <div className="flex items-center justify-between p-4 border-b border-gray-200">
         <div className="flex items-center space-x-4">
           <button
             onClick={goToToday}
-            className="px-3 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-md transition-colors"
+            className="px-3 py-2 text-sm font-medium text-gray-700 dark:text-gray-300 bg-gray-100 dark:bg-gray-700 hover:bg-gray-200 dark:hover:bg-gray-600 rounded-md transition-colors"
           >
             Today
           </button>
           <div className="flex items-center space-x-1">
             <button
               onClick={goToPrevious}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+              className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
             >
               <ChevronLeftIcon className="w-5 h-5" />
             </button>
             <button
               onClick={goToNext}
-              className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-md transition-colors"
+              className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-md transition-colors"
             >
               <ChevronRightIcon className="w-5 h-5" />
             </button>
           </div>
         </div>
 
-        <h2 className="text-lg font-semibold text-gray-900">
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
           {view === 'month' 
             ? format(currentDate, 'MMMM yyyy')
             : `${format(startOfWeek(currentDate), 'MMM d')} - ${format(endOfWeek(currentDate), 'MMM d, yyyy')}`
           }
         </h2>
 
-        <div className="flex items-center bg-gray-100 rounded-lg p-1">
+        <div className="flex items-center bg-gray-100 dark:bg-gray-700 rounded-lg p-1">
           <button
             onClick={() => onViewChange('month')}
             className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
               view === 'month' 
-                ? 'bg-white text-gray-900 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' 
+                : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
             Month
@@ -109,8 +109,8 @@ const NewCalendar: React.FC<NewCalendarProps> = ({
             onClick={() => onViewChange('week')}
             className={`px-3 py-1.5 text-sm font-medium rounded-md transition-colors ${
               view === 'week' 
-                ? 'bg-white text-gray-900 shadow-sm' 
-                : 'text-gray-600 hover:text-gray-900'
+                ? 'bg-white dark:bg-gray-600 text-gray-900 dark:text-white shadow-sm' 
+                : 'text-gray-600 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white'
             }`}
           >
             Week
@@ -173,14 +173,14 @@ const MonthView: React.FC<MonthViewProps> = ({
       {/* Weekday headers */}
       <div className="grid grid-cols-7 gap-px mb-4">
         {weekdays.map(day => (
-          <div key={day} className="py-2 text-center text-sm font-medium text-gray-500">
+          <div key={day} className="py-2 text-center text-sm font-medium text-gray-500 dark:text-gray-400">
             {day}
           </div>
         ))}
       </div>
 
       {/* Calendar grid */}
-      <div className="grid grid-cols-7 gap-px bg-gray-200 rounded-lg overflow-hidden">
+      <div className="grid grid-cols-7 gap-px bg-gray-200 dark:bg-gray-600 rounded-lg overflow-hidden">
         {days.map(day => {
           const dayEvents = getEventsForDate(day)
           const isCurrentMonth = isSameMonth(day, currentDate)
@@ -191,14 +191,14 @@ const MonthView: React.FC<MonthViewProps> = ({
               key={day.toString()}
               onClick={() => onDateClick?.(day)}
               className={`
-                min-h-[120px] bg-white p-2 cursor-pointer hover:bg-gray-50 transition-colors
-                ${!isCurrentMonth ? 'text-gray-400 bg-gray-50' : ''}
-                ${isCurrentDay ? 'bg-blue-50 border-2 border-blue-200' : ''}
+                min-h-[120px] bg-white dark:bg-gray-700 p-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-600 transition-colors
+                ${!isCurrentMonth ? 'text-gray-400 dark:text-gray-500 bg-gray-50 dark:bg-gray-600' : ''}
+                ${isCurrentDay ? 'bg-blue-50 dark:bg-blue-900 border-2 border-blue-200 dark:border-blue-600' : ''}
               `}
             >
               <div className={`
                 text-sm font-medium mb-2
-                ${isCurrentDay ? 'text-blue-600' : isCurrentMonth ? 'text-gray-900' : 'text-gray-400'}
+                ${isCurrentDay ? 'text-blue-600 dark:text-blue-300' : isCurrentMonth ? 'text-gray-900 dark:text-white' : 'text-gray-400 dark:text-gray-500'}
               `}>
                 {format(day, 'd')}
               </div>
@@ -206,11 +206,11 @@ const MonthView: React.FC<MonthViewProps> = ({
               <div className="space-y-1">
                 {dayEvents.slice(0, 3).map(event => {
                   const statusColors = {
-                    scheduled: 'bg-blue-100 text-blue-800 border-blue-200',
-                    publishing: 'bg-amber-100 text-amber-800 border-amber-200',
-                    published: 'bg-green-100 text-green-800 border-green-200',
-                    failed: 'bg-red-100 text-red-800 border-red-200',
-                    cancelled: 'bg-gray-100 text-gray-800 border-gray-200'
+                    scheduled: 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-700',
+                    publishing: 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 border-amber-200 dark:border-amber-700',
+                    published: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700',
+                    failed: 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border-red-200 dark:border-red-700',
+                    cancelled: 'bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-500'
                   }
                   const colorClass = statusColors[event.status as keyof typeof statusColors] || statusColors.scheduled
                   
@@ -229,7 +229,7 @@ const MonthView: React.FC<MonthViewProps> = ({
                   )
                 })}
                 {dayEvents.length > 3 && (
-                  <div className="text-xs text-gray-500 px-2">
+                  <div className="text-xs text-gray-500 dark:text-gray-400 px-2">
                     +{dayEvents.length - 3} more
                   </div>
                 )}
@@ -286,15 +286,15 @@ const WeekView: React.FC<WeekViewProps> = ({
   return (
     <div className="flex flex-col h-[600px]">
       {/* Week header */}
-      <div className="flex border-b border-gray-200">
+      <div className="flex border-b border-gray-200 dark:border-gray-600">
         <div className="w-16 py-4"></div>
         {weekDays.map(day => (
           <div 
             key={day.toString()}
             onClick={() => onDateClick?.(day)}
             className={`
-              flex-1 py-4 text-center cursor-pointer hover:bg-gray-50 transition-colors
-              ${isToday(day) ? 'bg-blue-50 text-blue-600 font-semibold' : 'text-gray-900'}
+              flex-1 py-4 text-center cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors
+              ${isToday(day) ? 'bg-blue-50 dark:bg-blue-900 text-blue-600 dark:text-blue-300 font-semibold' : 'text-gray-900 dark:text-white'}
             `}
           >
             <div className="text-sm font-medium">
@@ -302,7 +302,7 @@ const WeekView: React.FC<WeekViewProps> = ({
             </div>
             <div className={`
               text-2xl font-bold mt-1
-              ${isToday(day) ? 'text-blue-600' : 'text-gray-900'}
+              ${isToday(day) ? 'text-blue-600 dark:text-blue-300' : 'text-gray-900 dark:text-white'}
             `}>
               {format(day, 'd')}
             </div>
@@ -313,29 +313,27 @@ const WeekView: React.FC<WeekViewProps> = ({
       {/* Time slots */}
       <div className="flex-1 overflow-y-auto">
         {timeSlotHours.map(({ hour, label, slots }) => (
-          <div key={hour} className="flex border-b border-gray-100 min-h-[60px]">
-            <div className="w-16 py-2 px-3 text-sm text-gray-500 text-right">
+          <div key={hour} className="flex border-b border-gray-100 dark:border-gray-600 min-h-[60px]">
+            <div className="w-16 py-2 px-3 text-sm text-gray-500 dark:text-gray-400 text-right">
               {label}
             </div>
             {weekDays.map(day => {
               const dayEvents = getEventsForDateTime(day, hour)
-              const availableSlots = slots.filter(slot => 
-                timeSlots.some(ts => ts.hour === hour && ts.minute === slot.minute)
-              )
+              const availableSlots = slots
               
               return (
                 <div 
                   key={`${day.toString()}-${hour}`}
-                  className="flex-1 border-r border-gray-100 p-2 relative hover:bg-gray-50 transition-colors"
+                  className="flex-1 border-r border-gray-100 dark:border-gray-600 p-2 relative hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                 >
                   {/* Events */}
                   {dayEvents.map(event => {
                     const statusColors = {
-                      scheduled: 'bg-blue-100 text-blue-800 border-blue-200',
-                      publishing: 'bg-amber-100 text-amber-800 border-amber-200',
-                      published: 'bg-green-100 text-green-800 border-green-200',
-                      failed: 'bg-red-100 text-red-800 border-red-200',
-                      cancelled: 'bg-gray-100 text-gray-800 border-gray-200'
+                      scheduled: 'bg-blue-100 dark:bg-blue-900 text-blue-800 dark:text-blue-200 border-blue-200 dark:border-blue-700',
+                      publishing: 'bg-amber-100 dark:bg-amber-900 text-amber-800 dark:text-amber-200 border-amber-200 dark:border-amber-700',
+                      published: 'bg-green-100 dark:bg-green-900 text-green-800 dark:text-green-200 border-green-200 dark:border-green-700',
+                      failed: 'bg-red-100 dark:bg-red-900 text-red-800 dark:text-red-200 border-red-200 dark:border-red-700',
+                      cancelled: 'bg-gray-100 dark:bg-gray-600 text-gray-800 dark:text-gray-200 border-gray-200 dark:border-gray-500'
                     }
                     const colorClass = statusColors[event.status as keyof typeof statusColors] || statusColors.scheduled
                     
@@ -361,7 +359,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                         <button
                           key={slot.id}
                           onClick={() => onTimeSlotClick?.(day, slot)}
-                          className="w-full flex items-center justify-center py-1 px-2 text-xs text-gray-500 hover:text-gray-700 hover:bg-white border border-dashed border-gray-300 hover:border-gray-400 rounded transition-colors group"
+                          className="w-full flex items-center justify-center py-1 px-2 text-xs text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200 hover:bg-white dark:hover:bg-gray-600 border border-dashed border-gray-300 dark:border-gray-500 hover:border-gray-400 dark:hover:border-gray-400 rounded transition-colors group"
                         >
                           <PlusIcon className="w-3 h-3 mr-1 opacity-0 group-hover:opacity-100 transition-opacity" />
                           <span className="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -381,10 +379,10 @@ const WeekView: React.FC<WeekViewProps> = ({
                         hour,
                         minute: 0
                       })}
-                      className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 hover:bg-white hover:bg-opacity-80 transition-all group"
+                      className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 hover:bg-white dark:hover:bg-gray-600 hover:bg-opacity-80 dark:hover:bg-opacity-80 transition-all group"
                     >
-                      <div className="flex items-center justify-center w-8 h-8 bg-gray-100 hover:bg-gray-200 rounded-full transition-colors">
-                        <PlusIcon className="w-4 h-4 text-gray-500" />
+                      <div className="flex items-center justify-center w-8 h-8 bg-gray-100 dark:bg-gray-600 hover:bg-gray-200 dark:hover:bg-gray-500 rounded-full transition-colors">
+                        <PlusIcon className="w-4 h-4 text-gray-500 dark:text-gray-300" />
                       </div>
                     </button>
                   )}
