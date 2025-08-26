@@ -168,7 +168,7 @@ export function UnifiedCalendarPage() {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h1 className="text-3xl font-bold text-white">Calendar</h1>
+          <h1 className="text-3xl font-bold text-white">Publish</h1>
           <p className="mt-2 text-gray-400">
             View, schedule, and manage your social media content across all platforms.
           </p>

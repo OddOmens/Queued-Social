@@ -35,14 +35,14 @@ export function TimeSlotList({
 
   // Auto-edit new slots when they're added
   React.useEffect(() => {
-    if (autoEditNew && !isEditing) {
+    if (autoEditNew) {
       const newSlotIndex = slots.findIndex(slot => slot.isNew)
       if (newSlotIndex !== -1 && editingIndex !== newSlotIndex) {
         setEditingIndex(newSlotIndex)
         onEditingChange(true)
       }
     }
-  }, [slots, autoEditNew, isEditing, editingIndex, onEditingChange])
+  }, [slots, autoEditNew, editingIndex, onEditingChange])
 
   const handleEdit = (index: number) => {
     setEditingIndex(index)
@@ -54,8 +54,8 @@ export function TimeSlotList({
       // Multiple slots - pass them directly
       onUpdate(index, updatedSlot)
     } else {
-      // Single slot - just pass it as a partial update
-      onUpdate(index, updatedSlot)
+      // Single slot - mark as no longer new when saving
+      onUpdate(index, { ...updatedSlot, isNew: false } as any)
     }
     setEditingIndex(null)
     onEditingChange(false)
@@ -82,7 +82,7 @@ export function TimeSlotList({
   return (
     <div className={`space-y-3 ${className}`}>
       {slots.map((slot, index) => (
-        <div key={slot.id || `new-${index}`} className="border border-gray-100 rounded-lg bg-white shadow-sm">
+        <div key={slot.id || `new-${index}`} className="border border-gray-700 rounded-lg bg-gray-800 shadow-sm">
           {editingIndex === index ? (
             <TimeSlotEditor
               slot={slot}
@@ -97,16 +97,16 @@ export function TimeSlotList({
                 <div className="flex items-center space-x-4">
                   {/* Time Display */}
                   <div className="flex items-center space-x-2">
-                    <span className="text-lg font-semibold text-gray-700">
+                    <span className="text-lg font-semibold text-white">
                       {formatTimeForDisplay(slot.time, true)}
                     </span>
-                    <span className="text-sm text-gray-500">
+                    <span className="text-sm text-gray-400">
                       ({formatTimeForDisplay(slot.time)})
                     </span>
                   </div>
 
                   {/* Timezone */}
-                  <div className="text-sm text-gray-500">
+                  <div className="text-sm text-gray-400">
                     {slot.timezone}
                   </div>
 
@@ -116,8 +116,8 @@ export function TimeSlotList({
                     disabled={isEditing}
                     className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium transition-colors ${
                       slot.isActive
-                        ? 'bg-blue-100 text-blue-700 hover:bg-blue-200'
-                        : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                        ? 'bg-blue-900/50 text-blue-300 hover:bg-blue-900/70'
+                        : 'bg-gray-700 text-gray-400 hover:bg-gray-600'
                     } ${isEditing ? 'cursor-not-allowed opacity-50' : 'cursor-pointer'}`}
                   >
                     {slot.isActive ? 'Active' : 'Inactive'}
@@ -125,7 +125,7 @@ export function TimeSlotList({
 
                   {/* New Badge */}
                   {slot.isNew && (
-                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-50 text-blue-600">
+                    <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-900/50 text-blue-300">
                       New
                     </span>
                   )}
@@ -136,14 +136,14 @@ export function TimeSlotList({
                   <button
                     onClick={() => handleEdit(index)}
                     disabled={isEditing}
-                    className="text-sm font-medium text-blue-600 hover:text-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="text-sm font-medium text-blue-400 hover:text-blue-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Edit
                   </button>
                   <button
                     onClick={() => handleRemove(index)}
                     disabled={isEditing}
-                    className="text-sm font-medium text-red-600 hover:text-red-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+                    className="text-sm font-medium text-red-400 hover:text-red-300 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                   >
                     Remove
                   </button>
@@ -151,7 +151,7 @@ export function TimeSlotList({
               </div>
 
               {/* Additional Info */}
-              <div className="mt-2 text-xs text-gray-400">
+              <div className="mt-2 text-xs text-gray-500">
                 Posts will be scheduled at this time in {slot.timezone} timezone
               </div>
             </div>
@@ -160,8 +160,8 @@ export function TimeSlotList({
       ))}
 
       {slots.length === 0 && (
-        <div className="text-center py-6 text-gray-400">
-          <svg className="mx-auto h-8 w-8 text-gray-300 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <div className="text-center py-6 text-gray-500">
+          <svg className="mx-auto h-8 w-8 text-gray-600 mb-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
           </svg>
           <p className="text-sm">No time slots configured for this day</p>
