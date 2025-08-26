@@ -29,8 +29,8 @@ export function SettingsPage() {
         return (
           <div className="space-y-4">
             {timeSlotsError && (
-              <div className="bg-red-50 border border-red-200 rounded-md p-4">
-                <div className="text-sm text-red-700">
+              <div className="bg-red-900/50 border border-red-800 rounded-md p-4">
+                <div className="text-sm text-red-200">
                   Failed to load time slots: {timeSlotsError.message}
                 </div>
               </div>
@@ -60,8 +60,8 @@ export function SettingsPage() {
                 className="card-hover p-6"
               >
                 <div className="flex items-center">
-                  <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                    <span className="text-blue-600 text-xl">👤</span>
+                  <div className="w-10 h-10 bg-blue-900/50 rounded-lg flex items-center justify-center">
+                    <span className="text-blue-400 text-xl">👤</span>
                   </div>
                   <div className="ml-4">
                     <h3 className="text-lg font-medium text-white">Profile</h3>
@@ -72,11 +72,11 @@ export function SettingsPage() {
 
               <button
                 onClick={() => setActiveTab('accounts')}
-                className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow text-left"
+                className="card p-6 text-left"
               >
                 <div className="flex items-center">
-                  <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                    <span className="text-green-600 text-xl">🔗</span>
+                  <div className="w-10 h-10 bg-green-900/50 rounded-lg flex items-center justify-center">
+                    <span className="text-green-400 text-xl">🔗</span>
                   </div>
                   <div className="ml-4">
                     <h3 className="text-lg font-medium text-white">Connected Accounts</h3>
@@ -87,11 +87,11 @@ export function SettingsPage() {
 
               <button
                 onClick={() => setActiveTab('timeslots')}
-                className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow text-left"
+                className="card p-6 text-left"
               >
                 <div className="flex items-center">
-                  <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                    <span className="text-purple-600 text-xl">⏰</span>
+                  <div className="w-10 h-10 bg-purple-900/50 rounded-lg flex items-center justify-center">
+                    <span className="text-purple-400 text-xl">⏰</span>
                   </div>
                   <div className="ml-4">
                     <h3 className="text-lg font-medium text-white">Time Slots</h3>
@@ -102,11 +102,11 @@ export function SettingsPage() {
 
               <button
                 onClick={() => setActiveTab('notifications')}
-                className="bg-white p-6 rounded-lg shadow hover:shadow-md transition-shadow text-left"
+                className="card p-6 text-left"
               >
                 <div className="flex items-center">
-                  <div className="w-10 h-10 bg-red-100 rounded-lg flex items-center justify-center">
-                    <span className="text-red-600 text-xl">🔔</span>
+                  <div className="w-10 h-10 bg-red-900/50 rounded-lg flex items-center justify-center">
+                    <span className="text-red-400 text-xl">🔔</span>
                   </div>
                   <div className="ml-4">
                     <h3 className="text-lg font-medium text-white">Notifications</h3>
@@ -130,7 +130,7 @@ export function SettingsPage() {
       </div>
 
       {/* Tab Navigation */}
-      <div className="border-b border-gray-200">
+      <div className="border-b border-gray-700">
         <nav className="-mb-px flex space-x-8">
           {tabs.map((tab) => (
             <button
@@ -138,7 +138,7 @@ export function SettingsPage() {
               onClick={() => setActiveTab(tab.id)}
               className={`py-2 px-1 border-b-2 font-medium text-sm flex items-center space-x-2 ${
                 activeTab === tab.id
-                  ? 'border-blue-500 text-blue-600'
+                  ? 'border-blue-400 text-blue-400'
                   : 'border-transparent text-gray-400 hover:text-gray-200 hover:border-gray-600'
               }`}
             >

@@ -271,6 +271,8 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           background-color: #0f172a;
           border-right: 1px solid #374151;
           border-bottom: 1px solid #374151;
+          aspect-ratio: 1;
+          min-height: 120px;
         }
         
         .rbc-date-cell:hover {
