@@ -26,16 +26,16 @@ export function UserMenu() {
     <div className="relative">
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="flex items-center space-x-2 text-gray-700 hover:text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-md px-2 py-1"
+        className="flex items-center space-x-3 text-gray-300 hover:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 rounded-lg px-3 py-2 transition-colors"
       >
-        <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center text-white text-sm font-medium">
+        <div className="w-9 h-9 bg-gradient-to-br from-blue-500 to-purple-600 rounded-full flex items-center justify-center text-white text-sm font-semibold shadow-lg">
           {displayName.charAt(0).toUpperCase()}
         </div>
         <span className="hidden md:block text-sm font-medium">
           {displayName}
         </span>
         <svg
-          className={`w-4 h-4 transition-transform ${isOpen ? 'rotate-180' : ''}`}
+          className={`w-4 h-4 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`}
           fill="none"
           stroke="currentColor"
           viewBox="0 0 24 24"
@@ -53,9 +53,9 @@ export function UserMenu() {
           />
           
           {/* Menu */}
-          <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-20">
-            <div className="py-1">
-              <div className="px-4 py-2 text-sm text-gray-500 border-b border-gray-100">
+          <div className="absolute right-0 mt-2 w-56 bg-gray-900 rounded-xl shadow-xl border border-gray-800 z-20 overflow-hidden">
+            <div className="py-2">
+              <div className="px-4 py-3 text-sm text-gray-400 border-b border-gray-800 bg-gray-800/50">
                 {user.email}
               </div>
               
@@ -64,7 +64,7 @@ export function UserMenu() {
                   setIsOpen(false)
                   navigate('/profile')
                 }}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                className="block w-full text-left px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
               >
                 Profile Settings
               </button>
@@ -74,16 +74,16 @@ export function UserMenu() {
                   setIsOpen(false)
                   navigate('/settings')
                 }}
-                className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                className="block w-full text-left px-4 py-3 text-sm text-gray-300 hover:text-white hover:bg-gray-800 transition-colors"
               >
                 App Settings
               </button>
               
-              <div className="border-t border-gray-100">
+              <div className="border-t border-gray-800 mt-2">
                 <button
                   onClick={handleSignOut}
                   disabled={loading}
-                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 disabled:opacity-50"
+                  className="block w-full text-left px-4 py-3 text-sm text-red-400 hover:text-red-300 hover:bg-gray-800 disabled:opacity-50 transition-colors"
                 >
                   {loading ? 'Signing out...' : 'Sign Out'}
                 </button>

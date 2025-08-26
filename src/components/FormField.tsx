@@ -58,15 +58,15 @@ export function FormField({
   }
 
   const baseInputClasses = `
-    block w-full rounded-md border-0 py-1.5 px-3 text-gray-900 shadow-sm ring-1 ring-inset 
-    placeholder:text-gray-400 focus:ring-2 focus:ring-inset sm:text-sm sm:leading-6 transition-colors
+    block w-full rounded-lg border-0 py-3 px-4 text-gray-100 shadow-sm ring-1 ring-inset 
+    placeholder:text-gray-400 focus:ring-2 focus:ring-inset text-sm leading-6 transition-colors
     ${error 
-      ? 'ring-red-300 focus:ring-red-500' 
+      ? 'ring-red-500 focus:ring-red-500 bg-red-900/20' 
       : isFocused 
-        ? 'ring-blue-600' 
-        : 'ring-gray-300 focus:ring-blue-600'
+        ? 'ring-blue-500 bg-gray-800' 
+        : 'ring-gray-700 focus:ring-blue-500 bg-gray-900'
     }
-    ${disabled ? 'bg-gray-50 text-gray-500 cursor-not-allowed' : 'bg-white'}
+    ${disabled ? 'bg-gray-800 text-gray-500 cursor-not-allowed' : ''}
   `.trim()
 
   const handleFocus = (event: React.FocusEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
@@ -130,9 +130,9 @@ export function FormField({
   return (
     <div className={className}>
       <div className="flex justify-between items-center">
-        <label htmlFor={fieldId} className="block text-sm font-medium leading-6 text-gray-900">
+        <label htmlFor={fieldId} className="block text-sm font-medium leading-6 text-gray-300">
           {label}
-          {required && <span className="text-red-500 ml-1" aria-label="required">*</span>}
+          {required && <span className="text-red-400 ml-1" aria-label="required">*</span>}
         </label>
         {showCharacterCount && maxLength && (
           <span 
@@ -140,9 +140,9 @@ export function FormField({
             className={`text-xs ${
               value.length > maxLength * 0.9 
                 ? value.length >= maxLength 
-                  ? 'text-red-600' 
-                  : 'text-yellow-600'
-                : 'text-gray-500'
+                  ? 'text-red-400' 
+                  : 'text-yellow-400'
+                : 'text-gray-400'
             }`}
           >
             {value.length}/{maxLength}
@@ -152,7 +152,7 @@ export function FormField({
       <div className="mt-2">
         {renderInput()}
         {helpText && (
-          <p id={helpId} className="mt-1 text-sm text-gray-600">
+          <p id={helpId} className="mt-1 text-sm text-gray-400">
             {helpText}
           </p>
         )}

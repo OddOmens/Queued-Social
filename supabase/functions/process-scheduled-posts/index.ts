@@ -159,16 +159,61 @@ serve(async (req) => {
 
 // Copy the publishToThreads function from publish-post/index.ts
 async function publishToThreads(content: any, credentials: any) {
-  const { accessToken, userId } = credentials
+  let { accessToken, userId, refreshToken } = credentials
 
   // Check publishing quota first
   await checkThreadsPublishingQuota(accessToken)
   
   // Validate user ID by calling /me endpoint
-  const meResponse = await fetch(`https://graph.threads.net/v1.0/me?fields=id,username&access_token=${accessToken}`)
+  let meResponse = await fetch(`https://graph.threads.net/v1.0/me?fields=id,username&access_token=${accessToken}`)
+  
+  // If token is invalid, try to refresh it
+  if (!meResponse.ok && meResponse.status === 401 && refreshToken) {
+    console.log('🔄 Access token expired, attempting refresh...')
+    
+    try {
+      const refreshResponse = await fetch('https://graph.threads.net/oauth/access_token', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+        body: new URLSearchParams({
+          grant_type: 'refresh_token',
+          refresh_token: refreshToken,
+          client_id: Deno.env.get('THREADS_CLIENT_ID') || '',
+          client_secret: Deno.env.get('THREADS_CLIENT_SECRET') || ''
+        })
+      })
+      
+      if (refreshResponse.ok) {
+        const refreshData = await refreshResponse.json()
+        accessToken = refreshData.access_token
+        
+        // Update credentials in database
+        const supabaseClient = createClient(
+          Deno.env.get('SUPABASE_URL') ?? '',
+          Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') ?? ''
+        )
+        
+        await supabaseClient
+          .from('platform_credentials')
+          .update({
+            credentials: { ...credentials, accessToken: accessToken },
+            expires_at: refreshData.expires_in ? new Date(Date.now() + refreshData.expires_in * 1000).toISOString() : null
+          })
+          .eq('credentials->>userId', userId)
+          .eq('platform', 'threads')
+        
+        console.log('✅ Token refreshed successfully')
+        
+        // Retry the /me endpoint with new token
+        meResponse = await fetch(`https://graph.threads.net/v1.0/me?fields=id,username&access_token=${accessToken}`)
+      }
+    } catch (error) {
+      console.error('❌ Token refresh failed:', error)
+    }
+  }
   
   if (!meResponse.ok) {
-    throw new Error('Invalid access token')
+    throw new Error('Invalid access token - please reconnect your account')
   }
 
   const userData = await meResponse.json()

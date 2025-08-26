@@ -154,7 +154,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     if (isToday) {
       return {
         style: {
-          backgroundColor: '#EFF6FF'
+          backgroundColor: '#1e3a8a'
         }
       }
     }
@@ -198,7 +198,7 @@ const CalendarView: React.FC<CalendarViewProps> = ({
     return (
       <div className={`flex items-center justify-center h-96 ${className}`}>
         <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600"></div>
-        <span className="ml-2 text-gray-600">Loading calendar...</span>
+        <span className="ml-2 text-gray-300">Loading calendar...</span>
       </div>
     )
   }
@@ -208,28 +208,34 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       <style>{`
         .rbc-calendar {
           font-family: inherit;
+          background-color: #111827;
+          color: #f3f4f6;
         }
         
         .rbc-toolbar {
           margin-bottom: 1rem;
-          padding: 0.5rem;
-          background-color: #f8fafc;
-          border-radius: 0.5rem;
+          padding: 1rem;
+          background-color: #1f2937;
+          border-radius: 0.75rem;
+          border: 1px solid #374151;
         }
         
         .rbc-toolbar button {
-          padding: 0.5rem 1rem;
-          border: 1px solid #d1d5db;
-          background-color: white;
-          border-radius: 0.375rem;
+          padding: 0.75rem 1.25rem;
+          border: 1px solid #4b5563;
+          background-color: #374151;
+          color: #d1d5db;
+          border-radius: 0.5rem;
           margin: 0 0.25rem;
           font-size: 0.875rem;
+          font-weight: 500;
           transition: all 0.2s;
         }
         
         .rbc-toolbar button:hover {
-          background-color: #f3f4f6;
-          border-color: #9ca3af;
+          background-color: #4b5563;
+          border-color: #6b7280;
+          color: #f9fafb;
         }
         
         .rbc-toolbar button.rbc-active {
@@ -238,71 +244,133 @@ const CalendarView: React.FC<CalendarViewProps> = ({
           border-color: #3b82f6;
         }
         
+        .rbc-toolbar-label {
+          color: #f3f4f6;
+          font-weight: 600;
+        }
+        
         .rbc-month-view {
-          border: 1px solid #e5e7eb;
-          border-radius: 0.5rem;
+          border: 1px solid #374151;
+          border-radius: 0.75rem;
           overflow: hidden;
+          background-color: #111827;
         }
         
         .rbc-header {
-          background-color: #f9fafb;
-          padding: 0.75rem;
+          background-color: #1f2937;
+          padding: 1rem;
           font-weight: 600;
-          border-bottom: 1px solid #e5e7eb;
+          border-bottom: 1px solid #374151;
+          color: #e5e7eb;
         }
         
         .rbc-date-cell {
           padding: 0.5rem;
           text-align: right;
+          color: #d1d5db;
+          background-color: #0f172a;
+          border-right: 1px solid #374151;
+          border-bottom: 1px solid #374151;
+        }
+        
+        .rbc-date-cell:hover {
+          background-color: #1e293b;
         }
         
         .rbc-today {
-          background-color: #eff6ff;
+          background-color: #1e40af !important;
+        }
+        
+        .rbc-off-range {
+          color: #6b7280;
         }
         
         .rbc-off-range-bg {
-          background-color: #f9fafb;
+          background-color: #0f172a;
         }
         
         .rbc-event {
-          border-radius: 0.25rem;
-          padding: 0.125rem 0.25rem;
+          border-radius: 0.375rem;
+          padding: 0.25rem 0.5rem;
           margin: 0.125rem 0;
           font-size: 0.75rem;
-          line-height: 1.2;
+          line-height: 1.3;
           cursor: pointer;
+          font-weight: 500;
         }
         
         .rbc-event:hover {
-          opacity: 0.8;
+          opacity: 0.9;
+          transform: translateY(-1px);
         }
         
         .rbc-slot-selection {
-          background-color: rgba(59, 130, 246, 0.1);
+          background-color: rgba(59, 130, 246, 0.2);
         }
         
         .rbc-day-slot .rbc-time-slot {
-          border-top: 1px solid #f3f4f6;
+          border-top: 1px solid #374151;
+          background-color: #0f172a;
         }
         
         .rbc-time-view {
-          border: 1px solid #e5e7eb;
-          border-radius: 0.5rem;
+          border: 1px solid #374151;
+          border-radius: 0.75rem;
           overflow: hidden;
+          background-color: #111827;
         }
         
         .rbc-time-header {
-          border-bottom: 1px solid #e5e7eb;
+          border-bottom: 1px solid #374151;
+          background-color: #1f2937;
+          color: #e5e7eb;
+        }
+        
+        .rbc-time-header > * {
+          border-left: 1px solid #374151;
         }
         
         .rbc-time-content {
           border-top: none;
         }
         
+        .rbc-time-content > * {
+          border-left: 1px solid #374151;
+        }
+        
+        .rbc-timeslot-group {
+          border-bottom: 1px solid #374151;
+        }
+        
+        .rbc-time-slot {
+          color: #9ca3af;
+        }
+        
         .rbc-current-time-indicator {
           background-color: #ef4444;
           height: 2px;
           z-index: 10;
+        }
+        
+        .rbc-row-bg .rbc-day-bg {
+          border-left: 1px solid #374151;
+        }
+        
+        .rbc-month-row {
+          border-bottom: 1px solid #374151;
+        }
+        
+        .rbc-month-row + .rbc-month-row {
+          border-top: none;
+        }
+        
+        .rbc-row-content {
+          z-index: 4;
+        }
+        
+        .rbc-addons-dnd .rbc-addons-dnd-drag-preview {
+          background-color: #374151;
+          border: 2px solid #60a5fa;
         }
       `}</style>
       

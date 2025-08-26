@@ -176,9 +176,9 @@ export function PostEditor({
   }
 
   return (
-    <div className="max-w-2xl mx-auto bg-white rounded-lg shadow-lg p-6">
+    <div className="max-w-2xl mx-auto card p-8">
       <div className="flex items-center justify-between mb-6">
-        <h2 className="text-2xl font-bold text-gray-900">
+        <h2 className="text-2xl font-bold text-white">
           Create Post for {platformConfig?.displayName || platform}
         </h2>
         <button
@@ -321,7 +321,7 @@ export function PostEditor({
                   type="datetime-local"
                   value={customTime}
                   onChange={(e) => setCustomTime(e.target.value)}
-                  className="px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                  className="input-dark px-3 py-2"
                   disabled={loading}
                   required
                 />
@@ -335,7 +335,7 @@ export function PostEditor({
           <button
             type="button"
             onClick={onCancel}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+            className="btn-secondary"
             disabled={loading}
           >
             Cancel

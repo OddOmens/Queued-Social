@@ -63,20 +63,52 @@ export function ThreadsCallbackPage() {
         console.log('🔍 Token response scopes:', tokenData.scope)
         console.log('🔍 Full token data:', JSON.stringify(tokenData, null, 2))
 
+        // Exchange short-lived token for long-lived token
+        console.log('🔄 Requesting long-lived access token...')
+        const longLivedResponse = await fetch('https://graph.threads.net/access_token', {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/x-www-form-urlencoded'
+          }
+        })
+
+        let finalAccessToken = tokenData.access_token
+        let finalExpiresIn = tokenData.expires_in
+
+        const longLivedUrl = new URL('https://graph.threads.net/access_token')
+        longLivedUrl.searchParams.set('grant_type', 'th_exchange_token')
+        longLivedUrl.searchParams.set('client_secret', import.meta.env.VITE_THREADS_CLIENT_SECRET)
+        longLivedUrl.searchParams.set('access_token', tokenData.access_token)
+
+        try {
+          const longLivedResponse = await fetch(longLivedUrl.toString())
+          
+          if (longLivedResponse.ok) {
+            const longLivedData = await longLivedResponse.json()
+            console.log('✅ Long-lived token obtained:', longLivedData)
+            finalAccessToken = longLivedData.access_token
+            finalExpiresIn = longLivedData.expires_in // Should be 60 days
+          } else {
+            console.warn('⚠️ Could not get long-lived token, using short-lived')
+          }
+        } catch (error) {
+          console.warn('⚠️ Long-lived token request failed:', error)
+        }
+
         // Store credentials in database with verified user info
         const db = createDbService()
         await db.upsertPlatformCredentials({
           userId: user.id,
           platform: 'threads',
           credentials: {
-            accessToken: tokenData.access_token,
+            accessToken: finalAccessToken,
             userId: userInfo.id, // Use verified user ID from API
             username: userInfo.username, // Store username too
             scopes: tokenData.scope?.split(',') || []
           },
           isActive: true,
-          expiresAt: tokenData.expires_in 
-            ? new Date(Date.now() + tokenData.expires_in * 1000)
+          expiresAt: finalExpiresIn 
+            ? new Date(Date.now() + finalExpiresIn * 1000)
             : undefined
         })
 

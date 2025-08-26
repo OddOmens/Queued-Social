@@ -62,10 +62,10 @@ const CalendarContainer: React.FC<CalendarContainerProps> = ({
 
       {/* Loading overlay */}
       {loading && (
-        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
+        <div className="absolute inset-0 bg-gray-900 bg-opacity-75 flex items-center justify-center z-10 rounded-lg">
           <div className="flex items-center space-x-2">
-            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600"></div>
-            <span className="text-gray-600">Loading posts...</span>
+            <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-400"></div>
+            <span className="text-gray-300">Loading posts...</span>
           </div>
         </div>
       )}
