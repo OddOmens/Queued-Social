@@ -57,31 +57,34 @@ const CalendarView: React.FC<CalendarViewProps> = ({
   // Get status indicator
   const getStatusIcon = (status: PostStatus): string => {
     const icons = {
-      scheduled: '⏰',
+      scheduled: '📅',
       publishing: '🚀',
       published: '✅',
-      failed: '❌',
+      failed: '⚠️',
       cancelled: '🚫'
     }
-    return icons[status] || '⏰'
+    return icons[status] || '📅'
   }
 
   // Generate event title based on post content and platform
   const getEventTitle = (post: ScheduledPost): string => {
     const platformIcon = getPlatformIcon(post.platform)
-    const statusIcon = getStatusIcon(post.status)
     
     let contentPreview = ''
     if (post.content.type === 'thread') {
-      contentPreview = `Thread: ${post.content.text.substring(0, 30)}...`
+      const threadLength = post.content.threadPosts?.length || 1
+      contentPreview = `Thread (${threadLength}): ${post.content.text.substring(0, 25)}`
+    } else if (post.content.type === 'media') {
+      contentPreview = `Media: ${post.content.text?.substring(0, 25) || 'Image/Video'}`
     } else {
       contentPreview = post.content.text.substring(0, 30)
-      if (post.content.text.length > 30) {
-        contentPreview += '...'
-      }
     }
     
-    return `${platformIcon} ${statusIcon} ${contentPreview}`
+    if (contentPreview.length > 30) {
+      contentPreview = contentPreview.substring(0, 27) + '...'
+    }
+    
+    return `${platformIcon} ${contentPreview}`
   }
 
   // Convert posts to calendar events
@@ -124,26 +127,28 @@ const CalendarView: React.FC<CalendarViewProps> = ({
       linkedin: '#0077B5'
     }
 
-    const statusOpacity = {
-      scheduled: 1,
-      publishing: 0.9,
-      published: 0.7,
-      failed: 0.5,
-      cancelled: 0.3
+    const statusColors = {
+      scheduled: '#3B82F6', // Blue
+      publishing: '#F59E0B', // Amber
+      published: '#10B981', // Emerald
+      failed: '#EF4444', // Red
+      cancelled: '#6B7280' // Gray
     }
 
-    const backgroundColor = platformColors[event.platform] || '#6B7280'
-    const opacity = statusOpacity[event.status] || 1
-
+    const backgroundColor = statusColors[event.status] || platformColors[event.platform] || '#6B7280'
+    
     return {
       style: {
         backgroundColor,
-        opacity,
-        border: 'none',
-        borderRadius: '4px',
+        border: `2px solid ${backgroundColor}`,
+        borderRadius: '8px',
         color: 'white',
-        fontSize: '12px',
-        padding: '2px 4px'
+        fontSize: '11px',
+        fontWeight: '600',
+        padding: '4px 8px',
+        boxShadow: '0 2px 4px rgba(0, 0, 0, 0.1)',
+        cursor: 'pointer',
+        transition: 'all 0.2s ease'
       }
     }
   }, [])
@@ -190,14 +195,14 @@ const CalendarView: React.FC<CalendarViewProps> = ({
               {dayTimeSlots.slice(0, 3).map((slot, index) => (
                 <div
                   key={slot.id}
-                  className="bg-green-600 text-white text-xs px-1 py-0.5 rounded flex-shrink-0"
-                  title={`${slot.time}`}
+                  className="bg-emerald-600 text-white text-xs px-2 py-1 rounded-full flex-shrink-0 shadow-sm border border-emerald-500"
+                  title={`Time Slot: ${slot.time}`}
                 >
                   {slot.time}
                 </div>
               ))}
               {dayTimeSlots.length > 3 && (
-                <div className="bg-green-600 text-white text-xs px-1 py-0.5 rounded">
+                <div className="bg-emerald-600 text-white text-xs px-2 py-1 rounded-full shadow-sm border border-emerald-500">
                   +{dayTimeSlots.length - 3}
                 </div>
               )}
@@ -311,23 +316,40 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         }
         
         .rbc-date-cell {
-          padding: 0.5rem;
+          padding: 0.75rem;
           text-align: right;
           color: #d1d5db;
           background-color: #0f172a;
           border-right: 1px solid #374151;
           border-bottom: 1px solid #374151;
           aspect-ratio: 1;
-          min-height: 120px;
+          min-height: 140px;
           position: relative;
+          transition: all 0.2s ease;
         }
         
         .rbc-date-cell:hover {
           background-color: #1e293b;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
         
         .rbc-today {
           background-color: #1e40af !important;
+          position: relative;
+        }
+        
+        .rbc-today::after {
+          content: '';
+          position: absolute;
+          top: 0;
+          left: 0;
+          right: 0;
+          bottom: 0;
+          border: 2px solid #3B82F6;
+          border-radius: 8px;
+          pointer-events: none;
+          box-shadow: 0 0 10px rgba(59, 130, 246, 0.3);
         }
         
         .rbc-off-range {
@@ -339,18 +361,26 @@ const CalendarView: React.FC<CalendarViewProps> = ({
         }
         
         .rbc-event {
-          border-radius: 0.375rem;
-          padding: 0.25rem 0.5rem;
-          margin: 0.125rem 0;
-          font-size: 0.75rem;
-          line-height: 1.3;
+          border-radius: 8px;
+          padding: 4px 8px;
+          margin: 2px 0;
+          font-size: 11px;
+          line-height: 1.4;
           cursor: pointer;
-          font-weight: 500;
+          font-weight: 600;
+          box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+          transition: all 0.2s ease;
+          max-width: 100%;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          white-space: nowrap;
         }
         
         .rbc-event:hover {
-          opacity: 0.9;
-          transform: translateY(-1px);
+          transform: translateY(-2px);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+          z-index: 10;
+          position: relative;
         }
         
         .rbc-slot-selection {
