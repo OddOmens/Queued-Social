@@ -62,11 +62,14 @@ export function UnifiedCalendarPage() {
     
     return Array.from(groups.entries())
       .sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime())
-      .map(([date, posts]) => ({
-        date: new Date(date),
-        dateKey: date,
-        posts: posts.sort((a, b) => new Date(a.scheduledTime).getTime() - new Date(b.scheduledTime).getTime())
-      }))
+      .map((entry) => {
+        const [dateStr, postsArray] = entry
+        return {
+          date: new Date(dateStr),
+          dateKey: dateStr,
+          posts: postsArray.sort((a, b) => new Date(a.scheduledTime).getTime() - new Date(b.scheduledTime).getTime())
+        }
+      })
   }, [posts])
 
   const formatDateHeader = (date: Date) => {
