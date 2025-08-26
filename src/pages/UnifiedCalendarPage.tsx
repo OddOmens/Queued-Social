@@ -33,13 +33,15 @@ export function UnifiedCalendarPage() {
 
   // Calculate stats for the header
   const stats = useMemo(() => {
-    if (!posts) return { scheduled: 0, published: 0, failed: 0, total: 0 }
+    if (!posts) return { scheduled: 0, published: 0, failed: 0, publishing: 0, cancelled: 0, total: 0 }
     
     return posts.reduce((acc, post) => {
       acc.total++
-      acc[post.status]++
+      if (post.status in acc) {
+        (acc as any)[post.status]++
+      }
       return acc
-    }, { scheduled: 0, published: 0, failed: 0, total: 0 })
+    }, { scheduled: 0, published: 0, failed: 0, publishing: 0, cancelled: 0, total: 0 })
   }, [posts])
 
   // Group posts by date for list view

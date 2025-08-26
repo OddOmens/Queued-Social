@@ -31,14 +31,14 @@ export function PostTooltip({ post, position, onEdit, onDelete, onClose }: PostT
     return colors[status as keyof typeof colors] || 'text-gray-400 bg-gray-900/20 border-gray-600'
   }
 
-  const formatTime = (date: string) => {
+  const formatTime = (date: string | Date) => {
     return new Date(date).toLocaleTimeString(undefined, {
       hour: '2-digit',
       minute: '2-digit'
     })
   }
 
-  const formatDate = (date: string) => {
+  const formatDate = (date: string | Date) => {
     return new Date(date).toLocaleDateString(undefined, {
       weekday: 'short',
       month: 'short',
