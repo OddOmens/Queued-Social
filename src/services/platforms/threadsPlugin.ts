@@ -112,6 +112,18 @@ export class ThreadsPlugin extends BasePlatformPlugin implements IThreadsPlugin 
         return this.createPublishFailure('Invalid Threads credentials')
       }
 
+      // Check if we need to refresh the token (auto-refresh if expires within 7 days)
+      const { credentialManager } = await import('../credentialManager')
+      const refreshedCredentials = await credentialManager.refreshTokensIfNeeded(
+        threadsCredentials.userId, 
+        'threads'
+      )
+      
+      if (refreshedCredentials) {
+        // Use refreshed credentials if available
+        threadsCredentials.credentials = refreshedCredentials.credentials
+      }
+
       // Handle different content types
       switch (content.type) {
         case 'single':

@@ -54,8 +54,8 @@ export function TimeSlotList({
       // Multiple slots - pass them directly
       onUpdate(index, updatedSlot)
     } else {
-      // Single slot - remove isNew flag when saving
-      onUpdate(index, { ...updatedSlot, isNew: false })
+      // Single slot - just pass it as a partial update
+      onUpdate(index, updatedSlot)
     }
     setEditingIndex(null)
     onEditingChange(false)

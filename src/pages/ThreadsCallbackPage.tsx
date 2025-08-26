@@ -65,34 +65,44 @@ export function ThreadsCallbackPage() {
 
         // Exchange short-lived token for long-lived token
         console.log('🔄 Requesting long-lived access token...')
-        const longLivedResponse = await fetch('https://graph.threads.net/access_token', {
-          method: 'GET',
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          }
-        })
-
+        
         let finalAccessToken = tokenData.access_token
         let finalExpiresIn = tokenData.expires_in
 
-        const longLivedUrl = new URL('https://graph.threads.net/access_token')
-        longLivedUrl.searchParams.set('grant_type', 'th_exchange_token')
-        longLivedUrl.searchParams.set('client_secret', import.meta.env.VITE_THREADS_CLIENT_SECRET)
-        longLivedUrl.searchParams.set('access_token', tokenData.access_token)
-
         try {
-          const longLivedResponse = await fetch(longLivedUrl.toString())
+          const longLivedUrl = new URL('https://graph.threads.net/access_token')
+          longLivedUrl.searchParams.set('grant_type', 'th_exchange_token')
+          longLivedUrl.searchParams.set('client_secret', import.meta.env.VITE_THREADS_CLIENT_SECRET)
+          longLivedUrl.searchParams.set('access_token', tokenData.access_token)
+
+          console.log('🔍 Long-lived token request URL:', longLivedUrl.toString())
+
+          const longLivedResponse = await fetch(longLivedUrl.toString(), {
+            method: 'GET',
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          })
           
           if (longLivedResponse.ok) {
             const longLivedData = await longLivedResponse.json()
             console.log('✅ Long-lived token obtained:', longLivedData)
-            finalAccessToken = longLivedData.access_token
-            finalExpiresIn = longLivedData.expires_in // Should be 60 days
+            
+            if (longLivedData.access_token) {
+              finalAccessToken = longLivedData.access_token
+              finalExpiresIn = longLivedData.expires_in // Should be 60 days (5184000 seconds)
+              console.log(`🔑 Token will expire in ${finalExpiresIn} seconds (${Math.floor(finalExpiresIn / 86400)} days)`)
+            } else {
+              console.warn('⚠️ Long-lived token response missing access_token')
+            }
           } else {
-            console.warn('⚠️ Could not get long-lived token, using short-lived')
+            const errorText = await longLivedResponse.text()
+            console.warn('⚠️ Could not get long-lived token:', longLivedResponse.status, errorText)
+            console.warn('⚠️ Using short-lived token instead')
           }
         } catch (error) {
           console.warn('⚠️ Long-lived token request failed:', error)
+          console.warn('⚠️ Using short-lived token instead')
         }
 
         // Store credentials in database with verified user info

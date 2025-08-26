@@ -328,7 +328,12 @@ export class CredentialManager {
     try {
       const credentials = await this.getCredentials(userId, platform);
       
-      if (!credentials || !credentials.credentials.refreshToken) {
+      if (!credentials) {
+        return null;
+      }
+
+      // For Threads, we don't need a refresh token since we use long-lived token refresh
+      if (platform !== 'threads' && !credentials.credentials.refreshToken) {
         return null;
       }
 
@@ -346,38 +351,81 @@ export class CredentialManager {
   }
 
   /**
-   * Refresh Threads tokens
+   * Check if tokens need refresh (within 7 days of expiry) and refresh them automatically
+   */
+  async refreshTokensIfNeeded(userId: string, platform: Platform): Promise<PlatformCredentials | null> {
+    try {
+      const credentials = await this.getCredentials(userId, platform);
+      
+      if (!credentials || !credentials.expiresAt) {
+        return credentials;
+      }
+
+      // Check if token expires within 7 days (7 * 24 * 60 * 60 * 1000 = 604800000 ms)
+      const sevenDaysFromNow = new Date(Date.now() + 604800000);
+      
+      if (credentials.expiresAt <= sevenDaysFromNow) {
+        console.log(`🔄 Token for ${platform} expires within 7 days, refreshing...`);
+        const refreshedCredentials = await this.refreshTokens(userId, platform);
+        
+        if (refreshedCredentials) {
+          console.log(`✅ Token for ${platform} successfully refreshed`);
+          return refreshedCredentials;
+        } else {
+          console.warn(`⚠️ Failed to refresh token for ${platform}`);
+          return credentials;
+        }
+      }
+
+      return credentials;
+    } catch (error) {
+      console.error('Error checking/refreshing tokens:', error);
+      return null;
+    }
+  }
+
+  /**
+   * Refresh Threads tokens using long-lived token exchange
    */
   private async refreshThreadsTokens(userId: string, credentials: PlatformCredentials): Promise<PlatformCredentials | null> {
     try {
       const config = this.getThreadsOAuthConfig();
       
-      const response = await fetch(config.tokenUrl, {
-        method: 'POST',
+      // For Threads, we use the long-lived token refresh endpoint
+      const refreshUrl = new URL('https://graph.threads.net/refresh_access_token')
+      refreshUrl.searchParams.set('grant_type', 'th_refresh_token')
+      refreshUrl.searchParams.set('access_token', credentials.credentials.accessToken)
+      
+      console.log('🔄 Refreshing Threads long-lived token...')
+
+      const response = await fetch(refreshUrl.toString(), {
+        method: 'GET',
         headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          grant_type: 'refresh_token',
-          refresh_token: credentials.credentials.refreshToken!,
-          client_id: config.clientId,
-          client_secret: config.clientSecret,
-        }),
+          'Content-Type': 'application/json',
+        }
       });
 
       if (!response.ok) {
-        throw new Error('Token refresh failed');
+        const errorText = await response.text()
+        console.error('Threads token refresh failed:', response.status, errorText)
+        throw new Error(`Token refresh failed: ${response.status} ${errorText}`);
       }
 
       const tokenData = await response.json();
       
+      if (tokenData.error) {
+        throw new Error(`Token refresh error: ${tokenData.error.message || tokenData.error}`)
+      }
+      
       const newTokens: OAuthTokens = {
         accessToken: tokenData.access_token,
-        refreshToken: tokenData.refresh_token || credentials.credentials.refreshToken,
+        refreshToken: credentials.credentials.refreshToken, // Keep existing refresh token
         expiresAt: tokenData.expires_in ? new Date(Date.now() + tokenData.expires_in * 1000) : undefined,
         tokenType: tokenData.token_type || 'Bearer',
-        scope: tokenData.scope,
+        scope: tokenData.scope || credentials.credentials.scope,
       };
+
+      console.log(`✅ Threads token refreshed, expires in ${tokenData.expires_in} seconds (${Math.floor(tokenData.expires_in / 86400)} days)`)
 
       return await this.storeCredentials(userId, 'threads', newTokens);
     } catch (error) {

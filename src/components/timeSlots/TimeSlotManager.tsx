@@ -122,8 +122,8 @@ export function TimeSlotManager({
           }))
           newSlots.push(...multipleSlots)
         } else {
-          // Handle single slot update
-          newSlots[slotIndex] = { ...newSlots[slotIndex], ...updates }
+          // Handle single slot update - remove isNew flag when saving
+          newSlots[slotIndex] = { ...newSlots[slotIndex], ...updates, isNew: false }
         }
         
         return newSlots
