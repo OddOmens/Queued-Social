@@ -30,7 +30,6 @@ const navigationItems: NavigationItem[] = [
       </svg>
     ),
   },
-  },
   {
     name: 'Settings',
     href: '/settings',
