@@ -42,7 +42,19 @@ BEGIN
             SELECT COUNT(*) FROM scheduled_posts 
             WHERE status = 'scheduled' 
             AND scheduled_time <= NOW()
-            AND scheduled_time >= NOW() - INTERVAL '2 minutes'
+            AND scheduled_time >= NOW() - INTERVAL '1 hour'
+        );
+        
+        -- Also log current time and any scheduled posts
+        RAISE NOTICE 'Current time: %, Scheduled posts: %', NOW(), (
+            SELECT string_agg(id::text || ' at ' || scheduled_time::text, ', ')
+            FROM (
+                SELECT id, scheduled_time 
+                FROM scheduled_posts 
+                WHERE status = 'scheduled'
+                ORDER BY scheduled_time DESC
+                LIMIT 5
+            ) subq
         );
     END;
 END;

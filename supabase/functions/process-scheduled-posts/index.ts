@@ -22,17 +22,15 @@ serve(async (req) => {
     console.log('🔍 Processing scheduled posts...')
 
     // Get posts that should be published now
-    // Look for posts scheduled within the last minute to handle timing variations
+    // Look for posts scheduled up until now (no lower bound to catch missed posts)
     const now = new Date()
-    const oneMinuteAgo = new Date(now.getTime() - 60 * 1000)
     
-    console.log(`📅 Checking for posts between ${oneMinuteAgo.toISOString()} and ${now.toISOString()}`)
+    console.log(`📅 Checking for posts scheduled before ${now.toISOString()}`)
 
     const { data: scheduledPosts, error: fetchError } = await supabaseClient
       .from('scheduled_posts')
       .select('*')
       .eq('status', 'scheduled')
-      .gte('scheduled_time', oneMinuteAgo.toISOString())
       .lte('scheduled_time', now.toISOString())
 
     if (fetchError) {
