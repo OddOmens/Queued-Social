@@ -121,7 +121,12 @@ export class ThreadsPlugin extends BasePlatformPlugin implements IThreadsPlugin 
       
       if (refreshedCredentials) {
         // Use refreshed credentials if available
-        threadsCredentials.credentials = refreshedCredentials.credentials
+        threadsCredentials.credentials = refreshedCredentials.credentials as {
+          accessToken: string
+          refreshToken?: string
+          userId: string
+          username: string
+        }
       }
 
       // Handle different content types
