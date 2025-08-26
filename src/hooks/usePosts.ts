@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query'
 import { useAuthStore } from '@/stores/auth'
 import { createDbService } from '@/services/database'
+import { schedulingService } from '@/services/scheduling'
 import type { ScheduledPost, CreatePostRequest, Platform } from '@/types'
 
 export function usePosts(filters?: {
@@ -66,9 +67,15 @@ export function useCreatePost() {
       } else if (request.schedulingType === 'custom' && request.customTime) {
         scheduledTime = request.customTime
       } else {
-        // TODO: Implement next available time slot logic
-        // For now, schedule for 1 hour from now
-        scheduledTime = new Date(Date.now() + 60 * 60 * 1000)
+        // Find next available time slot
+        const nextSlot = await schedulingService.findNextAvailableSlot(user.id)
+        
+        if (nextSlot) {
+          scheduledTime = nextSlot
+        } else {
+          // Fallback: schedule for 1 hour from now if no slots available
+          scheduledTime = new Date(Date.now() + 60 * 60 * 1000)
+        }
       }
       
       const post = await db.createScheduledPost({

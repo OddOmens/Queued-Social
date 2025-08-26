@@ -47,8 +47,8 @@ function App() {
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="calendar" element={<UnifiedCalendarPage />} />
-            <Route path="publish" element={<PublishPage />} />
+            <Route path="calendar" element={<PublishPage />} />
+            <Route path="publish" element={<UnifiedCalendarPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="settings/profile" element={<ProfilePage />} />
           </Route>
