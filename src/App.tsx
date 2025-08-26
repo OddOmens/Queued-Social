@@ -12,6 +12,7 @@ import { LoginPage } from './pages/LoginPage'
 import { SignUpPage } from './pages/SignUpPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { UnifiedCalendarPage } from './pages/UnifiedCalendarPage'
+import { PublishPage } from './pages/PublishPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { ThreadsCallbackPage } from './pages/ThreadsCallbackPage'
@@ -47,6 +48,7 @@ function App() {
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="calendar" element={<UnifiedCalendarPage />} />
+            <Route path="publish" element={<PublishPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="settings/profile" element={<ProfilePage />} />
           </Route>

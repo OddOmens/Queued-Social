@@ -35,10 +35,10 @@ export function PublishPage() {
     // Sort groups by date (most recent first) and posts within groups by time
     return Array.from(groups.entries())
       .sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime())
-      .map(([date, posts]) => ({
+      .map(([date, groupPosts]) => ({
         date: new Date(date),
         dateKey: date,
-        posts: posts.sort((a, b) => new Date(a.scheduledTime).getTime() - new Date(b.scheduledTime).getTime())
+        posts: groupPosts.sort((a, b) => new Date(a.scheduledTime).getTime() - new Date(b.scheduledTime).getTime())
       }))
   }, [posts])
 
