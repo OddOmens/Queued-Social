@@ -97,23 +97,39 @@ export function TimeSlotManager({
     
     setDraftSlots(prev => [...prev, newSlot])
     setHasChanges(true)
+    // Auto-start editing the new slot
     setIsEditing(true)
   }
 
-  // Update a time slot
-  const handleUpdateSlot = (index: number, updates: Partial<TimeSlotDraft>) => {
+  // Update a time slot (or create multiple slots)
+  const handleUpdateSlot = (index: number, updates: Partial<TimeSlotDraft> | TimeSlotDraft[]) => {
     setDraftSlots(prev => {
-      const newSlots = [...prev]
-      const slotIndex = prev.findIndex((slot, i) => {
-        const daySlots = slotsByDay.get(selectedDay) || []
-        return slot === daySlots[index]
-      })
+      const daySlots = slotsByDay.get(selectedDay) || []
+      const currentSlot = daySlots[index]
+      const slotIndex = prev.findIndex(slot => slot === currentSlot)
       
       if (slotIndex !== -1) {
-        newSlots[slotIndex] = { ...newSlots[slotIndex], ...updates }
+        let newSlots = [...prev]
+        
+        if (Array.isArray(updates)) {
+          // Handle multiple slots (for multi-day creation)
+          // Remove the original slot and add multiple new ones
+          newSlots.splice(slotIndex, 1)
+          const multipleSlots = updates.map(update => ({
+            ...update,
+            id: undefined,
+            isNew: false
+          }))
+          newSlots.push(...multipleSlots)
+        } else {
+          // Handle single slot update
+          newSlots[slotIndex] = { ...newSlots[slotIndex], ...updates }
+        }
+        
+        return newSlots
       }
       
-      return newSlots
+      return prev
     })
     setHasChanges(true)
   }
@@ -204,18 +220,18 @@ export function TimeSlotManager({
     <div className={`space-y-6 ${className}`}>
       {/* Action Buttons */}
       {hasChanges && (
-        <div className="flex justify-end gap-2 pb-4 border-b border-gray-200">
+        <div className="flex justify-end gap-2 pb-4 border-b border-gray-100">
           <button
             onClick={handleCancel}
             disabled={loading}
-            className="px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium text-gray-600 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
             Cancel
           </button>
           <button
             onClick={handleSave}
             disabled={loading}
-            className="px-4 py-2 text-sm font-medium text-white bg-blue-600 border border-transparent rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
+            className="px-4 py-2 text-sm font-medium text-white bg-blue-500 border border-transparent rounded-lg hover:bg-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
           >
             {loading ? 'Saving...' : 'Save Changes'}
           </button>
@@ -224,7 +240,7 @@ export function TimeSlotManager({
 
       {/* Validation Errors */}
       {validationErrors && !validationErrors.isValid && (
-        <div className="bg-red-50 border border-red-200 rounded-md p-4">
+        <div className="bg-red-25 border border-red-100 rounded-lg p-4">
           <div className="flex">
             <div className="flex-shrink-0">
               <svg className="h-5 w-5 text-red-400" viewBox="0 0 20 20" fill="currentColor">
@@ -232,10 +248,10 @@ export function TimeSlotManager({
               </svg>
             </div>
             <div className="ml-3">
-              <h3 className="text-sm font-medium text-red-800">
+              <h3 className="text-sm font-medium text-red-700">
                 Please fix the following errors:
               </h3>
-              <div className="mt-2 text-sm text-red-700">
+              <div className="mt-2 text-sm text-red-600">
                 <ul className="list-disc list-inside space-y-1">
                   {validationErrors.errors?.map((error, index) => (
                     <li key={index}>{error.message}</li>
@@ -250,7 +266,7 @@ export function TimeSlotManager({
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Day Selection */}
         <div className="lg:col-span-1">
-          <h3 className="text-lg font-medium text-gray-900 mb-4">Days of Week</h3>
+          <h3 className="text-lg font-semibold text-gray-800 mb-4">Days of Week</h3>
           <div className="space-y-2">
             {DAYS_OF_WEEK.map(day => {
               const daySlots = slotsByDay.get(day.value) || []
@@ -260,17 +276,17 @@ export function TimeSlotManager({
               return (
                 <div
                   key={day.value}
-                  className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-colors ${
+                  className={`flex items-center justify-between p-3 rounded-lg border cursor-pointer transition-all duration-200 ${
                     selectedDay === day.value
-                      ? 'border-blue-500 bg-blue-50'
+                      ? 'border-blue-200 bg-blue-50 shadow-sm'
                       : hasSlots
-                      ? 'border-green-200 bg-green-50 hover:bg-green-100'
-                      : 'border-gray-200 bg-white hover:bg-gray-50'
+                      ? 'border-blue-100 bg-blue-25 hover:bg-blue-50'
+                      : 'border-gray-100 bg-white hover:bg-gray-25'
                   }`}
                   onClick={() => setSelectedDay(day.value)}
                 >
                   <div className="flex items-center">
-                    <span className="font-medium text-gray-900">{day.label}</span>
+                    <span className="font-medium text-gray-700">{day.label}</span>
                     {hasSlots && (
                       <span className="ml-2 text-xs text-gray-500">
                         ({activeSlots.length} slot{activeSlots.length !== 1 ? 's' : ''})
@@ -284,10 +300,10 @@ export function TimeSlotManager({
                         e.stopPropagation()
                         handleToggleDay(day.value)
                       }}
-                      className={`text-xs px-2 py-1 rounded ${
+                      className={`text-xs px-2 py-1 rounded-md font-medium transition-colors ${
                         activeSlots.length > 0
-                          ? 'bg-green-100 text-green-800'
-                          : 'bg-gray-100 text-gray-600'
+                          ? 'bg-blue-100 text-blue-700'
+                          : 'bg-gray-100 text-gray-500'
                       }`}
                     >
                       {activeSlots.length > 0 ? 'Active' : 'Inactive'}
@@ -302,12 +318,12 @@ export function TimeSlotManager({
         {/* Time Slot Configuration */}
         <div className="lg:col-span-2">
           <div className="flex items-center justify-between mb-4">
-            <h3 className="text-lg font-medium text-gray-900">
+            <h3 className="text-lg font-semibold text-gray-800">
               {DAYS_OF_WEEK.find(d => d.value === selectedDay)?.label} Time Slots
             </h3>
             <button
               onClick={handleAddSlot}
-              className="px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-200 rounded-md hover:bg-blue-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+              className="px-3 py-2 text-sm font-medium text-blue-600 bg-blue-50 border border-blue-100 rounded-lg hover:bg-blue-100 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
             >
               Add Time Slot
             </button>
@@ -315,10 +331,10 @@ export function TimeSlotManager({
 
           {selectedDaySlots.length === 0 ? (
             <div className="text-center py-8 text-gray-500">
-              <svg className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <svg className="mx-auto h-12 w-12 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
               </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No time slots</h3>
+              <h3 className="mt-2 text-sm font-medium text-gray-600">No time slots</h3>
               <p className="mt-1 text-sm text-gray-500">
                 Get started by adding a time slot for {DAYS_OF_WEEK.find(d => d.value === selectedDay)?.label}.
               </p>
@@ -330,6 +346,8 @@ export function TimeSlotManager({
               onRemove={handleRemoveSlot}
               isEditing={isEditing}
               onEditingChange={setIsEditing}
+              autoEditNew={true}
+              allowMultipleDays={true}
             />
           )}
         </div>
