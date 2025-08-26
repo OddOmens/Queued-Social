@@ -10,39 +10,40 @@ CREATE INDEX IF NOT EXISTS idx_scheduled_posts_platform_post_id
 ON scheduled_posts(platform_post_id) 
 WHERE platform_post_id IS NOT NULL;
 
--- Create a function to call our Edge Function
+-- Create a function to trigger the Edge Function
 CREATE OR REPLACE FUNCTION process_scheduled_posts()
 RETURNS void
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
 DECLARE
-    function_url text;
-    response text;
+    http_response record;
+    request_id int;
 BEGIN
-    -- Get the Supabase URL from environment or use a default
-    -- In production, you'll need to set this to your actual Supabase URL
-    function_url := current_setting('app.supabase_url', true) || '/functions/v1/process-scheduled-posts';
+    -- Log that we're starting
+    RAISE NOTICE 'Triggering Edge Function for scheduled posts processing at %', NOW();
     
-    -- If the setting doesn't exist, we'll handle this in the application layer instead
-    IF function_url IS NULL OR function_url = '/functions/v1/process-scheduled-posts' THEN
-        -- Log that we're skipping the HTTP call
-        RAISE NOTICE 'Supabase URL not configured, skipping Edge Function call';
-        RETURN;
-    END IF;
-    
-    -- Make HTTP request to our Edge Function
-    -- Note: This requires the http extension which may not be available in all Supabase instances
-    -- If this fails, we'll handle scheduling in the application layer instead
+    -- Call the Edge Function using Supabase internal networking
     BEGIN
-        SELECT content INTO response FROM http_post(
-            function_url,
+        SELECT * INTO http_response FROM http((
+            'POST',
+            'http://supabase_edge_functions_process-scheduled-posts/process-scheduled-posts',
+            ARRAY[http_header('Content-Type','application/json')],
             '{}',
-            'application/json'
-        );
-        RAISE NOTICE 'Cron job executed successfully: %', response;
+            NULL
+        )::http_request);
+        
+        RAISE NOTICE 'Edge Function response: status=%, content=%', http_response.status, http_response.content;
     EXCEPTION WHEN OTHERS THEN
-        RAISE NOTICE 'Cron job failed: %', SQLERRM;
+        RAISE NOTICE 'Failed to call Edge Function: %', SQLERRM;
+        
+        -- Fallback: Just log what we would process
+        RAISE NOTICE 'Fallback: Found % scheduled posts to process', (
+            SELECT COUNT(*) FROM scheduled_posts 
+            WHERE status = 'scheduled' 
+            AND scheduled_time <= NOW()
+            AND scheduled_time >= NOW() - INTERVAL '2 minutes'
+        );
     END;
 END;
 $$;
