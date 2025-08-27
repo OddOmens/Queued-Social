@@ -77,7 +77,8 @@ const InteractiveCalendarView: React.FC<InteractiveCalendarViewProps> = ({
   // Convert grouped posts to calendar events
   const events = useMemo((): CalendarEvent[] => {
     return Object.entries(groupedPosts).map((entry) => {
-      const [timeKey, groupPosts] = entry
+      const timeKey = entry[0]
+      const groupPosts = entry[1]
       const startTime = new Date(timeKey)
       const endTime = new Date(startTime.getTime() + 30 * 60 * 1000) // 30 minutes duration
       
@@ -141,7 +142,8 @@ const InteractiveCalendarView: React.FC<InteractiveCalendarViewProps> = ({
     
     const platformSummary = Object.entries(platformCounts)
       .map((entry) => {
-        const [platform, count] = entry
+        const platform = entry[0]
+        const count = entry[1]
         return `${getPlatformIcon(platform as Platform)}${count > 1 ? count : ''}`
       })
       .join(' ')

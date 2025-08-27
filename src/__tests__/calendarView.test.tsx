@@ -1,7 +1,9 @@
 import React from 'react'
 import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-import { CalendarView, CalendarNavigation, CalendarContainer } from '@/components/calendar'
+import CalendarView from '@/components/calendar/CalendarView'
+import CalendarNavigation from '@/components/calendar/CalendarNavigation'
+import CalendarContainer from '@/components/calendar/CalendarContainer'
 import { ScheduledPost, Platform, PostStatus } from '@/types'
 
 // Mock react-big-calendar

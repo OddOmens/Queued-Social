@@ -1,0 +1,28 @@
+#!/usr/bin/env sh
+. "$(dirname -- "$0")/_/husky.sh"
+
+echo "🔍 Running pre-commit checks..."
+
+# Check for problematic destructuring patterns
+echo "Checking for destructuring patterns in array callbacks..."
+if grep -r --include="*.ts" --include="*.tsx" -n "\.map(\s*(\s*\[" src/; then
+  echo "❌ Found array destructuring in map callback - this can cause hoisting issues!"
+  echo "Please use explicit array access (item[0], item[1]) instead"
+  exit 1
+fi
+
+if grep -r --include="*.ts" --include="*.tsx" -n "\.sort(\s*(\s*\[" src/; then
+  echo "❌ Found array destructuring in sort callback - this can cause hoisting issues!"
+  echo "Please use explicit array access (item[0], item[1]) instead"
+  exit 1
+fi
+
+# Run ESLint
+echo "Running ESLint..."
+npm run lint
+
+# Run TypeScript check
+echo "Running TypeScript check..."
+npm run type-check
+
+echo "✅ Pre-commit checks passed!"

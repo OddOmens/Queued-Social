@@ -1,13 +1,6 @@
-export { default as CalendarView } from './CalendarView'
-export { default as CalendarNavigation } from './CalendarNavigation'
-export { default as PostEvent } from './PostEvent'
-export { default as CalendarContainer } from './CalendarContainer'
-export { default as CalendarPreview } from './CalendarPreview'
-export { default as InteractiveCalendarView } from './InteractiveCalendarView'
-export { default as PostDetailModal } from './PostDetailModal'
-export { default as PostGroupModal } from './PostGroupModal'
-export { default as NewCalendar } from './NewCalendar'
+// BARREL EXPORTS DISABLED TO PREVENT CIRCULAR DEPENDENCIES
+// Import components directly from their files instead
 
-// Re-export types that might be useful for consumers
+// Re-export types only (safe from circular dependencies)
 export type { CalendarViewProps } from './CalendarView'
 export type { ViewType } from './NewCalendar'

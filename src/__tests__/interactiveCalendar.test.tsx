@@ -3,7 +3,9 @@ import { render, screen, fireEvent, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 import { DndProvider } from 'react-dnd'
 import { HTML5Backend } from 'react-dnd-html5-backend'
-import { InteractiveCalendarView, PostDetailModal, PostGroupModal } from '@/components/calendar'
+import InteractiveCalendarView from '@/components/calendar/InteractiveCalendarView'
+import PostDetailModal from '@/components/calendar/PostDetailModal'
+import PostGroupModal from '@/components/calendar/PostGroupModal'
 import { ScheduledPost, Platform, PostStatus } from '@/types'
 
 // Mock react-big-calendar

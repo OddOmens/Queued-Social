@@ -35,13 +35,14 @@ export function PublishPage() {
     // Sort groups by date (most recent first) and posts within groups by time
     const entries = Array.from(groups.entries())
     const sortedEntries = entries.sort((entryA, entryB) => {
-      const [dateA] = entryA
-      const [dateB] = entryB
+      const dateA = entryA[0]
+      const dateB = entryB[0]
       return new Date(dateA).getTime() - new Date(dateB).getTime()
     })
     
     return sortedEntries.map((entry) => {
-      const [date, groupPosts] = entry
+      const date = entry[0]
+      const groupPosts = entry[1]
       const sortedPosts = groupPosts.sort((a, b) => new Date(a.scheduledTime).getTime() - new Date(b.scheduledTime).getTime())
       
       return {

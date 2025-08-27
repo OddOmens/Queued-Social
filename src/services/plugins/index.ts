@@ -18,7 +18,8 @@ export function initializePlatformPlugins(): void {
     { name: 'threads' as const, displayName: 'Threads' }
   ]
 
-  platforms.forEach(({ name, displayName }) => {
+  platforms.forEach((platform) => {
+    const { name, displayName } = platform
     const plugin = new MockPlatformPlugin(name, displayName)
     platformManager.registerPlugin(plugin)
     console.log(`Registered mock plugin for ${displayName}`)

@@ -39,6 +39,15 @@ export default defineConfig(({ mode }) => ({
       },
     },
     chunkSizeWarningLimit: 1000,
+    // Ensure better variable naming during minification
+    esbuild: mode === 'production' ? {
+      keepNames: false,
+      minifyIdentifiers: true,
+      minifySyntax: true,
+      minifyWhitespace: true,
+      // Preserve some debugging info
+      legalComments: 'none',
+    } : false,
   },
   test: {
     globals: true,
