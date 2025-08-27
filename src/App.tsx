@@ -12,7 +12,6 @@ import { LoginPage } from './pages/LoginPage'
 import { SignUpPage } from './pages/SignUpPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { UnifiedCalendarPage } from './pages/UnifiedCalendarPage'
-import { PublishPage } from './pages/PublishPage'
 import { DraftsPage } from './pages/DraftsPage'
 import { TemplatesPage } from './pages/TemplatesPage'
 import { SettingsPage } from './pages/SettingsPage'
@@ -49,7 +48,7 @@ function App() {
           <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
             <Route index element={<Navigate to="/dashboard" replace />} />
             <Route path="dashboard" element={<DashboardPage />} />
-            <Route path="calendar" element={<PublishPage />} />
+            <Route path="calendar" element={<UnifiedCalendarPage />} />
             <Route path="publish" element={<UnifiedCalendarPage />} />
             <Route path="drafts" element={<DraftsPage />} />
             <Route path="templates" element={<TemplatesPage />} />
