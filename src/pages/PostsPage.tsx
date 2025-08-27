@@ -33,13 +33,23 @@ export function PostsPage() {
     })
     
     // Sort groups by date (most recent first) and posts within groups by time
-    return Array.from(groups.entries())
-      .sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime())
-      .map(([date, groupPosts]) => ({
+    const entries = Array.from(groups.entries())
+    const sortedEntries = entries.sort((entryA, entryB) => {
+      const [dateA] = entryA
+      const [dateB] = entryB
+      return new Date(dateA).getTime() - new Date(dateB).getTime()
+    })
+    
+    return sortedEntries.map((entry) => {
+      const [date, groupPosts] = entry
+      const sortedPosts = groupPosts.sort((a, b) => new Date(a.scheduledTime).getTime() - new Date(b.scheduledTime).getTime())
+      
+      return {
         date: new Date(date),
         dateKey: date,
-        posts: groupPosts.sort((a, b) => new Date(a.scheduledTime).getTime() - new Date(b.scheduledTime).getTime())
-      }))
+        posts: sortedPosts
+      }
+    })
   }, [posts])
 
   const formatDateHeader = (date: Date) => {
