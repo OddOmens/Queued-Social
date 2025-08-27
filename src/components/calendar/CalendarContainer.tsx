@@ -30,6 +30,32 @@ const CalendarContainer: React.FC<CalendarContainerProps> = ({
     setView(initialView === 'day' ? 'week' : initialView as ViewType)
   }, [initialView])
 
+  const getPlatformIcon = (platform: string): string => {
+    const icons = {
+      threads: '🧵',
+      twitter: '🐦',
+      instagram: '📷',
+      linkedin: '💼'
+    }
+    return icons[platform as keyof typeof icons] || '📱'
+  }
+
+  const getPostTitle = (post: ScheduledPost): string => {
+    const platformIcon = getPlatformIcon(post.platform)
+    let preview = ''
+    
+    if (post.content.type === 'thread') {
+      preview = `Thread: ${post.content.text.substring(0, 30)}...`
+    } else {
+      preview = post.content.text.substring(0, 30)
+      if (post.content.text.length > 30) {
+        preview += '...'
+      }
+    }
+    
+    return `${platformIcon} ${preview}`
+  }
+
   // Convert posts to calendar events
   const events = useMemo(() => {
     return posts.map(post => ({
@@ -51,32 +77,6 @@ const CalendarContainer: React.FC<CalendarContainerProps> = ({
       minute: parseInt(slot.time.split(':')[1]) || 0
     }))
   }, [timeSlots])
-
-  const getPostTitle = (post: ScheduledPost): string => {
-    const platformIcon = getPlatformIcon(post.platform)
-    let preview = ''
-    
-    if (post.content.type === 'thread') {
-      preview = `Thread: ${post.content.text.substring(0, 30)}...`
-    } else {
-      preview = post.content.text.substring(0, 30)
-      if (post.content.text.length > 30) {
-        preview += '...'
-      }
-    }
-    
-    return `${platformIcon} ${preview}`
-  }
-
-  const getPlatformIcon = (platform: string): string => {
-    const icons = {
-      threads: '🧵',
-      twitter: '🐦',
-      instagram: '📷',
-      linkedin: '💼'
-    }
-    return icons[platform as keyof typeof icons] || '📱'
-  }
 
   const handleViewChange = useCallback((newView: ViewType) => {
     setView(newView)
