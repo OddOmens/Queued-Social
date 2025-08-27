@@ -13,6 +13,8 @@ import { SignUpPage } from './pages/SignUpPage'
 import { DashboardPage } from './pages/DashboardPage'
 import { UnifiedCalendarPage } from './pages/UnifiedCalendarPage'
 import { PublishPage } from './pages/PublishPage'
+import { DraftsPage } from './pages/DraftsPage'
+import { TemplatesPage } from './pages/TemplatesPage'
 import { SettingsPage } from './pages/SettingsPage'
 import { ProfilePage } from './pages/ProfilePage'
 import { ThreadsCallbackPage } from './pages/ThreadsCallbackPage'
@@ -49,6 +51,8 @@ function App() {
             <Route path="dashboard" element={<DashboardPage />} />
             <Route path="calendar" element={<PublishPage />} />
             <Route path="publish" element={<UnifiedCalendarPage />} />
+            <Route path="drafts" element={<DraftsPage />} />
+            <Route path="templates" element={<TemplatesPage />} />
             <Route path="settings" element={<SettingsPage />} />
             <Route path="settings/profile" element={<ProfilePage />} />
           </Route>

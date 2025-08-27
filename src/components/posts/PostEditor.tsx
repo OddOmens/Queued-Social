@@ -47,6 +47,8 @@ interface PostEditorProps {
   initialScheduledTime?: Date
   loading?: boolean
   isEditing?: boolean
+  isDraft?: boolean
+  isTemplate?: boolean
 }
 
 export function PostEditor({ 
@@ -56,7 +58,9 @@ export function PostEditor({
   initialContent, 
   initialScheduledTime,
   loading = false,
-  isEditing = false
+  isEditing = false,
+  isDraft = false,
+  isTemplate = false
 }: PostEditorProps) {
   const [contentType, setContentType] = useState<PostContentType>(
     initialContent?.type || 'single'
@@ -187,12 +191,20 @@ export function PostEditor({
     if (!text.trim() && contentType !== 'media') return false
     if (contentType === 'media' && mediaFiles.length === 0) return false
     if (contentType === 'thread' && threadPosts.filter(p => p.trim()).length === 0) return false
-    if (schedulingType === 'custom' && !customTime) return false
+    if (!isDraft && !isTemplate && schedulingType === 'custom' && !customTime) return false
     return true
   }
 
   const getButtonText = () => {
     if (loading) return 'Processing...'
+    
+    if (isDraft) {
+      return isEditing ? 'Update Draft' : 'Save Draft'
+    }
+    
+    if (isTemplate) {
+      return isEditing ? 'Update Template' : 'Save Template'
+    }
     
     switch (schedulingType) {
       case 'now':
@@ -210,7 +222,11 @@ export function PostEditor({
     <div className="max-w-2xl mx-auto card bg-gray-900 dark:bg-gray-900 border border-gray-800 dark:border-gray-800 p-8">
       <div className="flex items-center justify-between mb-6">
         <h2 className="text-2xl font-bold text-white dark:text-white">
-          Create Post for {platformConfig?.displayName || platform}
+          {isDraft 
+            ? (isEditing ? 'Edit Draft' : 'Create Draft') 
+            : isTemplate 
+            ? (isEditing ? 'Edit Template' : 'Create Template')
+            : `Create Post for ${platformConfig?.displayName || platform}`}
         </h2>
         <button
           onClick={onCancel}
@@ -386,7 +402,8 @@ export function PostEditor({
           </div>
         </div>
 
-        {/* Scheduling Options */}
+        {/* Scheduling Options - Hide for drafts and templates */}
+        {!isDraft && !isTemplate && (
         <div>
           <label className="block text-sm font-medium text-gray-300 mb-3">
             When to Post
@@ -457,6 +474,7 @@ export function PostEditor({
             </div>
           )}
         </div>
+        )}
 
         {/* Action Buttons */}
         <div className="flex justify-end space-x-3 pt-4 border-t border-gray-700 dark:border-gray-700">

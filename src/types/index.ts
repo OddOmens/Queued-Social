@@ -111,6 +111,9 @@ export interface TimeSlot {
   time: string // HH:MM format
   timezone: string
   isActive: boolean
+  dayOfWeek?: DayOfWeek // Optional for backward compatibility
+  hour?: number // Optional for calendar display
+  minute?: number // Optional for calendar display
 }
 
 export interface TimeSlotConfig {
