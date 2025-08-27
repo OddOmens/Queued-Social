@@ -278,26 +278,32 @@ const WeekView: React.FC<WeekViewProps> = ({
     end: endOfWeek(currentDate)
   })
 
-  const timeSlotHours = useMemo(() => {
-    const hours = []
+  const timeSlotQuarters = useMemo(() => {
+    const quarters = []
     for (let hour = 6; hour <= 23; hour++) {
-      hours.push({
-        hour,
-        label: format(new Date().setHours(hour, 0), 'ha').toLowerCase(),
-        slots: timeSlots.filter(slot => slot.hour === hour)
-      })
+      for (let minute = 0; minute < 60; minute += 15) {
+        quarters.push({
+          hour,
+          minute,
+          label: minute === 0 ? format(new Date().setHours(hour, 0), 'ha').toLowerCase() : '',
+          fullTime: format(new Date().setHours(hour, minute), 'h:mm a').toLowerCase(),
+          slots: timeSlots.filter(slot => slot.hour === hour && slot.minute === minute)
+        })
+      }
     }
-    return hours
+    return quarters
   }, [timeSlots])
 
-  const getEventsForDateTime = (date: Date, hour: number) => {
+  const getEventsForDateTime = (date: Date, hour: number, minute: number) => {
     return events.filter(event => {
-      return isSameDay(event.time, date) && event.time.getHours() === hour
+      return isSameDay(event.time, date) && 
+             event.time.getHours() === hour && 
+             Math.floor(event.time.getMinutes() / 15) * 15 === minute
     })
   }
 
   return (
-    <div className="flex flex-col h-[600px]">
+    <div className="flex flex-col h-[800px]">
       {/* Week header */}
       <div className="flex border-b border-gray-600">
         <div className="w-16 py-4"></div>
@@ -306,7 +312,7 @@ const WeekView: React.FC<WeekViewProps> = ({
             key={day.toString()}
             onClick={() => onDateClick?.(day)}
             className={`
-              w-32 py-4 text-center cursor-pointer hover:bg-gray-700 transition-colors
+              flex-1 py-4 text-center cursor-pointer hover:bg-gray-700 transition-colors
               ${isToday(day) ? 'bg-blue-900 text-blue-300 font-semibold' : 'text-white'}
             `}
           >
@@ -325,15 +331,16 @@ const WeekView: React.FC<WeekViewProps> = ({
 
       {/* Time slots */}
       <div className="flex-1 overflow-y-auto">
-        {timeSlotHours.map((timeSlotData) => {
-          const { hour, label, slots } = timeSlotData
+        {timeSlotQuarters.map((timeSlotData) => {
+          const { hour, minute, label, fullTime, slots } = timeSlotData
           return (
-            <div key={hour} className="flex border-b border-gray-600 min-h-[60px]">
-            <div className="w-16 py-2 px-3 text-sm text-gray-400 text-right">
+            <div key={`${hour}-${minute}`} className="flex border-b border-gray-600 min-h-[40px]">
+            <div className="w-16 py-1 px-3 text-xs text-gray-400 text-right">
               {label}
+              {minute > 0 && <div className="text-xs text-gray-500">{minute}</div>}
             </div>
             {weekDays.map(day => {
-              const dayEvents = getEventsForDateTime(day, hour)
+              const dayEvents = getEventsForDateTime(day, hour, minute)
               const dayOfWeek = day.getDay() // 0 = Sunday, 1 = Monday, etc.
               const availableSlots = slots.filter(slot => 
                 (slot as any).dayOfWeek === dayOfWeek
@@ -341,8 +348,8 @@ const WeekView: React.FC<WeekViewProps> = ({
               
               return (
                 <div 
-                  key={`${day.toString()}-${hour}`}
-                  className="w-32 border-r border-gray-600 p-2 relative hover:bg-gray-700 transition-colors"
+                  key={`${day.toString()}-${hour}-${minute}`}
+                  className="flex-1 border-r border-gray-600 p-1 relative hover:bg-gray-700 transition-colors"
                 >
                   {/* Events */}
                   {dayEvents.map(event => {
@@ -385,7 +392,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                           className="w-full flex items-center justify-center py-1 px-2 text-xs text-gray-400 hover:text-gray-200 hover:bg-gray-600 border border-dashed border-gray-500 hover:border-gray-400 rounded transition-colors group"
                         >
                           <PlusIcon className="w-3 h-3 mr-1 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          <span className="opacity-0 group-hover:opacity-100 transition-opacity">
+                          <span className="opacity-0 group-hover:opacity-100 transition-opacity text-xs">
                             {slot.time}
                           </span>
                         </button>
@@ -397,10 +404,10 @@ const WeekView: React.FC<WeekViewProps> = ({
                   {availableSlots.length === 0 && dayEvents.length === 0 && (
                     <button
                       onClick={() => onTimeSlotClick?.(day, { 
-                        id: `${day.toString()}-${hour}`, 
-                        time: format(new Date().setHours(hour, 0), 'h:mm a'),
+                        id: `${day.toString()}-${hour}-${minute}`, 
+                        time: fullTime,
                         hour,
-                        minute: 0
+                        minute
                       })}
                       className="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 hover:bg-gray-600 hover:bg-opacity-80 transition-all group"
                     >
