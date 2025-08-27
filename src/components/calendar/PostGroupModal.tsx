@@ -164,7 +164,8 @@ const PostGroupModal: React.FC<PostGroupModalProps> = ({
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-2">Platforms</h3>
                 <div className="flex flex-wrap gap-2">
-                  {Object.entries(platformCounts).map(([platform, count]) => {
+                  {Object.entries(platformCounts).map((entry) => {
+                    const [platform, count] = entry
                     const platformInfo = getPlatformInfo(platform as Platform)
                     return (
                       <span
@@ -182,7 +183,8 @@ const PostGroupModal: React.FC<PostGroupModalProps> = ({
               <div>
                 <h3 className="text-sm font-medium text-gray-700 mb-2">Status</h3>
                 <div className="flex flex-wrap gap-2">
-                  {Object.entries(statusCounts).map(([status, count]) => {
+                  {Object.entries(statusCounts).map((entry) => {
+                    const [status, count] = entry
                     const statusInfo = getStatusInfo(status as PostStatus)
                     return (
                       <span

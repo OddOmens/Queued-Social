@@ -171,8 +171,10 @@ export function DraftsPage() {
         <div className="px-6 py-6 sm:p-8">
           {drafts.length > 0 ? (
             <div className="space-y-8">
-              {Array.from(groupedDrafts.entries()).map(([platform, platformDrafts]) => (
-                <div key={platform}>
+              {Array.from(groupedDrafts.entries()).map((entry) => {
+                const [platform, platformDrafts] = entry
+                return (
+                  <div key={platform}>
                   <div className="flex items-center mb-4">
                     <h2 className="text-lg font-semibold text-white capitalize">
                       {platform === 'threads' ? '🧵 Threads' : platform}
@@ -229,7 +231,8 @@ export function DraftsPage() {
                     ))}
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
           ) : (
             <div className="text-center py-12">

@@ -151,8 +151,10 @@ export function PublishPage() {
             </div>
           ) : groupedPosts.length > 0 ? (
             <div className="space-y-8">
-              {groupedPosts.map(({ date, dateKey, posts }) => (
-                <div key={dateKey}>
+              {groupedPosts.map((group) => {
+                const { date, dateKey, posts } = group
+                return (
+                  <div key={dateKey}>
                   <div className="flex items-center mb-4">
                     <h2 className="text-lg font-semibold text-white">
                       {formatDateHeader(date)}
@@ -218,7 +220,8 @@ export function PublishPage() {
                     ))}
                   </div>
                 </div>
-              ))}
+                )
+              })}
             </div>
           ) : (
             <div className="text-center py-12">

@@ -312,8 +312,10 @@ const WeekView: React.FC<WeekViewProps> = ({
 
       {/* Time slots */}
       <div className="flex-1 overflow-y-auto">
-        {timeSlotHours.map(({ hour, label, slots }) => (
-          <div key={hour} className="flex border-b border-gray-600 min-h-[60px]">
+        {timeSlotHours.map((timeSlotData) => {
+          const { hour, label, slots } = timeSlotData
+          return (
+            <div key={hour} className="flex border-b border-gray-600 min-h-[60px]">
             <div className="w-16 py-2 px-3 text-sm text-gray-400 text-right">
               {label}
             </div>
@@ -393,7 +395,8 @@ const WeekView: React.FC<WeekViewProps> = ({
               )
             })}
           </div>
-        ))}
+          )
+        })}
       </div>
     </div>
   )

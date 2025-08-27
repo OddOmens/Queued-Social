@@ -188,7 +188,8 @@ export async function withRetry<T>(
 }
 
 export function formatValidationErrors(errors: Record<string, string[]>): string {
-  const messages = Object.entries(errors).map(([field, fieldErrors]) => {
+  const messages = Object.entries(errors).map((entry) => {
+    const [field, fieldErrors] = entry
     const fieldName = field.charAt(0).toUpperCase() + field.slice(1)
     return `${fieldName}: ${fieldErrors.join(', ')}`
   })

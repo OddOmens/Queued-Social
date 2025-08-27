@@ -47,8 +47,10 @@ export function EnvDebug() {
         </div>
         
         <div className="space-y-2 text-sm">
-          {Object.entries(envVars).map(([key, value]) => (
-            <div key={key} className="flex">
+          {Object.entries(envVars).map((entry) => {
+            const [key, value] = entry
+            return (
+              <div key={key} className="flex">
               <span className="font-mono text-blue-600 w-48">{key}:</span>
               <span className="font-mono text-gray-800">
                 {value ? (key.includes('SECRET') || key.includes('KEY') ? 
@@ -56,8 +58,9 @@ export function EnvDebug() {
                   String(value)
                 ) : '❌ undefined'}
               </span>
-            </div>
-          ))}
+              </div>
+            )
+          })}
         </div>
         
         <div className="mt-4 p-3 bg-gray-100 rounded">
