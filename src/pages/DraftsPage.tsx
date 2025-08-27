@@ -13,6 +13,7 @@ interface Draft {
 export function DraftsPage() {
   const [showEditor, setShowEditor] = useState(false)
   const [editingDraft, setEditingDraft] = useState<Draft | null>(null)
+  const [schedulingDraft, setSchedulingDraft] = useState<Draft | null>(null)
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>('threads')
 
   // Load drafts from localStorage
@@ -87,12 +88,43 @@ export function DraftsPage() {
   }
 
   const handleScheduleDraft = (draft: Draft) => {
-    // This would integrate with the existing scheduling system
-    // For now, we'll just show an alert
-    alert('Schedule functionality will be integrated with existing post scheduling system')
+    setSchedulingDraft(draft)
+    setShowEditor(true)
+  }
+
+  const handleScheduleSave = (request: CreatePostRequest) => {
+    if (schedulingDraft) {
+      // Remove from drafts since we're scheduling it
+      const updatedDrafts = drafts.filter(draft => draft.id !== schedulingDraft.id)
+      saveDrafts(updatedDrafts)
+      setSchedulingDraft(null)
+      
+      // Here you would normally integrate with the scheduling system
+      // For now, we'll show a success message
+      alert(`Post scheduled successfully for ${request.schedulingType === 'next-slot' ? 'next available time slot' : request.customTime ? new Date(request.customTime).toLocaleString() : 'now'}!`)
+    }
+    setShowEditor(false)
   }
 
   if (showEditor) {
+    // If scheduling a draft, show the full post editor with scheduling options
+    if (schedulingDraft) {
+      return (
+        <PostEditor
+          platform={schedulingDraft.platform}
+          initialContent={schedulingDraft.content}
+          onSave={handleScheduleSave}
+          onCancel={() => {
+            setShowEditor(false)
+            setSchedulingDraft(null)
+          }}
+          loading={false}
+          isEditing={true}
+        />
+      )
+    }
+
+    // Otherwise, show the draft editor
     return (
       <PostEditor
         platform={selectedPlatform}

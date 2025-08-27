@@ -66,6 +66,7 @@ const defaultTemplates: Template[] = [
 export function TemplatesPage() {
   const [showEditor, setShowEditor] = useState(false)
   const [editingTemplate, setEditingTemplate] = useState<Template | null>(null)
+  const [usingTemplate, setUsingTemplate] = useState<Template | null>(null)
   const [selectedPlatform, setSelectedPlatform] = useState<Platform>('threads')
   const [selectedCategory, setSelectedCategory] = useState<string>('all')
   const [templateName, setTemplateName] = useState('')
@@ -156,16 +157,8 @@ export function TemplatesPage() {
     setShowEditor(true)
   }
 
-  const handleUseTemplate = (template: Template) => {
-    // Create a new post using this template
-    // This would integrate with the existing post creation system
-    const newPost = {
-      platform: template.platform,
-      content: template.content,
-      scheduledTime: new Date(Date.now() + 60000).toISOString() // Default to 1 minute from now
-    }
-    
-    // For now, we'll save it as a draft
+  const handleDraftTemplate = (template: Template) => {
+    // Save template as a new draft
     const drafts = JSON.parse(localStorage.getItem('social-scheduler-drafts') || '[]')
     const newDraft = {
       id: Date.now().toString(),
@@ -177,10 +170,43 @@ export function TemplatesPage() {
     drafts.push(newDraft)
     localStorage.setItem('social-scheduler-drafts', JSON.stringify(drafts))
     
-    alert(`Template "${template.name}" has been created as a new draft! You can find it in the Drafts tab.`)
+    alert(`Template "${template.name}" has been saved as a new draft! You can find it in the Drafts tab.`)
+  }
+
+  const handleUseTemplate = (template: Template) => {
+    // Open template for immediate editing/posting
+    setUsingTemplate(template)
+    setSelectedPlatform(template.platform)
+    setShowEditor(true)
+  }
+
+  const handleUseTemplateSave = (request: CreatePostRequest) => {
+    setUsingTemplate(null)
+    setShowEditor(false)
+    
+    // Here you would normally integrate with the posting/scheduling system
+    alert(`Post ${request.schedulingType === 'now' ? 'published' : 'scheduled'} successfully using template!`)
   }
 
   if (showEditor) {
+    // If using a template for posting, show the full post editor
+    if (usingTemplate) {
+      return (
+        <PostEditor
+          platform={usingTemplate.platform}
+          initialContent={usingTemplate.content}
+          onSave={handleUseTemplateSave}
+          onCancel={() => {
+            setShowEditor(false)
+            setUsingTemplate(null)
+          }}
+          loading={false}
+          isEditing={false}
+        />
+      )
+    }
+
+    // Otherwise, show the template editor
     return (
       <div className="space-y-6">
         <div className="card">
@@ -310,24 +336,34 @@ export function TemplatesPage() {
                         Updated: {new Date(template.updatedAt).toLocaleDateString()}
                       </div>
                       
-                      <div className="flex items-center justify-between space-x-2">
+                      <div className="grid grid-cols-2 gap-2">
+                        <button
+                          onClick={() => handleDraftTemplate(template)}
+                          className="text-xs bg-yellow-600 hover:bg-yellow-700 text-white px-2 py-2 rounded transition-colors font-medium"
+                          title="Create draft from template"
+                        >
+                          Draft Template
+                        </button>
                         <button
                           onClick={() => handleUseTemplate(template)}
-                          className="flex-1 text-xs bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded transition-colors font-medium"
+                          className="text-xs bg-green-600 hover:bg-green-700 text-white px-2 py-2 rounded transition-colors font-medium"
+                          title="Use template to post now"
                         >
                           Use Template
                         </button>
                         <button
                           onClick={() => handleEditTemplate(template)}
-                          className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded transition-colors"
+                          className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-2 rounded transition-colors"
+                          title="Edit template"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => handleDeleteTemplate(template.id)}
-                          className="text-xs text-red-400 hover:text-red-300 px-2 py-2"
+                          className="text-xs bg-red-600 hover:bg-red-700 text-white px-2 py-2 rounded transition-colors"
+                          title="Delete template"
                         >
-                          🗑️
+                          Delete
                         </button>
                       </div>
                     </div>

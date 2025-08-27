@@ -62,8 +62,7 @@ export function UnifiedCalendarPage() {
     
     return Array.from(groups.entries())
       .sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime())
-      .map((entry) => {
-        const [dateStr, postsArray] = entry
+      .map(([dateStr, postsArray]) => {
         return {
           date: new Date(dateStr),
           dateKey: dateStr,
