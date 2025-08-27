@@ -336,31 +336,31 @@ export function TemplatesPage() {
                         Updated: {new Date(template.updatedAt).toLocaleDateString()}
                       </div>
                       
-                      <div className="grid grid-cols-2 gap-2">
+                      <div className="flex items-center justify-between space-x-2">
                         <button
                           onClick={() => handleDraftTemplate(template)}
-                          className="text-xs bg-yellow-600 hover:bg-yellow-700 text-white px-2 py-2 rounded transition-colors font-medium"
+                          className="flex-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white px-2 py-2 rounded transition-colors font-medium"
                           title="Create draft from template"
                         >
-                          Draft Template
+                          Draft
                         </button>
                         <button
                           onClick={() => handleUseTemplate(template)}
-                          className="text-xs bg-green-600 hover:bg-green-700 text-white px-2 py-2 rounded transition-colors font-medium"
+                          className="flex-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white px-2 py-2 rounded transition-colors font-medium"
                           title="Use template to post now"
                         >
-                          Use Template
+                          Use
                         </button>
                         <button
                           onClick={() => handleEditTemplate(template)}
-                          className="text-xs bg-blue-600 hover:bg-blue-700 text-white px-2 py-2 rounded transition-colors"
+                          className="flex-1 text-xs bg-gray-700 hover:bg-gray-600 text-gray-300 hover:text-white px-2 py-2 rounded transition-colors"
                           title="Edit template"
                         >
                           Edit
                         </button>
                         <button
                           onClick={() => handleDeleteTemplate(template.id)}
-                          className="text-xs bg-red-600 hover:bg-red-700 text-white px-2 py-2 rounded transition-colors"
+                          className="flex-1 text-xs bg-gray-800 hover:bg-red-900 text-gray-400 hover:text-red-300 px-2 py-2 rounded transition-colors"
                           title="Delete template"
                         >
                           Delete
