@@ -22,12 +22,10 @@ import type { AuthUser } from '@/types/auth'
 vi.mock('@/services/supabase', () => ({
   createClient: () => ({
     auth: {
-      signUp: vi.fn(),
-      signInWithPassword: vi.fn(),
+      signInWithOAuth: vi.fn(),
       signOut: vi.fn(),
       getSession: vi.fn(),
       onAuthStateChange: vi.fn(),
-      resetPasswordForEmail: vi.fn(),
       updateUser: vi.fn(),
       refreshSession: vi.fn(),
     },
@@ -62,10 +60,8 @@ describe('Auth Store', () => {
   it('should have all required actions', () => {
     const state = useAuthStore.getState()
     
-    expect(typeof state.signUp).toBe('function')
-    expect(typeof state.signIn).toBe('function')
+    expect(typeof state.signInWithGoogle).toBe('function')
     expect(typeof state.signOut).toBe('function')
-    expect(typeof state.resetPassword).toBe('function')
     expect(typeof state.updatePassword).toBe('function')
     expect(typeof state.updateProfile).toBe('function')
     expect(typeof state.refreshSession).toBe('function')

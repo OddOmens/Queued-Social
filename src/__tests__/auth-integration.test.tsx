@@ -26,12 +26,10 @@ const mockSignOut = vi.fn()
 vi.mock('@/services/supabase', () => ({
   createClient: () => ({
     auth: {
-      signInWithPassword: mockSignIn,
-      signUp: mockSignUp,
+      signInWithOAuth: mockSignIn,
       signOut: mockSignOut,
       getSession: vi.fn().mockResolvedValue({ data: { session: null } }),
       onAuthStateChange: vi.fn(),
-      resetPasswordForEmail: vi.fn(),
       updateUser: vi.fn(),
       refreshSession: vi.fn(),
     },

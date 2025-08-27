@@ -88,8 +88,7 @@ export const mockSupabaseClient = () => {
   const mockClient = {
     auth: {
       getUser: vi.fn(),
-      signInWithPassword: vi.fn(),
-      signUp: vi.fn(),
+      signInWithOAuth: vi.fn(),
       signOut: vi.fn(),
       onAuthStateChange: vi.fn(),
     },

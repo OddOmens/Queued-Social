@@ -98,11 +98,7 @@ export const setupTestDatabase = () => {
         data: { user: TEST_CONFIG.TEST_USERS.DEFAULT },
         error: null,
       }),
-      signInWithPassword: vi.fn().mockResolvedValue({
-        data: { user: TEST_CONFIG.TEST_USERS.DEFAULT, session: {} },
-        error: null,
-      }),
-      signUp: vi.fn().mockResolvedValue({
+      signInWithOAuth: vi.fn().mockResolvedValue({
         data: { user: TEST_CONFIG.TEST_USERS.DEFAULT, session: {} },
         error: null,
       }),
