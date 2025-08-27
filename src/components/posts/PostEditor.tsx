@@ -7,6 +7,8 @@ import { validateContentForPlatform } from '@/utils/contentValidation'
 import { RichTextEditor } from './RichTextEditor'
 import { MediaUpload } from './MediaUpload'
 import { ThreadComposer } from './ThreadComposer'
+import { useAuth } from '@/hooks/useAuth'
+import { useTimeSlots } from '@/hooks/useTimeSlots'
 
 // Content type configurations - moved outside component to prevent re-initialization
 const CONTENT_TYPE_ICONS = {
@@ -62,6 +64,9 @@ export function PostEditor({
   isDraft = false,
   isTemplate = false
 }: PostEditorProps) {
+  const { user } = useAuth()
+  const { getNextAvailableSlot } = useTimeSlots(user?.id || '')
+  
   const [contentType, setContentType] = useState<PostContentType>(
     initialContent?.type || 'single'
   )
@@ -81,6 +86,37 @@ export function PostEditor({
   )
   const [errors, setErrors] = useState<string[]>([])
 
+  // Get the next available time slot
+  const nextSlot = getNextAvailableSlot()
+  
+  // Format the next slot time for display
+  const formatNextSlotTime = (date: Date | null) => {
+    if (!date) return 'No available slots'
+    
+    const now = new Date()
+    const isToday = date.toDateString() === now.toDateString()
+    const isTomorrow = date.toDateString() === new Date(now.getTime() + 24 * 60 * 60 * 1000).toDateString()
+    
+    const timeFormat = date.toLocaleTimeString(undefined, { 
+      hour: 'numeric', 
+      minute: '2-digit',
+      hour12: true
+    })
+    
+    if (isToday) {
+      return `Today at ${timeFormat}`
+    } else if (isTomorrow) {
+      return `Tomorrow at ${timeFormat}`
+    } else {
+      const dateFormat = date.toLocaleDateString(undefined, {
+        month: 'short',
+        day: 'numeric',
+        weekday: 'short'
+      })
+      return `${dateFormat} at ${timeFormat}`
+    }
+  }
+  
   const platformConfig = PLATFORM_CONFIGS[platform]
   const supportedTypes = platformConfig?.supportedContentTypes || ['single']
 
@@ -90,6 +126,13 @@ export function PostEditor({
       setContentType(supportedTypes[0])
     }
   }, [platform, contentType, supportedTypes])
+
+  // Handle scheduling type when no slots are available
+  useEffect(() => {
+    if (schedulingType === 'next-slot' && !nextSlot && !initialScheduledTime) {
+      setSchedulingType('custom')
+    }
+  }, [nextSlot, schedulingType, initialScheduledTime])
 
   const handleContentTypeChange = (type: PostContentType) => {
     setContentType(type)
@@ -413,7 +456,7 @@ export function PostEditor({
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 10V3L4 14h7v7l9-11h-7z" />
               </svg>
-            )}, {value: 'next-slot', label: 'Next Timeslot', description: 'Use your configured schedule', icon: (
+            )}, {value: 'next-slot', label: 'Next Timeslot', description: nextSlot ? formatNextSlotTime(nextSlot) : 'No available slots', icon: (
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
               </svg>
@@ -429,14 +472,16 @@ export function PostEditor({
                   key={option.value}
                   type="button"
                   onClick={() => setSchedulingType(option.value as 'now' | 'next-slot' | 'custom')}
-                  disabled={loading}
+                  disabled={loading || (option.value === 'next-slot' && !nextSlot)}
                   className={`
                     relative p-4 border-2 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 focus:ring-offset-gray-900
                     ${isSelected 
                       ? 'border-blue-400 bg-blue-900/30 text-blue-300' 
+                      : (option.value === 'next-slot' && !nextSlot)
+                      ? 'border-gray-600 bg-gray-700/50 text-gray-500 cursor-not-allowed opacity-60'
                       : 'border-gray-700 bg-gray-800/50 text-gray-400 hover:border-gray-600 hover:bg-gray-800/70 hover:text-gray-300'
                     }
-                    ${loading ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}
+                    ${loading ? 'opacity-50 cursor-not-allowed' : (option.value === 'next-slot' && !nextSlot) ? 'cursor-not-allowed' : 'cursor-pointer'}
                   `}
                 >
                   <div className="flex flex-col items-center space-y-2">
