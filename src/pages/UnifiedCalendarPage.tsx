@@ -46,29 +46,35 @@ export function UnifiedCalendarPage() {
 
   // Group posts by date for list view
   const groupedPosts = useMemo(() => {
-    if (!posts || posts.length === 0) return []
-    
-    const groups = new Map<string, ScheduledPost[]>()
-    
-    posts.forEach(post => {
-      const date = new Date(post.scheduledTime)
-      const dateKey = date.toDateString()
+    try {
+      if (!posts || posts.length === 0) return []
       
-      if (!groups.has(dateKey)) {
-        groups.set(dateKey, [])
-      }
-      groups.get(dateKey)!.push(post)
-    })
-    
-    return Array.from(groups.entries())
-      .sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime())
-      .map(([dateStr, postsArray]) => {
-        return {
-          date: new Date(dateStr),
-          dateKey: dateStr,
-          posts: postsArray.sort((a, b) => new Date(a.scheduledTime).getTime() - new Date(b.scheduledTime).getTime())
+      const groups = new Map<string, ScheduledPost[]>()
+      
+      posts.forEach(post => {
+        const date = new Date(post.scheduledTime)
+        const dateKey = date.toDateString()
+        
+        if (!groups.has(dateKey)) {
+          groups.set(dateKey, [])
         }
+        groups.get(dateKey)!.push(post)
       })
+      
+      const entries = Array.from(groups.entries())
+      return entries
+        .sort(([dateA], [dateB]) => new Date(dateA).getTime() - new Date(dateB).getTime())
+        .map(([dateStr, postsArray]) => {
+          return {
+            date: new Date(dateStr),
+            dateKey: dateStr,
+            posts: postsArray.sort((a, b) => new Date(a.scheduledTime).getTime() - new Date(b.scheduledTime).getTime())
+          }
+        })
+    } catch (error) {
+      console.error('Error in groupedPosts useMemo:', error)
+      return []
+    }
   }, [posts])
 
   const formatDateHeader = (date: Date) => {
