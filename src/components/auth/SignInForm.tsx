@@ -1,10 +1,8 @@
 'use client'
 
 import { useState } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { useAuthStore } from '@/stores/auth'
 import { formatAuthError } from '@/utils/auth'
-import type { SignInData } from '@/types/auth'
 
 interface SignInFormProps {
   redirectTo?: string
@@ -12,36 +10,9 @@ interface SignInFormProps {
 }
 
 export function SignInForm({ redirectTo = '/dashboard', onSuccess }: SignInFormProps) {
-  const [formData, setFormData] = useState<SignInData>({
-    email: '',
-    password: ''
-  })
   const [error, setError] = useState<string | null>(null)
   
-  const { signIn, signInWithGoogle, loading } = useAuthStore()
-  const navigate = useNavigate()
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError(null)
-
-    const { data, error: authError } = await signIn(formData)
-
-    if (authError) {
-      setError(formatAuthError(authError))
-      return
-    }
-
-    if (data) {
-      onSuccess?.()
-      navigate(redirectTo)
-    }
-  }
-
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target
-    setFormData(prev => ({ ...prev, [name]: value }))
-  }
+  const { signInWithGoogle, loading } = useAuthStore()
 
   const handleGoogleSignIn = async () => {
     setError(null)
@@ -55,7 +26,7 @@ export function SignInForm({ redirectTo = '/dashboard', onSuccess }: SignInFormP
 
   return (
     <div className="w-full max-w-md mx-auto">
-      <form onSubmit={handleSubmit} className="space-y-6">
+      <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold text-gray-900 mb-6">Sign In</h2>
         </div>
@@ -66,60 +37,11 @@ export function SignInForm({ redirectTo = '/dashboard', onSuccess }: SignInFormP
           </div>
         )}
 
-        <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-            Email
-          </label>
-          <input
-            id="email"
-            name="email"
-            type="email"
-            required
-            value={formData.email}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Enter your email"
-          />
-        </div>
-
-        <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
-            Password
-          </label>
-          <input
-            id="password"
-            name="password"
-            type="password"
-            required
-            value={formData.password}
-            onChange={handleChange}
-            className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-            placeholder="Enter your password"
-          />
-        </div>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-        >
-          {loading ? 'Signing in...' : 'Sign In'}
-        </button>
-
-        <div className="relative">
-          <div className="absolute inset-0 flex items-center">
-            <div className="w-full border-t border-gray-300" />
-          </div>
-          <div className="relative flex justify-center text-sm">
-            <span className="px-2 bg-white text-gray-500">Or continue with</span>
-          </div>
-        </div>
-
         <button
           type="button"
           onClick={handleGoogleSignIn}
           disabled={loading}
-          className="w-full flex justify-center items-center py-2 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="w-full flex justify-center items-center py-3 px-4 border border-gray-300 rounded-md shadow-sm text-sm font-medium text-gray-700 bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <svg className="w-5 h-5 mr-2" viewBox="0 0 24 24">
             <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
@@ -129,25 +51,7 @@ export function SignInForm({ redirectTo = '/dashboard', onSuccess }: SignInFormP
           </svg>
           {loading ? 'Signing in...' : 'Continue with Google'}
         </button>
-
-        <div className="text-center">
-          <a
-            href="/auth/forgot-password"
-            className="text-sm text-blue-600 hover:text-blue-500"
-          >
-            Forgot your password?
-          </a>
-        </div>
-
-        <div className="text-center">
-          <span className="text-sm text-gray-600">
-            Don&apos;t have an account?{' '}
-            <a href="/auth/signup" className="text-blue-600 hover:text-blue-500">
-              Sign up
-            </a>
-          </span>
-        </div>
-      </form>
+      </div>
     </div>
   )
 }

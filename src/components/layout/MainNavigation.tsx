@@ -66,7 +66,7 @@ export default function MainNavigation() {
 
   return (
     <header className="sticky top-0 z-50 glass border-b border-gray-800/80 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto py-6 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo and Brand */}
           <div className="flex items-center">
@@ -94,7 +94,7 @@ export default function MainNavigation() {
                 <Link
                   key={item.name}
                   to={item.href}
-                  className={`relative flex items-center space-x-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300 group ${
+                  className={`relative flex items-center space-x-2 px-3 py-2 rounded-lg text-xs font-semibold transition-all duration-300 group ${
                     isActive
                       ? 'text-white bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg shadow-blue-500/25'
                       : 'text-gray-300 hover:text-white hover:bg-gray-800/60'
@@ -105,7 +105,7 @@ export default function MainNavigation() {
                   </span>
                   <span>{item.name}</span>
                   {isActive && (
-                    <div className="absolute inset-0 rounded-xl bg-gradient-to-r from-white/10 to-white/5"></div>
+                    <div className="absolute inset-0.5 rounded-lg bg-gradient-to-r from-white/10 to-white/5"></div>
                   )}
                 </Link>
               )
@@ -128,7 +128,7 @@ export default function MainNavigation() {
               <Link
                 key={item.name}
                 to={item.href}
-                className={`flex items-center space-x-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all duration-300 ${
+                className={`flex items-center space-x-3 px-3 py-2.5 rounded-lg text-xs font-semibold transition-all duration-300 ${
                   isActive
                     ? 'text-white bg-gradient-to-r from-blue-600 to-blue-700 shadow-lg shadow-blue-500/25'
                     : 'text-gray-300 hover:text-white hover:bg-gray-800/60'

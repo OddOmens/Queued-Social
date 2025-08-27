@@ -4,9 +4,6 @@ import { createClient } from '@/services/supabase'
 import type { 
   AuthStore, 
   AuthUser, 
-  SignUpData, 
-  SignInData, 
-  ResetPasswordData,
   UpdatePasswordData,
   UpdateProfileData,
   AuthResponse,
@@ -45,68 +42,6 @@ export const useAuthStore = create<AuthStore>()(
         initialized: false,
 
         // Actions
-        signUp: async (data: SignUpData): Promise<AuthResponse<AuthUser>> => {
-          set({ loading: true })
-          
-          const supabase = getSupabaseClient()
-          if (!supabase) {
-            set({ loading: false })
-            return createAuthResponse<AuthUser>(null, { message: 'Supabase client not configured' })
-          }
-          
-          try {
-            const { data: authData, error } = await supabase.auth.signUp({
-              email: data.email,
-              password: data.password,
-              options: {
-                data: {
-                  full_name: data.fullName
-                }
-              }
-            })
-
-            if (error) {
-              set({ loading: false })
-              return createAuthResponse<AuthUser>(null, error)
-            }
-
-            const user = authData.user as AuthUser
-            set({ user, loading: false })
-            return createAuthResponse(user)
-          } catch (error) {
-            set({ loading: false })
-            return createAuthResponse<AuthUser>(null, error)
-          }
-        },
-
-        signIn: async (data: SignInData): Promise<AuthResponse<AuthUser>> => {
-          set({ loading: true })
-          
-          const supabase = getSupabaseClient()
-          if (!supabase) {
-            set({ loading: false })
-            return createAuthResponse<AuthUser>(null, { message: 'Supabase client not configured' })
-          }
-          
-          try {
-            const { data: authData, error } = await supabase.auth.signInWithPassword({
-              email: data.email,
-              password: data.password
-            })
-
-            if (error) {
-              set({ loading: false })
-              return createAuthResponse<AuthUser>(null, error)
-            }
-
-            const user = authData.user as AuthUser
-            set({ user, loading: false })
-            return createAuthResponse(user)
-          } catch (error) {
-            set({ loading: false })
-            return createAuthResponse<AuthUser>(null, error)
-          }
-        },
 
         signInWithGoogle: async (): Promise<AuthResponse<null>> => {
           set({ loading: true })
@@ -163,32 +98,6 @@ export const useAuthStore = create<AuthStore>()(
           }
         },
 
-        resetPassword: async (data: ResetPasswordData): Promise<AuthResponse<null>> => {
-          set({ loading: true })
-          
-          const supabase = getSupabaseClient()
-          if (!supabase) {
-            set({ loading: false })
-            return createAuthResponse(null, { message: 'Supabase client not configured' })
-          }
-          
-          try {
-            const { error } = await supabase.auth.resetPasswordForEmail(data.email, {
-              redirectTo: `${window.location.origin}/reset-password`
-            })
-
-            set({ loading: false })
-            
-            if (error) {
-              return createAuthResponse(null, error)
-            }
-
-            return createAuthResponse(null)
-          } catch (error) {
-            set({ loading: false })
-            return createAuthResponse(null, error)
-          }
-        },
 
         updatePassword: async (data: UpdatePasswordData): Promise<AuthResponse<AuthUser>> => {
           set({ loading: true })
