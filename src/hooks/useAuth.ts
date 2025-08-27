@@ -17,11 +17,8 @@ export function useAuth() {
     isAuthenticated: !!store.user,
     
     // Actions
-    signUp: store.signUp,
-    signIn: store.signIn,
     signInWithGoogle: store.signInWithGoogle,
     signOut: store.signOut,
-    resetPassword: store.resetPassword,
     updatePassword: store.updatePassword,
     updateProfile: store.updateProfile,
     refreshSession: store.refreshSession,
