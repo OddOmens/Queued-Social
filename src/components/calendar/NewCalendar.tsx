@@ -232,7 +232,7 @@ const MonthView: React.FC<MonthViewProps> = ({
                         e.stopPropagation()
                         onEventRightClick?.(event, e)
                       }}
-                      className={`px-2 py-1 text-xs rounded border truncate cursor-pointer hover:shadow-sm transition-shadow ${colorClass}`}
+                      className={`px-2 py-1 text-xs rounded border cursor-pointer hover:shadow-sm transition-shadow ${colorClass} w-full overflow-hidden text-ellipsis whitespace-nowrap`}
                       title={`${event.title} - ${event.status} (Right-click for options)`}
                     >
                       {event.title}
@@ -285,7 +285,7 @@ const WeekView: React.FC<WeekViewProps> = ({
         quarters.push({
           hour,
           minute,
-          label: minute === 0 ? format(new Date().setHours(hour, 0), 'ha').toLowerCase() : '',
+          label: format(new Date().setHours(hour, minute), 'h:mm a'),
           fullTime: format(new Date().setHours(hour, minute), 'h:mm a').toLowerCase(),
           slots: timeSlots.filter(slot => slot.hour === hour && slot.minute === minute)
         })
@@ -306,7 +306,7 @@ const WeekView: React.FC<WeekViewProps> = ({
     <div className="flex flex-col h-[800px]">
       {/* Week header */}
       <div className="flex border-b border-gray-600">
-        <div className="w-16 py-4"></div>
+        <div className="w-20 py-4"></div>
         {weekDays.map(day => (
           <div 
             key={day.toString()}
@@ -335,9 +335,8 @@ const WeekView: React.FC<WeekViewProps> = ({
           const { hour, minute, label, fullTime, slots } = timeSlotData
           return (
             <div key={`${hour}-${minute}`} className="flex border-b border-gray-600 min-h-[40px]">
-            <div className="w-16 py-1 px-3 text-xs text-gray-400 text-right">
+            <div className="w-20 py-1 px-2 text-xs text-gray-400 text-right">
               {label}
-              {minute > 0 && <div className="text-xs text-gray-500">{minute}</div>}
             </div>
             {weekDays.map(day => {
               const dayEvents = getEventsForDateTime(day, hour, minute)
@@ -349,7 +348,7 @@ const WeekView: React.FC<WeekViewProps> = ({
               return (
                 <div 
                   key={`${day.toString()}-${hour}-${minute}`}
-                  className="flex-1 border-r border-gray-600 p-1 relative hover:bg-gray-700 transition-colors"
+                  className="flex-1 border-r border-gray-600 p-1 relative hover:bg-gray-700 transition-colors min-w-0"
                 >
                   {/* Events */}
                   {dayEvents.map(event => {
@@ -374,7 +373,7 @@ const WeekView: React.FC<WeekViewProps> = ({
                           e.stopPropagation()
                           onEventRightClick?.(event, e)
                         }}
-                        className={`mb-1 px-2 py-1 text-xs rounded border truncate cursor-pointer hover:shadow-sm transition-shadow ${colorClass}`}
+                        className={`mb-1 px-2 py-1 text-xs rounded border cursor-pointer hover:shadow-sm transition-shadow ${colorClass} w-full overflow-hidden text-ellipsis whitespace-nowrap`}
                         title={`${event.title} - ${event.status} (Right-click for options)`}
                       >
                         {event.title}
