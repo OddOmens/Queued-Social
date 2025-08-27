@@ -319,7 +319,8 @@ const WeekView: React.FC<WeekViewProps> = ({
             </div>
             {weekDays.map(day => {
               const dayEvents = getEventsForDateTime(day, hour)
-              const availableSlots = slots
+              const dayOfWeek = day.getDay() // 0 = Sunday, 1 = Monday, etc.
+              const availableSlots = slots.filter(slot => slot.dayOfWeek === dayOfWeek)
               
               return (
                 <div 

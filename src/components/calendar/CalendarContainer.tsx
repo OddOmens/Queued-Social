@@ -46,6 +46,7 @@ const CalendarContainer: React.FC<CalendarContainerProps> = ({
     return timeSlots.map(slot => ({
       id: slot.id,
       time: slot.time,
+      dayOfWeek: slot.dayOfWeek,
       hour: parseInt(slot.time.split(':')[0]),
       minute: parseInt(slot.time.split(':')[1]) || 0
     }))
