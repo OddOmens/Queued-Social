@@ -127,7 +127,7 @@ export function UnifiedCalendarPage() {
     }
   }
 
-  const handlePostSelect = (post: ScheduledPost, event?: MouseEvent) => {
+  const handlePostSelect = (post: ScheduledPost, event?: MouseEvent | React.MouseEvent) => {
     if (event) {
       setTooltipPosition({ x: event.clientX, y: event.clientY })
       setSelectedPost(post)
@@ -337,7 +337,8 @@ export function UnifiedCalendarPage() {
           <CalendarContainer
             posts={posts || []}
             timeSlots={timeSlots}
-            onPostSelect={handlePostSelect}
+            onPostSelect={handleEditPost}
+            onPostRightClick={handlePostSelect}
             onDateSelect={handleDateSelect}
             loading={isLoading || timeSlotsLoading}
             initialView={calendarView}

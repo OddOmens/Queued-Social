@@ -8,6 +8,7 @@ interface CalendarContainerProps {
   posts: ScheduledPost[]
   timeSlots?: TimeSlotConfig[]
   onPostSelect: (post: ScheduledPost) => void
+  onPostRightClick?: (post: ScheduledPost, mouseEvent: React.MouseEvent) => void
   onDateSelect: (date: Date) => void
   loading?: boolean
   className?: string
@@ -18,6 +19,7 @@ const CalendarContainer: React.FC<CalendarContainerProps> = ({
   posts,
   timeSlots = [],
   onPostSelect,
+  onPostRightClick,
   onDateSelect,
   loading = false,
   className = '',
@@ -94,12 +96,20 @@ const CalendarContainer: React.FC<CalendarContainerProps> = ({
   }, [onDateSelect])
 
   const handleEventClick = useCallback((event: any) => {
-    // Find the original post from the event ID
+    // Find the original post from the event ID and directly edit it
     const post = posts.find(p => p.id === event.id)
     if (post) {
       onPostSelect(post)
     }
   }, [posts, onPostSelect])
+
+  const handleEventRightClick = useCallback((event: any, mouseEvent: React.MouseEvent) => {
+    // Find the original post from the event ID and show context menu
+    const post = posts.find(p => p.id === event.id)
+    if (post && onPostRightClick) {
+      onPostRightClick(post, mouseEvent)
+    }
+  }, [posts, onPostRightClick])
 
   if (loading) {
     return (
@@ -122,6 +132,7 @@ const CalendarContainer: React.FC<CalendarContainerProps> = ({
         onTimeSlotClick={handleTimeSlotClick}
         onDateClick={handleDateClick}
         onEventClick={handleEventClick}
+        onEventRightClick={handleEventRightClick}
       />
     </div>
   )

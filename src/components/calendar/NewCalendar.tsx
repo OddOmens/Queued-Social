@@ -29,6 +29,7 @@ interface NewCalendarProps {
   onTimeSlotClick?: (date: Date, timeSlot: TimeSlot) => void
   onDateClick?: (date: Date) => void
   onEventClick?: (event: CalendarEvent) => void
+  onEventRightClick?: (event: CalendarEvent, mouseEvent: React.MouseEvent) => void
   className?: string
 }
 
@@ -40,6 +41,7 @@ const NewCalendar: React.FC<NewCalendarProps> = ({
   onTimeSlotClick,
   onDateClick,
   onEventClick,
+  onEventRightClick,
   className = ''
 }) => {
   const [currentDate, setCurrentDate] = useState(new Date())
@@ -126,6 +128,7 @@ const NewCalendar: React.FC<NewCalendarProps> = ({
           getEventsForDate={getEventsForDate}
           onDateClick={onDateClick}
           onEventClick={onEventClick}
+          onEventRightClick={onEventRightClick}
         />
       ) : (
         <WeekView 
@@ -135,6 +138,7 @@ const NewCalendar: React.FC<NewCalendarProps> = ({
           onTimeSlotClick={onTimeSlotClick}
           onDateClick={onDateClick}
           onEventClick={onEventClick}
+          onEventRightClick={onEventRightClick}
         />
       )}
     </div>
@@ -147,6 +151,7 @@ interface MonthViewProps {
   getEventsForDate: (date: Date) => CalendarEvent[]
   onDateClick?: (date: Date) => void
   onEventClick?: (event: CalendarEvent) => void
+  onEventRightClick?: (event: CalendarEvent, mouseEvent: React.MouseEvent) => void
 }
 
 const MonthView: React.FC<MonthViewProps> = ({ 
@@ -154,7 +159,8 @@ const MonthView: React.FC<MonthViewProps> = ({
   events, 
   getEventsForDate, 
   onDateClick,
-  onEventClick 
+  onEventClick,
+  onEventRightClick 
 }) => {
   const monthStart = startOfMonth(currentDate)
   const monthEnd = endOfMonth(currentDate)
@@ -221,8 +227,13 @@ const MonthView: React.FC<MonthViewProps> = ({
                         e.stopPropagation()
                         onEventClick?.(event)
                       }}
+                      onContextMenu={(e) => {
+                        e.preventDefault()
+                        e.stopPropagation()
+                        onEventRightClick?.(event, e)
+                      }}
                       className={`px-2 py-1 text-xs rounded border truncate cursor-pointer hover:shadow-sm transition-shadow ${colorClass}`}
-                      title={`${event.title} - ${event.status}`}
+                      title={`${event.title} - ${event.status} (Right-click for options)`}
                     >
                       {event.title}
                     </div>
@@ -249,6 +260,7 @@ interface WeekViewProps {
   onTimeSlotClick?: (date: Date, timeSlot: TimeSlot) => void
   onDateClick?: (date: Date) => void
   onEventClick?: (event: CalendarEvent) => void
+  onEventRightClick?: (event: CalendarEvent, mouseEvent: React.MouseEvent) => void
 }
 
 const WeekView: React.FC<WeekViewProps> = ({ 
@@ -257,7 +269,8 @@ const WeekView: React.FC<WeekViewProps> = ({
   timeSlots,
   onTimeSlotClick,
   onDateClick,
-  onEventClick 
+  onEventClick,
+  onEventRightClick 
 }) => {
   const weekStart = startOfWeek(currentDate)
   const weekDays = eachDayOfInterval({
@@ -293,7 +306,7 @@ const WeekView: React.FC<WeekViewProps> = ({
             key={day.toString()}
             onClick={() => onDateClick?.(day)}
             className={`
-              flex-1 py-4 text-center cursor-pointer hover:bg-gray-700 transition-colors
+              w-32 py-4 text-center cursor-pointer hover:bg-gray-700 transition-colors
               ${isToday(day) ? 'bg-blue-900 text-blue-300 font-semibold' : 'text-white'}
             `}
           >
@@ -329,7 +342,7 @@ const WeekView: React.FC<WeekViewProps> = ({
               return (
                 <div 
                   key={`${day.toString()}-${hour}`}
-                  className="flex-1 border-r border-gray-600 p-2 relative hover:bg-gray-700 transition-colors"
+                  className="w-32 border-r border-gray-600 p-2 relative hover:bg-gray-700 transition-colors"
                 >
                   {/* Events */}
                   {dayEvents.map(event => {
@@ -349,8 +362,13 @@ const WeekView: React.FC<WeekViewProps> = ({
                           e.stopPropagation()
                           onEventClick?.(event)
                         }}
+                        onContextMenu={(e) => {
+                          e.preventDefault()
+                          e.stopPropagation()
+                          onEventRightClick?.(event, e)
+                        }}
                         className={`mb-1 px-2 py-1 text-xs rounded border truncate cursor-pointer hover:shadow-sm transition-shadow ${colorClass}`}
-                        title={`${event.title} - ${event.status}`}
+                        title={`${event.title} - ${event.status} (Right-click for options)`}
                       >
                         {event.title}
                       </div>
