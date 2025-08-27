@@ -18,8 +18,8 @@ export default defineConfig(({ mode }) => ({
     port: 3000,
     host: true,
     allowedHosts: [
-      'schedule.oddomens.com',
-      'www.schedule.oddomens.com',
+      'queued.social',
+      'www.queued.social',
       'localhost',
       '127.0.0.1'
     ]
