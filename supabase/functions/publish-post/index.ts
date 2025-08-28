@@ -133,7 +133,7 @@ async function publishToThreads(content: any, credentials: any) {
   const { accessToken, userId } = credentials
 
   // Check publishing quota first
-  await checkThreadsPublishingQuota(accessToken)
+  await checkThreadsPublishingQuota(accessToken, userId)
   
   // Validate user ID by calling /me endpoint
   const meResponse = await fetch(`https://graph.threads.net/v1.0/me?fields=id,username&access_token=${accessToken}`)
@@ -351,9 +351,9 @@ async function cleanupPostMedia(mediaUrls: string[], userId: string, supabaseCli
   }
 }
 
-async function checkThreadsPublishingQuota(accessToken: string): Promise<void> {
+async function checkThreadsPublishingQuota(accessToken: string, userId: string): Promise<void> {
   try {
-    const response = await fetch(`https://graph.threads.net/v1.0/me/threads_publishing_limit?access_token=${accessToken}`)
+    const response = await fetch(`https://graph.threads.net/v1.0/${userId}/threads_publishing_limit?access_token=${accessToken}`)
     
     if (response.ok) {
       const quotaData = await response.json()
