@@ -122,19 +122,29 @@ export async function uploadMediaToStorage(
   const filename = `${uuidv4()}${fileExtension}`
   const filePath = `${userId}/${filename}`
 
-  // Extract metadata before upload
-  const metadata = await extractFileMetadata(file)
+  // Prepare parallel operations
+  const operations = [
+    extractFileMetadata(file),
+    supabase.storage
+      .from(STORAGE_BUCKETS.MEDIA_FILES)
+      .upload(filePath, file, {
+        cacheControl: '3600',
+        upsert: false
+      })
+  ]
 
-  // Upload main file
-  const { data: uploadData, error: uploadError } = await supabase.storage
-    .from(STORAGE_BUCKETS.MEDIA_FILES)
-    .upload(filePath, file, {
-      cacheControl: '3600',
-      upsert: false
-    })
+  // Add thumbnail generation for images to parallel operations
+  if (file.type.startsWith('image/')) {
+    operations.push(generateAndUploadThumbnail(file, userId, filename))
+  }
 
-  if (uploadError) {
-    throw new Error(`Failed to upload file: ${uploadError.message}`)
+  // Execute all operations in parallel
+  const results = await Promise.all(operations)
+  const metadata = results[0] as MediaMetadata
+  const uploadData = results[1] as any
+
+  if (uploadData.error) {
+    throw new Error(`Failed to upload file: ${uploadData.error.message}`)
   }
 
   // Get public URL
@@ -150,16 +160,11 @@ export async function uploadMediaToStorage(
     metadata
   }
 
-  // Generate thumbnail for images
-  if (file.type.startsWith('image/')) {
-    try {
-      const thumbnailResult = await generateAndUploadThumbnail(file, userId, filename)
-      result.thumbnailPath = thumbnailResult.path
-      result.thumbnailUrl = thumbnailResult.publicUrl
-    } catch (error) {
-      console.warn('Failed to generate thumbnail:', error)
-      // Continue without thumbnail - not critical
-    }
+  // Add thumbnail info if it was generated
+  if (file.type.startsWith('image/') && results[2]) {
+    const thumbnailResult = results[2] as { path: string; publicUrl: string }
+    result.thumbnailPath = thumbnailResult.path
+    result.thumbnailUrl = thumbnailResult.publicUrl
   }
 
   return result
@@ -172,8 +177,8 @@ async function generateAndUploadThumbnail(
 ): Promise<{ path: string; publicUrl: string }> {
   const supabase = createClient()
   
-  // Generate thumbnail blob
-  const thumbnailBlob = await createImageThumbnail(file, THUMBNAIL_SIZE)
+  // Generate thumbnail blob with optimized settings
+  const thumbnailBlob = await createImageThumbnail(file, THUMBNAIL_SIZE, 0.7) // Lower quality for faster processing
   
   // Upload thumbnail
   const thumbnailFilename = `thumb_${originalFilename}`
@@ -272,7 +277,8 @@ function getVideoDimensions(file: File): Promise<{ width: number; height: number
 
 function createImageThumbnail(
   file: File,
-  size: { width: number; height: number }
+  size: { width: number; height: number },
+  quality: number = 0.8
 ): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const img = new Image()
@@ -284,7 +290,11 @@ function createImageThumbnail(
       return
     }
     
+    const url = URL.createObjectURL(file)
+    
     img.onload = () => {
+      URL.revokeObjectURL(url) // Clean up immediately
+      
       // Calculate dimensions maintaining aspect ratio
       const aspectRatio = img.width / img.height
       let { width, height } = size
@@ -298,24 +308,29 @@ function createImageThumbnail(
       canvas.width = width
       canvas.height = height
       
+      // Use better image smoothing for quality
+      ctx.imageSmoothingEnabled = true
+      ctx.imageSmoothingQuality = 'high'
+      
       // Draw resized image
       ctx.drawImage(img, 0, 0, width, height)
       
-      // Convert to blob
+      // Convert to blob with specified quality
       canvas.toBlob((blob) => {
         if (blob) {
           resolve(blob)
         } else {
           reject(new Error('Failed to generate thumbnail'))
         }
-      }, 'image/jpeg', 0.8)
+      }, 'image/jpeg', quality)
     }
     
     img.onerror = () => {
+      URL.revokeObjectURL(url)
       reject(new Error('Failed to load image for thumbnail'))
     }
     
-    img.src = URL.createObjectURL(file)
+    img.src = url
   })
 }
 
@@ -461,6 +476,104 @@ export function formatFileSize(bytes: number): string {
   const i = Math.floor(Math.log(bytes) / Math.log(k))
   
   return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i]
+}
+
+// ============================================================================
+// MANUAL CLEANUP OPERATIONS
+// ============================================================================
+
+export async function triggerMediaCleanup(): Promise<{ success: boolean; message: string }> {
+  try {
+    const { supabase } = await import('./supabase')
+    const { data: { session } } = await supabase.auth.getSession()
+    
+    if (!session?.access_token) {
+      throw new Error('User not authenticated')
+    }
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+    const response = await fetch(`${supabaseUrl}/functions/v1/cleanup-media`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`
+      },
+      body: JSON.stringify({})
+    })
+
+    const result = await response.json()
+    
+    if (!response.ok) {
+      throw new Error(result.error || 'Cleanup failed')
+    }
+
+    return {
+      success: true,
+      message: result.message || 'Media cleanup completed successfully'
+    }
+  } catch (error) {
+    console.error('Failed to trigger media cleanup:', error)
+    return {
+      success: false,
+      message: error instanceof Error ? error.message : 'Unknown error occurred'
+    }
+  }
+}
+
+// ============================================================================
+// BATCH CLEANUP OPERATIONS
+// ============================================================================
+
+export async function cleanupMediaFiles(mediaUrls: string[], userId: string): Promise<void> {
+  const supabase = createClient()
+  
+  console.log('🧹 Starting batch media cleanup for:', mediaUrls.length, 'files')
+  
+  // Process all files in parallel for better performance
+  const cleanupPromises = mediaUrls.map(async (mediaUrl) => {
+    try {
+      // Extract filename from Supabase URL
+      const urlParts = mediaUrl.split('/')
+      const filename = urlParts[urlParts.length - 1]
+      const filePath = `${userId}/${filename}`
+      
+      // Parallel cleanup operations
+      const operations = [
+        // Delete from storage
+        supabase.storage
+          .from(STORAGE_BUCKETS.MEDIA_FILES)
+          .remove([filePath]),
+        
+        // Delete thumbnail
+        supabase.storage
+          .from(STORAGE_BUCKETS.THUMBNAILS)
+          .remove([`${userId}/thumb_${filename}`]),
+        
+        // Delete database record
+        supabase
+          .from('media_files')
+          .delete()
+          .eq('file_path', filePath)
+          .eq('user_id', userId)
+      ]
+      
+      const results = await Promise.allSettled(operations)
+      
+      // Log any failures but don't throw
+      results.forEach((result, index) => {
+        if (result.status === 'rejected') {
+          const operation = ['storage', 'thumbnail', 'database'][index]
+          console.warn(`Failed to cleanup ${operation} for ${filename}:`, result.reason)
+        }
+      })
+      
+    } catch (error) {
+      console.warn('Failed to cleanup media file:', mediaUrl, error)
+    }
+  })
+  
+  await Promise.allSettled(cleanupPromises)
+  console.log('✅ Batch media cleanup completed')
 }
 
 // ============================================================================

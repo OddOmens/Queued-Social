@@ -451,6 +451,28 @@ export class DatabaseService {
   }
 
   async deleteScheduledPost(id: string): Promise<void> {
+    // First, get the post to check for media files
+    const { data: post, error: fetchError } = await this.client
+      .from('scheduled_posts')
+      .select('content, user_id')
+      .eq('id', id)
+      .single()
+
+    if (fetchError) {
+      throw new Error(`Failed to fetch post for deletion: ${fetchError.message}`)
+    }
+
+    // Clean up media files if they exist
+    if (post?.content?.mediaUrls && post.content.mediaUrls.length > 0) {
+      try {
+        await this.cleanupPostMediaFiles(post.content.mediaUrls, post.user_id)
+      } catch (cleanupError) {
+        console.warn('Failed to cleanup media files during post deletion:', cleanupError)
+        // Continue with post deletion even if media cleanup fails
+      }
+    }
+
+    // Delete the post
     const { error } = await this.client
       .from('scheduled_posts')
       .delete()
@@ -459,6 +481,11 @@ export class DatabaseService {
     if (error) {
       throw new Error(`Failed to delete scheduled post: ${error.message}`)
     }
+  }
+
+  private async cleanupPostMediaFiles(mediaUrls: string[], userId: string): Promise<void> {
+    const { cleanupMediaFiles } = await import('@/services/mediaStorage')
+    await cleanupMediaFiles(mediaUrls, userId)
   }
 
   // Platform Credentials operations

@@ -94,7 +94,7 @@ serve(async (req) => {
     if (content.mediaUrls && content.mediaUrls.length > 0) {
       try {
         await cleanupPostMedia(content.mediaUrls, user.id, supabaseClient)
-        console.log('✅ Media cleanup completed')
+        console.log('✅ Media cleanup completed after successful publish')
       } catch (cleanupError) {
         console.warn('⚠️ Media cleanup failed:', cleanupError)
         // Don't fail the request if cleanup fails

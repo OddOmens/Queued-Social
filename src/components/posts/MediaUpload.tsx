@@ -62,15 +62,14 @@ export function MediaUpload({
 
   const { user } = useAuth()
 
-  // Upload files to Supabase storage
+  // Upload files to Supabase storage (optimized for parallel processing)
   const uploadFiles = useCallback(async (filesToUpload: File[]): Promise<{ success: boolean; uploads: any[] }> => {
     if (!user) {
       throw new Error('User must be authenticated to upload files')
     }
 
-    const uploads: UploadedMediaFile[] = []
-    
-    for (const file of filesToUpload) {
+    // Upload all files in parallel for better performance
+    const uploadPromises = filesToUpload.map(async (file) => {
       try {
         // Upload to Supabase storage
         const uploadResult = await uploadMediaToStorage(file, user.id)
@@ -91,7 +90,7 @@ export function MediaUpload({
           metadata: uploadResult.metadata || {}
         })
         
-        uploads.push({
+        return {
           id: mediaRecord.id,
           filename: uploadResult.filename,
           originalFilename: file.name,
@@ -102,13 +101,15 @@ export function MediaUpload({
           width: uploadResult.metadata?.width,
           height: uploadResult.metadata?.height,
           duration: uploadResult.metadata?.duration
-        })
+        }
         
       } catch (error) {
         console.error('Failed to upload file:', file.name, error)
         throw error
       }
-    }
+    })
+
+    const uploads = await Promise.all(uploadPromises)
 
     return {
       success: true,
@@ -116,77 +117,87 @@ export function MediaUpload({
     }
   }, [user])
 
-  // Process files and create previews
+  // Process files and create previews (optimized for speed)
   const processFiles = useCallback(async (newFiles: File[]) => {
     setUploading(true)
-    const processedPreviews: MediaPreview[] = []
-
-    for (const file of newFiles) {
+    
+    // Process all files in parallel for better performance
+    const fileProcessingPromises = newFiles.map(async (file) => {
       const validation = validateMediaForPlatform(file, platform)
       
       if (!validation.isValid) {
-        processedPreviews.push({
+        return {
           file,
           url: '',
           error: validation.errors[0]
-        })
-        continue
+        }
       }
 
       try {
-        const processed = await processMediaFile(file, platform, {
-          generateThumbnail: true,
-          thumbnailSize: { width: 150, height: 150 }
-        })
-
-        const preview: MediaPreview = {
-          file,
-          url: processed.processedUrl || '',
-          thumbnailUrl: processed.thumbnailUrl,
-          uploading: autoUpload
-        }
-
-        processedPreviews.push(preview)
-
-        // Auto-upload if enabled
+        // For auto-upload, skip local processing and go straight to upload
         if (autoUpload) {
-          console.log('🚀 Starting auto-upload for file:', file.name)
+          const preview: MediaPreview = {
+            file,
+            url: URL.createObjectURL(file), // Quick preview
+            uploading: true
+          }
+
+          // Start upload immediately
           try {
+            console.log('🚀 Starting auto-upload for file:', file.name)
             const uploadResult = await uploadFiles([file])
             console.log('📤 Upload result:', uploadResult)
+            
             if (uploadResult.success && uploadResult.uploads.length > 0) {
               const uploadedFile = uploadResult.uploads[0]
               console.log('✅ Upload successful:', uploadedFile)
+              
               preview.uploading = false
               preview.uploaded = true
               preview.uploadedFile = uploadedFile
               preview.url = uploadedFile.url
-              preview.thumbnailUrl = uploadedFile.thumbnailUrl || preview.thumbnailUrl
+              preview.thumbnailUrl = uploadedFile.thumbnailUrl
               
               // Notify parent component
               if (onUpload) {
                 console.log('📞 Calling onUpload callback with:', [uploadedFile])
                 onUpload([uploadedFile])
-              } else {
-                console.warn('⚠️ No onUpload callback provided')
               }
-            } else {
-              console.error('❌ Upload failed - no uploads returned')
             }
+            
+            return preview
           } catch (error) {
             console.error('❌ Upload error:', error)
-            preview.uploading = false
-            preview.error = 'Upload failed'
+            return {
+              file,
+              url: '',
+              error: 'Upload failed'
+            }
+          }
+        } else {
+          // For manual upload, do minimal local processing
+          const processed = await processMediaFile(file, platform, {
+            generateThumbnail: true,
+            thumbnailSize: { width: 150, height: 150 }
+          })
+
+          return {
+            file,
+            url: processed.processedUrl || '',
+            thumbnailUrl: processed.thumbnailUrl,
+            uploading: false
           }
         }
       } catch (error) {
-        processedPreviews.push({
+        return {
           file,
           url: '',
           error: 'Failed to process file'
-        })
+        }
       }
-    }
+    })
+
+    const processedPreviews = await Promise.all(fileProcessingPromises)
 
     setPreviews(prev => {
       // Clean up old URLs
@@ -345,7 +356,9 @@ export function MediaUpload({
         {uploading ? (
           <div className="flex flex-col items-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
-            <p className="text-sm text-gray-600">Processing files...</p>
+            <p className="text-sm text-gray-600">
+              {autoUpload ? 'Uploading files...' : 'Processing files...'}
+            </p>
           </div>
         ) : (
           <div className="flex flex-col items-center">
