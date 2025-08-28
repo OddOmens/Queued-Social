@@ -1,11 +1,11 @@
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useRef } from 'react'
 import { usePosts, useCreatePost, useDeletePost } from '@/hooks/usePosts'
 import { useTimeSlots } from '@/hooks/useTimeSlots'
 import { useAuthStore } from '@/stores/auth'
 import { PostEditor } from '@/components/posts/PostEditor'
 import CalendarContainer from '@/components/calendar/CalendarContainer'
 import { PostTooltip } from '@/components/calendar/PostTooltip'
-import { Platform, CreatePostRequest, ScheduledPost } from '@/types'
+import { Platform, CreatePostRequest, ScheduledPost, PostContent } from '@/types'
 
 type ViewMode = 'calendar' | 'list'
 type CalendarView = 'month' | 'week' | 'day'
@@ -20,6 +20,8 @@ export function UnifiedCalendarPage() {
   const [selectedPost, setSelectedPost] = useState<ScheduledPost | null>(null)
   const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null)
   const [editingPost, setEditingPost] = useState<ScheduledPost | null>(null)
+  const [showBulkUpload, setShowBulkUpload] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
   
   const { user } = useAuthStore()
   const { data: posts, isLoading, error } = usePosts({
@@ -163,6 +165,107 @@ export function UnifiedCalendarPage() {
     }
   }
 
+  const parseCSV = (text: string): string[][] => {
+    const lines = text.split('\n').filter(line => line.trim())
+    return lines.map(line => {
+      const result = []
+      let current = ''
+      let inQuotes = false
+      
+      for (let i = 0; i < line.length; i++) {
+        const char = line[i]
+        if (char === '"') {
+          inQuotes = !inQuotes
+        } else if (char === ',' && !inQuotes) {
+          result.push(current.trim())
+          current = ''
+        } else {
+          current += char
+        }
+      }
+      result.push(current.trim())
+      return result
+    })
+  }
+
+  const handleBulkUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const text = await file.text()
+    const rows = parseCSV(text)
+    
+    if (rows.length < 2) {
+      alert('CSV file must have at least a header row and one data row')
+      return
+    }
+
+    const headers = rows[0].map(h => h.toLowerCase())
+    const contentIndex = headers.indexOf('content')
+    const scheduledTimeIndex = headers.indexOf('scheduled_time')
+    const platformIndex = headers.indexOf('platform')
+
+    if (contentIndex === -1 || scheduledTimeIndex === -1) {
+      alert('CSV must have "content" and "scheduled_time" columns')
+      return
+    }
+
+    let successCount = 0
+    let errorCount = 0
+
+    for (let i = 1; i < rows.length; i++) {
+      const row = rows[i]
+      try {
+        const content = row[contentIndex]
+        const scheduledTime = row[scheduledTimeIndex]
+        const platform = (platformIndex !== -1 ? row[platformIndex] : 'threads') as Platform
+
+        if (!content || !scheduledTime) continue
+
+        const postContent: PostContent = {
+          type: 'single',
+          text: content,
+          metadata: {
+            replySettings: 'everyone',
+            allowReplies: true
+          }
+        }
+
+        const request: CreatePostRequest = {
+          content: postContent,
+          platform,
+          schedulingType: 'custom',
+          customTime: new Date(scheduledTime)
+        }
+
+        await createPostMutation.mutateAsync(request)
+        successCount++
+      } catch (error) {
+        console.error('Failed to create post from CSV row:', error)
+        errorCount++
+      }
+    }
+
+    alert(`Bulk upload complete: ${successCount} posts created, ${errorCount} errors`)
+    setShowBulkUpload(false)
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
+  }
+
+  const downloadTemplate = () => {
+    const template = 'content,scheduled_time,platform\n"Your post content here","2024-01-01 12:00:00","threads"\n"Another post","2024-01-02 15:30:00","threads"'
+    const blob = new Blob([template], { type: 'text/csv' })
+    const url = URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = 'bulk_upload_template.csv'
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    URL.revokeObjectURL(url)
+  }
+
   if (showEditor) {
     return (
       <PostEditor
@@ -220,12 +323,21 @@ export function UnifiedCalendarPage() {
           <div className="flex items-center space-x-2">
             <button 
               onClick={() => setShowEditor(true)}
-              className="btn-primary flex items-center space-x-2"
+              className="btn-primary flex items-center space-x-2 px-3 py-2 text-sm"
             >
               <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
               <span>New Content</span>
+            </button>
+            <button 
+              onClick={() => setShowBulkUpload(true)}
+              className="btn-secondary flex items-center space-x-2 px-3 py-2 text-sm"
+            >
+              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M9 19l3 3m0 0l3-3m-3 3V10" />
+              </svg>
+              <span>Bulk Upload</span>
             </button>
           </div>
         </div>
@@ -465,6 +577,49 @@ export function UnifiedCalendarPage() {
           onDelete={() => handleDeleteFromTooltip(selectedPost)}
           onClose={handleCloseTooltip}
         />
+      )}
+
+      {/* Bulk Upload Modal */}
+      {showBulkUpload && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <div className="bg-gray-900 border border-gray-700 rounded-lg p-6 max-w-md w-full mx-4">
+            <h2 className="text-xl font-bold text-white mb-4">Bulk Upload Posts</h2>
+            
+            <div className="space-y-4">
+              <div>
+                <p className="text-gray-300 text-sm mb-3">
+                  Upload a CSV file with your posts. Required columns: <code className="bg-gray-800 px-1 rounded text-xs">content</code>, <code className="bg-gray-800 px-1 rounded text-xs">scheduled_time</code>. Optional: <code className="bg-gray-800 px-1 rounded text-xs">platform</code>
+                </p>
+                
+                <button
+                  onClick={downloadTemplate}
+                  className="text-blue-400 hover:text-blue-300 text-sm underline mb-3 block"
+                >
+                  Download CSV Template
+                </button>
+              </div>
+
+              <div>
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept=".csv"
+                  onChange={handleBulkUpload}
+                  className="block w-full text-sm text-gray-300 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-medium file:bg-blue-600 file:text-white hover:file:bg-blue-700 file:cursor-pointer cursor-pointer"
+                />
+              </div>
+
+              <div className="flex justify-end space-x-3 pt-4">
+                <button
+                  onClick={() => setShowBulkUpload(false)}
+                  className="px-4 py-2 text-gray-300 hover:text-white border border-gray-600 hover:border-gray-500 rounded-lg transition-colors"
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   )

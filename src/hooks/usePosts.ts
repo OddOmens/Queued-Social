@@ -63,7 +63,7 @@ export function useCreatePost() {
       if (request.schedulingType === 'now') {
         // Post immediately
         scheduledTime = new Date()
-        status = 'published' // Mark as published since we're posting now
+        status = 'scheduled' // Keep as scheduled initially, will be updated after publishing
       } else if (request.schedulingType === 'custom' && request.customTime) {
         scheduledTime = request.customTime
       } else {
@@ -84,11 +84,42 @@ export function useCreatePost() {
         content: request.content,
         scheduledTime,
         status,
-        publishedAt: status === 'published' ? new Date() : undefined
+        publishedAt: undefined // Will be set when actually published
       })
 
-      // If posting now, we could trigger immediate publishing here
-      // For now, we'll just mark it as published
+      // If posting now, trigger immediate publishing
+      if (request.schedulingType === 'now') {
+        try {
+          // Get user's auth token for API call
+          const { supabase } = await import('@/services/supabase')
+          const { data: { session } } = await supabase.auth.getSession()
+          
+          if (session?.access_token) {
+            // Call the publish-post edge function
+            const supabaseUrl = import.meta.env.VITE_SUPABASE_URL
+            const response = await fetch(`${supabaseUrl}/functions/v1/publish-post`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${session.access_token}`
+              },
+              body: JSON.stringify({
+                postId: post.id,
+                platform: request.platform,
+                content: request.content
+              })
+            })
+
+            if (!response.ok) {
+              console.error('Failed to publish post immediately:', await response.text())
+              // Keep post as scheduled so cron job can try later
+            }
+          }
+        } catch (error) {
+          console.error('Error publishing post immediately:', error)
+          // Keep post as scheduled so cron job can try later
+        }
+      }
       
       return post
     },

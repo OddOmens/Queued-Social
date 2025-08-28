@@ -79,12 +79,13 @@ export default function MainNavigation() {
               </div>
               <div className="flex flex-col">
                 <span className="text-xl font-bold gradient-text group-hover:from-blue-300 group-hover:to-purple-300 transition-all duration-300">
-                  Social Scheduler
+                  Queued
                 </span>
                 <span className="text-xs text-gray-500 -mt-0.5">Manage your posts</span>
               </div>
             </Link>
           </div>
+
 
           {/* Navigation Links */}
           <nav className="hidden md:flex items-center space-x-1">
