@@ -260,10 +260,24 @@ export function PostEditor({
       console.log('❌ Text required for non-media posts')
       return false
     }
-    if (contentType === 'media' && uploadedMediaUrls.length === 0) {
-      console.log('❌ Media URLs required for media posts')
-      return false
+    
+    // For media posts, check if we have uploaded URLs OR files that are being uploaded
+    if (contentType === 'media') {
+      const hasUploadedMedia = uploadedMediaUrls.length > 0
+      const hasMediaFiles = mediaFiles.length > 0
+      
+      if (!hasUploadedMedia && !hasMediaFiles) {
+        console.log('❌ Media required for media posts')
+        return false
+      }
+      
+      // If we have files but no uploaded URLs yet, consider it valid (upload in progress)
+      if (hasMediaFiles && !hasUploadedMedia) {
+        console.log('⏳ Media upload in progress, allowing form')
+        return true
+      }
     }
+    
     if (contentType === 'thread' && threadPosts.filter(p => p.trim()).length === 0) {
       console.log('❌ Thread posts required')
       return false
