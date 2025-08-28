@@ -156,8 +156,14 @@ export function PostEditor({
   }
 
   const handleMediaUpload = (uploadedFiles: Array<{ url: string }>) => {
+    console.log('📤 Media upload callback received:', uploadedFiles)
     const urls = uploadedFiles.map(file => file.url)
-    setUploadedMediaUrls(prev => [...prev, ...urls])
+    console.log('📤 Extracted URLs:', urls)
+    setUploadedMediaUrls(prev => {
+      const newUrls = [...prev, ...urls]
+      console.log('📤 Updated uploadedMediaUrls:', newUrls)
+      return newUrls
+    })
   }
 
   const handleThreadPostsChange = (posts: string[]) => {
@@ -239,10 +245,34 @@ export function PostEditor({
   }
 
   const isFormValid = () => {
-    if (!text.trim() && contentType !== 'media') return false
-    if (contentType === 'media' && uploadedMediaUrls.length === 0) return false
-    if (contentType === 'thread' && threadPosts.filter(p => p.trim()).length === 0) return false
-    if (!isDraft && !isTemplate && schedulingType === 'custom' && !customTime) return false
+    console.log('🔍 Form validation check:', {
+      contentType,
+      text: text.trim(),
+      uploadedMediaUrls,
+      mediaFiles: mediaFiles.length,
+      isDraft,
+      isTemplate,
+      schedulingType,
+      customTime
+    })
+    
+    if (!text.trim() && contentType !== 'media') {
+      console.log('❌ Text required for non-media posts')
+      return false
+    }
+    if (contentType === 'media' && uploadedMediaUrls.length === 0) {
+      console.log('❌ Media URLs required for media posts')
+      return false
+    }
+    if (contentType === 'thread' && threadPosts.filter(p => p.trim()).length === 0) {
+      console.log('❌ Thread posts required')
+      return false
+    }
+    if (!isDraft && !isTemplate && schedulingType === 'custom' && !customTime) {
+      console.log('❌ Custom time required')
+      return false
+    }
+    console.log('✅ Form is valid')
     return true
   }
 
