@@ -152,7 +152,7 @@ async function publishToThreads(content: any, credentials: any) {
   let mediaIds: string[] = []
   if (content.mediaUrls && content.mediaUrls.length > 0) {
     for (const mediaUrl of content.mediaUrls) {
-      const mediaId = await uploadMediaToThreads(mediaUrl, accessToken)
+      const mediaId = await uploadMediaToThreads(mediaUrl, accessToken, verifiedUserId)
       mediaIds.push(mediaId)
     }
   }
@@ -269,8 +269,8 @@ async function publishToThreads(content: any, credentials: any) {
   }
 }
 
-async function uploadMediaToThreads(mediaUrl: string, accessToken: string): Promise<string> {
-  console.log('📤 Uploading media to Threads:', mediaUrl)
+async function uploadMediaToThreads(mediaUrl: string, accessToken: string, userId: string): Promise<string> {
+  console.log('📤 Uploading media to Threads:', mediaUrl, 'for user:', userId)
   
   const uploadParams = new URLSearchParams({
     media_type: 'IMAGE',
@@ -278,7 +278,7 @@ async function uploadMediaToThreads(mediaUrl: string, accessToken: string): Prom
     access_token: accessToken
   })
 
-  const response = await fetch(`https://graph.threads.net/v1.0/me/media`, {
+  const response = await fetch(`https://graph.threads.net/v1.0/${userId}/media`, {
     method: 'POST',
     headers: {
       'Content-Type': 'application/x-www-form-urlencoded'
