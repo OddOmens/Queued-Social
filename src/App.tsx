@@ -6,6 +6,7 @@ import { ProtectedRoute } from './components/auth/ProtectedRoute'
 import { Layout } from './components/layout/Layout'
 import { appScheduler } from './services/appScheduler'
 import { initializePlatformPlugins } from './services/platforms'
+import { initializeStorageBuckets } from './services/mediaStorage'
 
 // Pages
 import { LoginPage } from './pages/LoginPage'
@@ -21,11 +22,23 @@ import { ThreadsCallbackPage } from './pages/ThreadsCallbackPage'
 function App() {
   // Initialize platform plugins and app scheduler when the app starts
   useEffect(() => {
-    console.log('Initializing platform plugins...')
-    initializePlatformPlugins()
+    const initializeApp = async () => {
+      console.log('Initializing storage buckets...')
+      try {
+        await initializeStorageBuckets()
+        console.log('✅ Storage buckets initialized')
+      } catch (error) {
+        console.warn('⚠️ Storage bucket initialization failed:', error)
+      }
+      
+      console.log('Initializing platform plugins...')
+      initializePlatformPlugins()
+      
+      console.log('Starting app scheduler...')
+      appScheduler.start()
+    }
     
-    console.log('Starting app scheduler...')
-    appScheduler.start()
+    initializeApp()
     
     // Cleanup on unmount
     return () => {
