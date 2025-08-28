@@ -23,13 +23,8 @@ function App() {
   // Initialize platform plugins and app scheduler when the app starts
   useEffect(() => {
     const initializeApp = async () => {
-      console.log('Initializing storage buckets...')
-      try {
-        await initializeStorageBuckets()
-        console.log('✅ Storage buckets initialized')
-      } catch (error) {
-        console.warn('⚠️ Storage bucket initialization failed:', error)
-      }
+      // Note: Storage buckets should be created manually in Supabase dashboard
+      // Automatic creation fails due to RLS policies
       
       console.log('Initializing platform plugins...')
       initializePlatformPlugins()
