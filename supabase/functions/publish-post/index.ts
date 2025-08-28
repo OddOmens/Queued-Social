@@ -86,6 +86,17 @@ serve(async (req) => {
       // Don't fail the request if DB update fails, the post was published
     }
 
+    // Clean up media files after successful post
+    if (content.mediaUrls && content.mediaUrls.length > 0) {
+      try {
+        await cleanupPostMedia(content.mediaUrls, user.id, supabaseClient)
+        console.log('✅ Media cleanup completed')
+      } catch (cleanupError) {
+        console.warn('⚠️ Media cleanup failed:', cleanupError)
+        // Don't fail the request if cleanup fails
+      }
+    }
+
     return new Response(
       JSON.stringify({ 
         success: true, 
@@ -133,16 +144,25 @@ async function publishToThreads(content: any, credentials: any) {
   // Use the verified user ID
   const verifiedUserId = actualUserId
 
+  // Upload media to Threads first if present
+  let mediaIds: string[] = []
+  if (content.mediaUrls && content.mediaUrls.length > 0) {
+    for (const mediaUrl of content.mediaUrls) {
+      const mediaId = await uploadMediaToThreads(mediaUrl, accessToken)
+      mediaIds.push(mediaId)
+    }
+  }
+
   // Create the post
   const postParams = new URLSearchParams({
-    media_type: content.mediaUrls && content.mediaUrls.length > 0 ? 'IMAGE' : 'TEXT',
+    media_type: mediaIds.length > 0 ? 'IMAGE' : 'TEXT',
     text: content.text,
     access_token: accessToken
   })
 
   // Add media IDs if present
-  if (content.mediaUrls && content.mediaUrls.length > 0) {
-    postParams.append('media_ids', content.mediaUrls.join(','))
+  if (mediaIds.length > 0) {
+    postParams.append('media_ids', mediaIds.join(','))
   }
 
   console.log('🔍 Threads API Request:', {
@@ -242,6 +262,88 @@ async function publishToThreads(content: any, credentials: any) {
     postId: publishResult.id,
     creationId: createResult.id,
     permalink: publishResult.permalink
+  }
+}
+
+async function uploadMediaToThreads(mediaUrl: string, accessToken: string): Promise<string> {
+  console.log('📤 Uploading media to Threads:', mediaUrl)
+  
+  const uploadParams = new URLSearchParams({
+    media_type: 'IMAGE',
+    image_url: mediaUrl,
+    access_token: accessToken
+  })
+
+  const response = await fetch(`https://graph.threads.net/v1.0/me/media`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded'
+    },
+    body: uploadParams
+  })
+
+  if (!response.ok) {
+    const errorText = await response.text()
+    console.error('❌ Threads media upload error:', errorText)
+    throw new Error(`Failed to upload media to Threads: ${response.status} ${errorText}`)
+  }
+
+  const result = await response.json()
+  
+  if (result.error) {
+    throw new Error(`Threads media upload error: ${result.error.message}`)
+  }
+
+  console.log('✅ Media uploaded to Threads:', result.id)
+  return result.id
+}
+
+async function cleanupPostMedia(mediaUrls: string[], userId: string, supabaseClient: any): Promise<void> {
+  console.log('🧹 Starting media cleanup for:', mediaUrls)
+  
+  for (const mediaUrl of mediaUrls) {
+    try {
+      // Extract file path from Supabase URL
+      // URL format: https://[project].supabase.co/storage/v1/object/public/media-files/[user-id]/[filename]
+      const urlParts = mediaUrl.split('/')
+      const filename = urlParts[urlParts.length - 1]
+      const filePath = `${userId}/${filename}`
+      
+      console.log('🗑️ Deleting media file:', filePath)
+      
+      // Delete from storage
+      const { error: storageError } = await supabaseClient.storage
+        .from('media-files')
+        .remove([filePath])
+      
+      if (storageError) {
+        console.warn('Failed to delete from storage:', storageError)
+      }
+      
+      // Delete thumbnail if exists
+      const thumbnailPath = `${userId}/thumb_${filename}`
+      const { error: thumbError } = await supabaseClient.storage
+        .from('thumbnails')
+        .remove([thumbnailPath])
+      
+      if (thumbError) {
+        console.warn('Failed to delete thumbnail:', thumbError)
+      }
+      
+      // Delete database record
+      const { error: dbError } = await supabaseClient
+        .from('media_files')
+        .delete()
+        .eq('file_path', filePath)
+        .eq('user_id', userId)
+      
+      if (dbError) {
+        console.warn('Failed to delete database record:', dbError)
+      }
+      
+    } catch (error) {
+      console.warn('Failed to cleanup media file:', mediaUrl, error)
+    }
   }
 }
 
