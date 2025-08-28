@@ -262,7 +262,7 @@ export class ThreadsPlugin extends BasePlatformPlugin implements IThreadsPlugin 
    */
   private async checkPublishingQuota(credentials: ThreadsCredentials): Promise<void> {
     try {
-      const response = await fetch(`${this.API_BASE_URL}/${this.API_VERSION}/me/threads_publishing_limit?access_token=${credentials.credentials.accessToken}`)
+      const response = await fetch(`${this.API_BASE_URL}/${this.API_VERSION}/${credentials.credentials.userId}/threads_publishing_limit?access_token=${credentials.credentials.accessToken}`)
       
       if (response.ok) {
         const quotaData = await response.json()
@@ -283,11 +283,17 @@ export class ThreadsPlugin extends BasePlatformPlugin implements IThreadsPlugin 
    */
   private async validateAndCorrectUserId(credentials: ThreadsCredentials): Promise<ThreadsCredentials> {
     try {
-      // Get the actual user ID from the API
-      const response = await fetch(`${this.API_BASE_URL}/${this.API_VERSION}/me?fields=id,username&access_token=${credentials.credentials.accessToken}`)
+      // First try to get user info from the stored userId
+      let response = await fetch(`${this.API_BASE_URL}/${this.API_VERSION}/${credentials.credentials.userId}?fields=id,username&access_token=${credentials.credentials.accessToken}`)
       
       if (!response.ok) {
-        throw new Error(`Failed to validate user ID: ${response.status} ${response.statusText}`)
+        // If that fails, try the 'me' endpoint as fallback
+        console.warn(`Direct user ID lookup failed (${response.status}), trying 'me' endpoint...`)
+        response = await fetch(`${this.API_BASE_URL}/${this.API_VERSION}/me?fields=id,username&access_token=${credentials.credentials.accessToken}`)
+        
+        if (!response.ok) {
+          throw new Error(`Failed to validate user ID: ${response.status} ${response.statusText}`)
+        }
       }
 
       const userData = await response.json()

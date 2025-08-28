@@ -164,6 +164,12 @@ export class CredentialManager {
         return null;
       }
 
+      // Validate credentials structure before decrypting
+      if (!data.credentials || !data.credentials.encrypted) {
+        console.error('Invalid credentials structure - missing encrypted data');
+        return null;
+      }
+
       // Decrypt the tokens
       const decryptedTokens = JSON.parse(this.decrypt(data.credentials.encrypted));
 
@@ -202,6 +208,12 @@ export class CredentialManager {
 
       return data.map(item => {
         try {
+          // Validate credentials structure before decrypting
+          if (!item.credentials || !item.credentials.encrypted) {
+            console.error(`Invalid credentials structure for ${item.platform} - missing encrypted data`);
+            return null;
+          }
+
           const decryptedTokens = JSON.parse(this.decrypt(item.credentials.encrypted));
           return {
             id: item.id,
