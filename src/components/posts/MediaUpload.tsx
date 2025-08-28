@@ -201,7 +201,10 @@ export function MediaUpload({
       .filter(p => !p.error)
       .map(p => p.file)]
     
-    onChange(allValidFiles)
+    // Only call onChange if the files list actually changed
+    if (allValidFiles.length !== files.length || !allValidFiles.every((file, index) => file === files[index])) {
+      onChange(allValidFiles)
+    }
     setUploading(false)
   }, [platform, onChange, onUpload, autoUpload, uploadFiles, files])
 

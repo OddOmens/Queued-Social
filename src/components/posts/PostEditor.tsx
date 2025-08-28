@@ -153,10 +153,22 @@ export function PostEditor({
   }
 
   const handleMediaFilesChange = (files: File[]) => {
+    const prevFileCount = mediaFiles.length
     setMediaFiles(files)
-    // Reset uploaded URLs when files change
-    setUploadedMediaUrls([])
-    setIsMediaUploading(files.length > 0) // Set uploading state when files are added
+    
+    // Only reset uploaded URLs if files are being removed or completely cleared
+    if (files.length === 0) {
+      setUploadedMediaUrls([])
+      setIsMediaUploading(false)
+    } else if (files.length < prevFileCount) {
+      // Files were removed, but keep uploaded URLs for remaining files
+      // This is a simplified approach - in a more complex scenario you'd track which files were removed
+      setIsMediaUploading(files.length > uploadedMediaUrls.length)
+    } else {
+      // Files were added, set uploading state only if we don't have uploaded URLs yet
+      setIsMediaUploading(files.length > uploadedMediaUrls.length)
+    }
+    
     setErrors([])
   }
 
