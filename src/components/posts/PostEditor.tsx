@@ -210,14 +210,16 @@ export function PostEditor({
         }
       
       case 'media':
+        // Use uploaded URLs if available, otherwise fall back to blob URLs for immediate posting
+        const mediaUrlsToUse = uploadedMediaUrls.length > 0 ? uploadedMediaUrls : mediaFiles.map(f => URL.createObjectURL(f))
         return {
           type: 'media',
           ...baseContent,
-          mediaUrls: uploadedMediaUrls,
+          mediaUrls: mediaUrlsToUse,
           metadata: {
             ...baseContent.metadata,
-            altText: mediaFiles.map(() => ''), // TODO: Add alt text input
-            mediaTypes: mediaFiles.map(f => f.type.startsWith('image/') ? 'image' as const : 'video' as const)
+            altText: mediaUrlsToUse.map(() => ''), // Match the length of mediaUrls
+            mediaTypes: mediaFiles.map(f => f.type.startsWith('image/') ? 'image' as const : 'video' as const).slice(0, mediaUrlsToUse.length)
           }
         }
       
