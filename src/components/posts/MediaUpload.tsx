@@ -150,10 +150,13 @@ export function MediaUpload({
 
         // Auto-upload if enabled
         if (autoUpload) {
+          console.log('🚀 Starting auto-upload for file:', file.name)
           try {
             const uploadResult = await uploadFiles([file])
+            console.log('📤 Upload result:', uploadResult)
             if (uploadResult.success && uploadResult.uploads.length > 0) {
               const uploadedFile = uploadResult.uploads[0]
+              console.log('✅ Upload successful:', uploadedFile)
               preview.uploading = false
               preview.uploaded = true
               preview.uploadedFile = uploadedFile
@@ -162,10 +165,16 @@ export function MediaUpload({
               
               // Notify parent component
               if (onUpload) {
+                console.log('📞 Calling onUpload callback with:', [uploadedFile])
                 onUpload([uploadedFile])
+              } else {
+                console.warn('⚠️ No onUpload callback provided')
               }
+            } else {
+              console.error('❌ Upload failed - no uploads returned')
             }
           } catch (error) {
+            console.error('❌ Upload error:', error)
             preview.uploading = false
             preview.error = 'Upload failed'
           }
