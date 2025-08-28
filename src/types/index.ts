@@ -101,6 +101,21 @@ export interface ScheduledPost {
 }
 
 // ============================================================================
+// TEMPLATE TYPES
+// ============================================================================
+
+export interface Template {
+  id: string
+  userId: string
+  name: string
+  content: PostContent
+  platform: Platform
+  category: string
+  createdAt: Date
+  updatedAt: Date
+}
+
+// ============================================================================
 // TIME SLOT TYPES
 // ============================================================================
 
@@ -380,6 +395,20 @@ export interface ScheduleCustomTimeRequest {
   allowConflicts?: boolean
 }
 
+export interface CreateTemplateRequest {
+  name: string
+  content: PostContent
+  platform: Platform
+  category?: string
+}
+
+export interface UpdateTemplateRequest {
+  name?: string
+  content?: PostContent
+  platform?: Platform
+  category?: string
+}
+
 // ============================================================================
 // UTILITY TYPES
 // ============================================================================
@@ -445,6 +474,17 @@ export interface DbPlatformCredentials {
   is_active: boolean
   expires_at?: string
   created_at: string
+}
+
+export interface DbTemplate {
+  id: string
+  user_id: string
+  name: string
+  content: any // JSONB
+  platform: string
+  category: string
+  created_at: string
+  updated_at: string
 }
 
 // ============================================================================

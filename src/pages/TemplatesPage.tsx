@@ -1,67 +1,7 @@
 import { useState, useMemo } from 'react'
 import { PostEditor } from '@/components/posts/PostEditor'
-import { Platform, CreatePostRequest, PostContent } from '@/types'
-
-interface Template {
-  id: string
-  name: string
-  content: PostContent
-  platform: Platform
-  category: string
-  createdAt: string
-  updatedAt: string
-}
-
-const defaultTemplates: Template[] = [
-  {
-    id: 'template-1',
-    name: 'Daily Motivation',
-    content: {
-      type: 'single',
-      text: '🌟 Today\'s motivation:\n\n[Your motivational quote here]\n\n#motivation #inspiration #dailyquote',
-      metadata: {
-        replySettings: 'everyone' as const,
-        allowReplies: true
-      }
-    },
-    platform: 'threads',
-    category: 'Motivation',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: 'template-2',
-    name: 'Product Announcement',
-    content: {
-      type: 'single',
-      text: '🚀 Exciting news!\n\n[Describe your product/feature]\n\n✨ Key benefits:\n• [Benefit 1]\n• [Benefit 2]\n• [Benefit 3]\n\n#product #announcement #launch',
-      metadata: {
-        replySettings: 'everyone' as const,
-        allowReplies: true
-      }
-    },
-    platform: 'threads',
-    category: 'Business',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  },
-  {
-    id: 'template-3',
-    name: 'Behind the Scenes',
-    content: {
-      type: 'single',
-      text: '👀 Behind the scenes:\n\n[Share what you\'re working on]\n\n[Add some personal touch or interesting detail]\n\n#behindthescenes #process #work',
-      metadata: {
-        replySettings: 'everyone' as const,
-        allowReplies: true
-      }
-    },
-    platform: 'threads',
-    category: 'Personal',
-    createdAt: new Date().toISOString(),
-    updatedAt: new Date().toISOString()
-  }
-]
+import { useTemplates } from '@/hooks/useTemplates'
+import { Platform, CreatePostRequest, PostContent, Template, CreateTemplateRequest } from '@/types'
 
 export function TemplatesPage() {
   const [showEditor, setShowEditor] = useState(false)
@@ -72,80 +12,67 @@ export function TemplatesPage() {
   const [templateName, setTemplateName] = useState('')
   const [templateCategory, setTemplateCategory] = useState('General')
 
-  // Load templates from localStorage with defaults
-  const [templates, setTemplates] = useState<Template[]>(() => {
-    const savedTemplates = localStorage.getItem('social-scheduler-templates')
-    if (savedTemplates) {
-      const parsed = JSON.parse(savedTemplates)
-      // Merge with default templates if they don't exist
-      const existingIds = parsed.map((t: Template) => t.id)
-      const newDefaults = defaultTemplates.filter(t => !existingIds.includes(t.id))
-      return [...parsed, ...newDefaults]
-    }
-    return defaultTemplates
-  })
-
-  // Save templates to localStorage
-  const saveTemplates = (newTemplates: Template[]) => {
-    setTemplates(newTemplates)
-    localStorage.setItem('social-scheduler-templates', JSON.stringify(newTemplates))
-  }
+  // Use the Supabase templates hook
+  const { 
+    templates: allTemplates, 
+    loading, 
+    error, 
+    createTemplate, 
+    updateTemplate, 
+    deleteTemplate 
+  } = useTemplates()
 
   // Get unique categories
   const categories = useMemo(() => {
-    const cats = new Set(templates.map(t => t.category))
+    const cats = new Set(allTemplates.map(t => t.category))
     return Array.from(cats).sort()
-  }, [templates])
+  }, [allTemplates])
 
   // Filter templates
   const filteredTemplates = useMemo(() => {
-    return templates.filter(template => 
+    return allTemplates.filter(template => 
       selectedCategory === 'all' || template.category === selectedCategory
     ).sort((a, b) => a.name.localeCompare(b.name))
-  }, [templates, selectedCategory])
+  }, [allTemplates, selectedCategory])
 
-  const handleSaveTemplate = (request: CreatePostRequest) => {
-    const now = new Date().toISOString()
-    
-    if (editingTemplate) {
-      // Update existing template
-      const updatedTemplates = templates.map(template => 
-        template.id === editingTemplate.id 
-          ? { 
-              ...template, 
-              name: templateName || editingTemplate.name,
-              content: request.content, 
-              platform: request.platform, 
-              category: templateCategory,
-              updatedAt: now 
-            }
-          : template
-      )
-      saveTemplates(updatedTemplates)
-      setEditingTemplate(null)
-    } else {
-      // Create new template
-      const newTemplate: Template = {
-        id: Date.now().toString(),
-        name: templateName || 'Untitled Template',
-        content: request.content,
-        platform: request.platform,
-        category: templateCategory,
-        createdAt: now,
-        updatedAt: now
+  const handleSaveTemplate = async (request: CreatePostRequest) => {
+    try {
+      if (editingTemplate) {
+        // Update existing template
+        await updateTemplate(editingTemplate.id, {
+          name: templateName || editingTemplate.name,
+          content: request.content,
+          platform: request.platform,
+          category: templateCategory
+        })
+        setEditingTemplate(null)
+      } else {
+        // Create new template
+        await createTemplate({
+          name: templateName || 'Untitled Template',
+          content: request.content,
+          platform: request.platform,
+          category: templateCategory
+        })
       }
-      saveTemplates([...templates, newTemplate])
+      
+      setShowEditor(false)
+      setTemplateName('')
+      setTemplateCategory('General')
+    } catch (err) {
+      console.error('Failed to save template:', err)
+      alert('Failed to save template. Please try again.')
     }
-    
-    setShowEditor(false)
-    setTemplateName('')
-    setTemplateCategory('General')
   }
 
-  const handleDeleteTemplate = (templateId: string) => {
+  const handleDeleteTemplate = async (templateId: string) => {
     if (confirm('Are you sure you want to delete this template?')) {
-      const updatedTemplates = templates.filter(template => template.id !== templateId)
-      saveTemplates(updatedTemplates)
+      try {
+        await deleteTemplate(templateId)
+      } catch (err) {
+        console.error('Failed to delete template:', err)
+        alert('Failed to delete template. Please try again.')
+      }
     }
   }
 
@@ -262,6 +189,62 @@ export function TemplatesPage() {
     )
   }
 
+  // Show loading state
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Templates</h1>
+            <p className="mt-2 text-gray-400">
+              Create reusable post templates to save time and maintain consistency.
+            </p>
+          </div>
+        </div>
+        <div className="card">
+          <div className="px-6 py-8 text-center">
+            <div className="loading-skeleton w-full h-32 mb-4"></div>
+            <div className="loading-skeleton w-3/4 h-4 mb-2"></div>
+            <div className="loading-skeleton w-1/2 h-4"></div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Show error state
+  if (error) {
+    return (
+      <div className="space-y-6">
+        <div className="flex justify-between items-center">
+          <div>
+            <h1 className="text-3xl font-bold text-white">Templates</h1>
+            <p className="mt-2 text-gray-400">
+              Create reusable post templates to save time and maintain consistency.
+            </p>
+          </div>
+        </div>
+        <div className="card">
+          <div className="px-6 py-8 text-center">
+            <div className="text-red-400 mb-4">
+              <svg className="w-12 h-12 mx-auto mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
+              </svg>
+              Failed to load templates
+            </div>
+            <p className="text-gray-400 mb-4">{error}</p>
+            <button 
+              onClick={() => window.location.reload()}
+              className="btn-primary"
+            >
+              Reload Page
+            </button>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
@@ -333,7 +316,7 @@ export function TemplatesPage() {
                     
                     <div className="space-y-3">
                       <div className="text-xs text-gray-400">
-                        Updated: {new Date(template.updatedAt).toLocaleDateString()}
+                        Updated: {template.updatedAt.toLocaleDateString()}
                       </div>
                       
                       <div className="flex items-center justify-between space-x-2">

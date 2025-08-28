@@ -9,12 +9,15 @@ import type {
   TimeSlotConfig,
   ScheduledPost,
   PlatformCredentials,
+  Template,
   DbUserProfile,
   DbTimeSlot,
   DbScheduledPost,
   DbPlatformCredentials,
+  DbTemplate,
   DayOfWeek,
-  Platform
+  Platform,
+  PostContent
 } from '../types'
 
 // Type conversion utilities
@@ -58,6 +61,17 @@ export const convertDbPlatformCredentials = (db: DbPlatformCredentials): Platfor
   expiresAt: db.expires_at ? new Date(db.expires_at) : undefined,
   createdAt: new Date(db.created_at),
   updatedAt: new Date(db.created_at) // Note: DbPlatformCredentials doesn't have updated_at
+})
+
+export const convertDbTemplate = (db: DbTemplate): Template => ({
+  id: db.id,
+  userId: db.user_id,
+  name: db.name,
+  content: db.content,
+  platform: db.platform as Platform,
+  category: db.category,
+  createdAt: new Date(db.created_at),
+  updatedAt: new Date(db.updated_at)
 })
 
 // Database service class
@@ -498,6 +512,103 @@ export class DatabaseService {
 
     if (error) {
       throw new Error(`Failed to delete platform credentials: ${error.message}`)
+    }
+  }
+
+  // Template operations
+  async getTemplates(userId: string, filters?: {
+    category?: string
+    platform?: Platform
+  }): Promise<Template[]> {
+    let query = this.client
+      .from('templates')
+      .select('*')
+      .eq('user_id', userId)
+
+    if (filters?.category) {
+      query = query.eq('category', filters.category)
+    }
+
+    if (filters?.platform) {
+      query = query.eq('platform', filters.platform)
+    }
+
+    query = query.order('name', { ascending: true })
+
+    const { data, error } = await query
+
+    if (error) {
+      throw new Error(`Failed to get templates: ${error.message}`)
+    }
+
+    return data.map(convertDbTemplate)
+  }
+
+  async getTemplateById(id: string, userId: string): Promise<Template | null> {
+    const { data, error } = await this.client
+      .from('templates')
+      .select('*')
+      .eq('id', id)
+      .eq('user_id', userId)
+      .single()
+
+    if (error) {
+      if (error.code === 'PGRST116') return null // Not found
+      throw new Error(`Failed to get template: ${error.message}`)
+    }
+
+    return convertDbTemplate(data)
+  }
+
+  async createTemplate(template: Omit<Template, 'id' | 'createdAt' | 'updatedAt'>): Promise<Template> {
+    const { data, error } = await this.client
+      .from('templates')
+      .insert({
+        user_id: template.userId,
+        name: template.name,
+        content: template.content,
+        platform: template.platform,
+        category: template.category
+      })
+      .select()
+      .single()
+
+    if (error) {
+      throw new Error(`Failed to create template: ${error.message}`)
+    }
+
+    return convertDbTemplate(data)
+  }
+
+  async updateTemplate(id: string, updates: Partial<Omit<Template, 'id' | 'userId' | 'createdAt' | 'updatedAt'>>): Promise<Template> {
+    const updateData: any = {}
+    if (updates.name !== undefined) updateData.name = updates.name
+    if (updates.content !== undefined) updateData.content = updates.content
+    if (updates.platform !== undefined) updateData.platform = updates.platform
+    if (updates.category !== undefined) updateData.category = updates.category
+
+    const { data, error } = await this.client
+      .from('templates')
+      .update(updateData)
+      .eq('id', id)
+      .select()
+      .single()
+
+    if (error) {
+      throw new Error(`Failed to update template: ${error.message}`)
+    }
+
+    return convertDbTemplate(data)
+  }
+
+  async deleteTemplate(id: string): Promise<void> {
+    const { error } = await this.client
+      .from('templates')
+      .delete()
+      .eq('id', id)
+
+    if (error) {
+      throw new Error(`Failed to delete template: ${error.message}`)
     }
   }
 }
