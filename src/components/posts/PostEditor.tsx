@@ -210,16 +210,15 @@ export function PostEditor({
         }
       
       case 'media':
-        // Use uploaded URLs if available, otherwise fall back to blob URLs for immediate posting
-        const mediaUrlsToUse = uploadedMediaUrls.length > 0 ? uploadedMediaUrls : mediaFiles.map(f => URL.createObjectURL(f))
+        // Only use properly uploaded URLs - no blob URL fallback
         return {
           type: 'media',
           ...baseContent,
-          mediaUrls: mediaUrlsToUse,
+          mediaUrls: uploadedMediaUrls.length > 0 ? uploadedMediaUrls : [],
           metadata: {
             ...baseContent.metadata,
-            altText: mediaUrlsToUse.map(() => ''), // Match the length of mediaUrls
-            mediaTypes: mediaFiles.map(f => f.type.startsWith('image/') ? 'image' as const : 'video' as const).slice(0, mediaUrlsToUse.length)
+            altText: uploadedMediaUrls.map(() => ''), // Match the length of mediaUrls
+            mediaTypes: mediaFiles.map(f => f.type.startsWith('image/') ? 'image' as const : 'video' as const).slice(0, uploadedMediaUrls.length)
           }
         }
       
@@ -263,20 +262,18 @@ export function PostEditor({
       return false
     }
     
-    // For media posts, check if we have uploaded URLs OR files that are being uploaded
+    // For media posts, require actual uploaded URLs (no blob URL fallback)
     if (contentType === 'media') {
       const hasUploadedMedia = uploadedMediaUrls.length > 0
       const hasMediaFiles = mediaFiles.length > 0
       
-      if (!hasUploadedMedia && !hasMediaFiles) {
-        console.log('❌ Media required for media posts')
+      if (!hasUploadedMedia) {
+        if (hasMediaFiles) {
+          console.log('⏳ Media upload in progress, form disabled until upload completes')
+        } else {
+          console.log('❌ Media required for media posts')
+        }
         return false
-      }
-      
-      // If we have files but no uploaded URLs yet, consider it valid (upload in progress)
-      if (hasMediaFiles && !hasUploadedMedia) {
-        console.log('⏳ Media upload in progress, allowing form')
-        return true
       }
     }
     

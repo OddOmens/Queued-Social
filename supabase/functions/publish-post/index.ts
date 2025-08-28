@@ -148,25 +148,63 @@ async function publishToThreads(content: any, credentials: any) {
   // Use the verified user ID
   const verifiedUserId = actualUserId
 
-  // Upload media to Threads first if present
-  let mediaIds: string[] = []
-  if (content.mediaUrls && content.mediaUrls.length > 0) {
-    for (const mediaUrl of content.mediaUrls) {
-      const mediaId = await uploadMediaToThreads(mediaUrl, accessToken, verifiedUserId)
-      mediaIds.push(mediaId)
+  // Try posting with media first, fallback to text-only if media fails
+  let hasMedia = content.mediaUrls && content.mediaUrls.length > 0
+  let postParams: URLSearchParams
+
+  if (hasMedia) {
+    // First try with media
+    const imageUrl = content.mediaUrls[0]
+    console.log('📷 Attempting post with image URL:', imageUrl)
+    
+    // Validate URL format
+    try {
+      const url = new URL(imageUrl)
+      if (!url.protocol.startsWith('http')) {
+        throw new Error('URL must use HTTP or HTTPS protocol')
+      }
+      console.log('✅ URL validation passed:', {
+        protocol: url.protocol,
+        hostname: url.hostname,
+        pathname: url.pathname
+      })
+
+      // Test if URL is publicly accessible
+      console.log('🔍 Testing image URL accessibility...')
+      const testResponse = await fetch(imageUrl, { method: 'HEAD' })
+      console.log('📡 Image URL test response:', {
+        status: testResponse.status,
+        statusText: testResponse.statusText,
+        headers: Object.fromEntries(testResponse.headers.entries())
+      })
+
+      if (!testResponse.ok) {
+        throw new Error(`Image URL not accessible: ${testResponse.status} ${testResponse.statusText}`)
+      }
+      
+    } catch (urlError) {
+      console.error('❌ Image URL validation/accessibility failed, falling back to text-only:', urlError)
+      hasMedia = false
+    }
+
+    if (hasMedia) {
+      postParams = new URLSearchParams({
+        media_type: 'IMAGE',
+        text: content.text,
+        image_url: imageUrl,
+        access_token: accessToken
+      })
     }
   }
-
-  // Create the post
-  const postParams = new URLSearchParams({
-    media_type: mediaIds.length > 0 ? 'IMAGE' : 'TEXT',
-    text: content.text,
-    access_token: accessToken
-  })
-
-  // Add media IDs if present
-  if (mediaIds.length > 0) {
-    postParams.append('media_ids', mediaIds.join(','))
+  
+  if (!hasMedia) {
+    // Text-only post
+    console.log('📝 Creating text-only post')
+    postParams = new URLSearchParams({
+      media_type: 'TEXT',
+      text: content.text,
+      access_token: accessToken
+    })
   }
 
   console.log('🔍 Threads API Request:', {
@@ -174,10 +212,12 @@ async function publishToThreads(content: any, credentials: any) {
     params: Object.fromEntries(postParams.entries())
   })
 
-  // Retry logic for 500 errors (server issues)
+  // Retry logic with fallback to text-only if media fails
   let createResponse: Response | null = null
   let lastError: string = ''
   const maxRetries = 3
+  let currentParams = postParams
+  let triedTextOnly = !hasMedia // If we started with text-only, don't retry
   
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     console.log(`📡 Create attempt ${attempt}/${maxRetries}...`)
@@ -187,7 +227,7 @@ async function publishToThreads(content: any, credentials: any) {
       headers: {
         'Content-Type': 'application/x-www-form-urlencoded'
       },
-      body: postParams
+      body: currentParams
     })
 
     console.log('📡 Threads API Response:', {
@@ -206,6 +246,20 @@ async function publishToThreads(content: any, credentials: any) {
       errorBody = await createResponse.text()
       console.error(`❌ Create attempt ${attempt} failed:`, errorBody)
       lastError = errorBody
+      
+      // If media post failed with 400 error and we haven't tried text-only yet
+      if (createResponse.status === 400 && !triedTextOnly && hasMedia) {
+        console.log('🔄 Media post failed, retrying as text-only...')
+        currentParams = new URLSearchParams({
+          media_type: 'TEXT',
+          text: content.text,
+          access_token: accessToken
+        })
+        triedTextOnly = true
+        // Don't count this as a retry attempt, just switch modes
+        attempt-- 
+        continue
+      }
     } catch (e) {
       console.error('❌ Could not read error response body')
       lastError = `${createResponse.status} ${createResponse.statusText}`
@@ -269,38 +323,39 @@ async function publishToThreads(content: any, credentials: any) {
   }
 }
 
-async function uploadMediaToThreads(mediaUrl: string, accessToken: string, userId: string): Promise<string> {
-  console.log('📤 Uploading media to Threads:', mediaUrl, 'for user:', userId)
-  
-  const uploadParams = new URLSearchParams({
-    media_type: 'IMAGE',
-    image_url: mediaUrl,
-    access_token: accessToken
-  })
-
-  const response = await fetch(`https://graph.threads.net/v1.0/${userId}/media`, {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded'
-    },
-    body: uploadParams
-  })
-
-  if (!response.ok) {
-    const errorText = await response.text()
-    console.error('❌ Threads media upload error:', errorText)
-    throw new Error(`Failed to upload media to Threads: ${response.status} ${errorText}`)
-  }
-
-  const result = await response.json()
-  
-  if (result.error) {
-    throw new Error(`Threads media upload error: ${result.error.message}`)
-  }
-
-  console.log('✅ Media uploaded to Threads:', result.id)
-  return result.id
-}
+// Media upload function commented out - using direct image_url approach instead
+// async function uploadMediaToThreads(mediaUrl: string, accessToken: string, userId: string): Promise<string> {
+//   console.log('📤 Uploading media to Threads:', mediaUrl, 'for user:', userId)
+//   
+//   const uploadParams = new URLSearchParams({
+//     media_type: 'IMAGE',
+//     image_url: mediaUrl,
+//     access_token: accessToken
+//   })
+//
+//   const response = await fetch(`https://graph.threads.net/v1.0/${userId}/media`, {
+//     method: 'POST',
+//     headers: {
+//       'Content-Type': 'application/x-www-form-urlencoded'
+//     },
+//     body: uploadParams
+//   })
+//
+//   if (!response.ok) {
+//     const errorText = await response.text()
+//     console.error('❌ Threads media upload error:', errorText)
+//     throw new Error(`Failed to upload media to Threads: ${response.status} ${errorText}`)
+//   }
+//
+//   const result = await response.json()
+//   
+//   if (result.error) {
+//     throw new Error(`Threads media upload error: ${result.error.message}`)
+//   }
+//
+//   console.log('✅ Media uploaded to Threads:', result.id)
+//   return result.id
+// }
 
 async function cleanupPostMedia(mediaUrls: string[], userId: string, supabaseClient: any): Promise<void> {
   console.log('🧹 Starting media cleanup for:', mediaUrls)
