@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
+import { flushSync } from 'react-dom'
 import { Platform, PostContent, CreatePostRequest, PostContentType } from '@/types'
 import { PLATFORM_CONFIGS } from '@/types/platform'
 import { validateContentForPlatform } from '@/utils/contentValidation'
@@ -163,14 +164,19 @@ export function PostEditor({
     console.log('📤 Media upload callback received:', uploadedFiles)
     const urls = uploadedFiles.map(file => file.url)
     console.log('📤 Extracted URLs:', urls)
-    setUploadedMediaUrls(prev => {
-      const newUrls = [...prev, ...urls]
-      console.log('📤 Updated uploadedMediaUrls:', newUrls)
-      return newUrls
+    
+    // Use flushSync to ensure state updates are applied immediately
+    flushSync(() => {
+      setUploadedMediaUrls(prev => {
+        const newUrls = [...prev, ...urls]
+        console.log('📤 Updated uploadedMediaUrls (inside flushSync):', newUrls)
+        return newUrls
+      })
+      setIsMediaUploading(false) // Clear uploading state when upload completes
+      // Clear any validation errors when media is successfully uploaded
+      setErrors([])
     })
-    setIsMediaUploading(false) // Clear uploading state when upload completes
-    // Clear any validation errors when media is successfully uploaded
-    setErrors([])
+    console.log('📤 After flushSync - checking state updates completed')
   }, [])
 
   const handleThreadPostsChange = (posts: string[]) => {
