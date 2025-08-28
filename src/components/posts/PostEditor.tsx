@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Platform, PostContent, CreatePostRequest, PostContentType } from '@/types'
 import { PLATFORM_CONFIGS } from '@/types/platform'
 import { validateContentForPlatform } from '@/utils/contentValidation'
@@ -155,7 +155,7 @@ export function PostEditor({
     setErrors([])
   }
 
-  const handleMediaUpload = (uploadedFiles: Array<{ url: string }>) => {
+  const handleMediaUpload = useCallback((uploadedFiles: Array<{ url: string }>) => {
     console.log('📤 Media upload callback received:', uploadedFiles)
     const urls = uploadedFiles.map(file => file.url)
     console.log('📤 Extracted URLs:', urls)
@@ -164,7 +164,7 @@ export function PostEditor({
       console.log('📤 Updated uploadedMediaUrls:', newUrls)
       return newUrls
     })
-  }
+  }, [])
 
   const handleThreadPostsChange = (posts: string[]) => {
     setThreadPosts(posts)
