@@ -3,6 +3,8 @@
 import { useState, useRef, useCallback } from 'react'
 import { Platform } from '@/types'
 import { validateMediaForPlatform, formatFileSize, getSupportedExtensions, processMediaFile, cleanupMediaUrls } from '@/utils/mediaProcessing'
+import { uploadMediaToStorage, createMediaRecord } from '@/services/mediaStorage'
+import { useAuth } from '@/hooks/useAuth'
 
 interface MediaUploadProps {
   files: File[]
@@ -58,29 +60,61 @@ export function MediaUpload({
   const supportedExtensions = getSupportedExtensions(platform)
   const acceptedTypes = supportedExtensions.join(',')
 
-  // Mock upload files to server (simulate upload for now)
+  const { user } = useAuth()
+
+  // Upload files to Supabase storage
   const uploadFiles = useCallback(async (filesToUpload: File[]): Promise<{ success: boolean; uploads: any[] }> => {
-    // Simulate upload delay
-    await new Promise(resolve => setTimeout(resolve, 1000))
+    if (!user) {
+      throw new Error('User must be authenticated to upload files')
+    }
+
+    const uploads: UploadedMediaFile[] = []
     
-    const uploads = filesToUpload.map((file, index) => ({
-      id: `mock_${Date.now()}_${index}`,
-      filename: `${Date.now()}_${file.name}`,
-      originalFilename: file.name,
-      url: URL.createObjectURL(file), // Use object URL for preview
-      thumbnailUrl: file.type.startsWith('image/') ? URL.createObjectURL(file) : undefined,
-      fileSize: file.size,
-      mimeType: file.type,
-      width: undefined, // Could be extracted client-side
-      height: undefined,
-      duration: undefined
-    }))
+    for (const file of filesToUpload) {
+      try {
+        // Upload to Supabase storage
+        const uploadResult = await uploadMediaToStorage(file, user.id)
+        
+        // Create database record
+        const mediaRecord = await createMediaRecord({
+          userId: user.id,
+          filename: uploadResult.filename,
+          originalFilename: file.name,
+          filePath: uploadResult.path,
+          fileSize: file.size,
+          mimeType: file.type,
+          width: uploadResult.metadata?.width,
+          height: uploadResult.metadata?.height,
+          duration: uploadResult.metadata?.duration,
+          thumbnailPath: uploadResult.thumbnailPath,
+          storageBucket: uploadResult.bucket,
+          metadata: uploadResult.metadata || {}
+        })
+        
+        uploads.push({
+          id: mediaRecord.id,
+          filename: uploadResult.filename,
+          originalFilename: file.name,
+          url: uploadResult.publicUrl,
+          thumbnailUrl: uploadResult.thumbnailUrl,
+          fileSize: file.size,
+          mimeType: file.type,
+          width: uploadResult.metadata?.width,
+          height: uploadResult.metadata?.height,
+          duration: uploadResult.metadata?.duration
+        })
+        
+      } catch (error) {
+        console.error('Failed to upload file:', file.name, error)
+        throw error
+      }
+    }
 
     return {
       success: true,
       uploads
     }
-  }, [platform])
+  }, [user])
 
   // Process files and create previews
   const processFiles = useCallback(async (newFiles: File[]) => {

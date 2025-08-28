@@ -37,12 +37,16 @@ serve(async (req) => {
     }
 
     // Verify the user is authenticated
-    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(
-      authHeader.replace('Bearer ', '')
-    )
+    const token = authHeader.replace('Bearer ', '')
+    const { data: { user }, error: authError } = await supabaseClient.auth.getUser(token)
 
-    if (authError || !user) {
-      throw new Error('Unauthorized')
+    if (authError) {
+      console.error('Auth error:', authError)
+      throw new Error(`Authentication failed: ${authError.message}`)
+    }
+
+    if (!user) {
+      throw new Error('No user found')
     }
 
     const { postId, platform, content }: PublishRequest = await req.json()
