@@ -72,6 +72,7 @@ export function PostEditor({
   )
   const [text, setText] = useState(initialContent?.text || '')
   const [mediaFiles, setMediaFiles] = useState<File[]>([])
+  const [uploadedMediaUrls, setUploadedMediaUrls] = useState<string[]>([])
   const [threadPosts, setThreadPosts] = useState<string[]>(
     initialContent?.type === 'thread' ? initialContent.threadPosts : ['']
   )
@@ -149,7 +150,14 @@ export function PostEditor({
 
   const handleMediaFilesChange = (files: File[]) => {
     setMediaFiles(files)
+    // Reset uploaded URLs when files change
+    setUploadedMediaUrls([])
     setErrors([])
+  }
+
+  const handleMediaUpload = (uploadedFiles: Array<{ url: string }>) => {
+    const urls = uploadedFiles.map(file => file.url)
+    setUploadedMediaUrls(prev => [...prev, ...urls])
   }
 
   const handleThreadPostsChange = (posts: string[]) => {
@@ -184,7 +192,7 @@ export function PostEditor({
         return {
           type: 'single',
           ...baseContent,
-          mediaUrls: mediaFiles.length > 0 ? mediaFiles.map(f => URL.createObjectURL(f)) : undefined
+          mediaUrls: uploadedMediaUrls.length > 0 ? uploadedMediaUrls : undefined
         }
       
       case 'thread':
@@ -192,14 +200,14 @@ export function PostEditor({
           type: 'thread',
           ...baseContent,
           threadPosts: threadPosts.filter(post => post.trim().length > 0),
-          mediaUrls: mediaFiles.length > 0 ? mediaFiles.map(f => URL.createObjectURL(f)) : undefined
+          mediaUrls: uploadedMediaUrls.length > 0 ? uploadedMediaUrls : undefined
         }
       
       case 'media':
         return {
           type: 'media',
           ...baseContent,
-          mediaUrls: mediaFiles.map(f => URL.createObjectURL(f)),
+          mediaUrls: uploadedMediaUrls,
           metadata: {
             ...baseContent.metadata,
             altText: mediaFiles.map(() => ''), // TODO: Add alt text input
@@ -232,7 +240,7 @@ export function PostEditor({
 
   const isFormValid = () => {
     if (!text.trim() && contentType !== 'media') return false
-    if (contentType === 'media' && mediaFiles.length === 0) return false
+    if (contentType === 'media' && uploadedMediaUrls.length === 0) return false
     if (contentType === 'thread' && threadPosts.filter(p => p.trim()).length === 0) return false
     if (!isDraft && !isTemplate && schedulingType === 'custom' && !customTime) return false
     return true
@@ -375,10 +383,12 @@ export function PostEditor({
             <MediaUpload
               files={mediaFiles}
               onChange={handleMediaFilesChange}
+              onUpload={handleMediaUpload}
               platform={platform}
               maxFiles={platformConfig?.contentLimits.maxMediaFiles || 10}
               required={contentType === 'media'}
               disabled={loading}
+              autoUpload={true}
             />
           )}
 
