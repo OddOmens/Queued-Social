@@ -67,17 +67,23 @@ export function useCreatePost() {
       } else if (request.schedulingType === 'custom' && request.customTime) {
         scheduledTime = request.customTime
       } else {
-        // Find next available time slot
-        const nextSlot = await schedulingService.findNextAvailableSlot(user.id)
+        // Use the scheduling service to find the next truly available slot
+        const result = await schedulingService.scheduleToNextSlot({
+          userId: user.id,
+          content: request.content,
+          platform: request.platform
+        })
         
-        if (nextSlot) {
-          scheduledTime = nextSlot
+        if (result.success && result.scheduledPost) {
+          // If the scheduling service successfully created a post, return it directly
+          return result.scheduledPost
         } else {
-          // Fallback: schedule for 1 hour from now if no slots available
-          scheduledTime = new Date(Date.now() + 60 * 60 * 1000)
+          // If scheduling failed, throw an error with the details
+          throw new Error(result.error || 'Failed to schedule post to next available slot')
         }
       }
       
+      // For 'now' and 'custom' scheduling types, create the post directly
       const post = await db.createScheduledPost({
         userId: user.id,
         platform: request.platform,
