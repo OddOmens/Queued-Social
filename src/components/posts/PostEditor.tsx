@@ -73,6 +73,7 @@ export function PostEditor({
   const [text, setText] = useState(initialContent?.text || '')
   const [mediaFiles, setMediaFiles] = useState<File[]>([])
   const [uploadedMediaUrls, setUploadedMediaUrls] = useState<string[]>([])
+  const [isMediaUploading, setIsMediaUploading] = useState<boolean>(false)
   const [threadPosts, setThreadPosts] = useState<string[]>(
     initialContent?.type === 'thread' ? initialContent.threadPosts : ['']
   )
@@ -145,6 +146,8 @@ export function PostEditor({
     }
     if (type !== 'media') {
       setMediaFiles([])
+      setUploadedMediaUrls([])
+      setIsMediaUploading(false)
     }
   }
 
@@ -152,6 +155,7 @@ export function PostEditor({
     setMediaFiles(files)
     // Reset uploaded URLs when files change
     setUploadedMediaUrls([])
+    setIsMediaUploading(files.length > 0) // Set uploading state when files are added
     setErrors([])
   }
 
@@ -164,6 +168,9 @@ export function PostEditor({
       console.log('📤 Updated uploadedMediaUrls:', newUrls)
       return newUrls
     })
+    setIsMediaUploading(false) // Clear uploading state when upload completes
+    // Clear any validation errors when media is successfully uploaded
+    setErrors([])
   }, [])
 
   const handleThreadPostsChange = (posts: string[]) => {
@@ -250,6 +257,7 @@ export function PostEditor({
       contentType,
       text: text.trim(),
       uploadedMediaUrls,
+      uploadedMediaUrlsLength: uploadedMediaUrls.length,
       mediaFiles: mediaFiles.length,
       isDraft,
       isTemplate,
@@ -267,8 +275,16 @@ export function PostEditor({
       const hasUploadedMedia = uploadedMediaUrls.length > 0
       const hasMediaFiles = mediaFiles.length > 0
       
+      console.log('🔍 Media validation:', {
+        hasUploadedMedia,
+        hasMediaFiles,
+        isMediaUploading,
+        uploadedMediaUrls,
+        uploadedMediaUrlsLength: uploadedMediaUrls.length
+      })
+      
       if (!hasUploadedMedia) {
-        if (hasMediaFiles) {
+        if (hasMediaFiles || isMediaUploading) {
           console.log('⏳ Media upload in progress, form disabled until upload completes')
         } else {
           console.log('❌ Media required for media posts')
