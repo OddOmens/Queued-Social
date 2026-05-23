@@ -4,6 +4,8 @@ export interface AuthUser extends Omit<SupabaseUser, 'user_metadata'> {
     user_metadata?: {
         full_name?: string
         avatar_url?: string
+        user_name?: string
+        preferred_username?: string
     }
 }
 
