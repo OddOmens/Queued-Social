@@ -1,0 +1,11 @@
+{
+  "extends": "next/core-web-vitals",
+  "rules": {
+    "react/no-unescaped-entities": "warn",
+    "react-hooks/exhaustive-deps": "warn",
+    "@next/next/no-img-element": "warn",
+    
+    // Prevent destructuring in array callbacks that cause hoisting issues
+    "prefer-destructuring": "off"
+  }
+}

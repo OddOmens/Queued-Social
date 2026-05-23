@@ -1,0 +1,390 @@
+version: '3.8'
+
+# Self-hosted Supabase stack for Queued Social
+# Deploy this separately from the app (e.g. on your Coolify server as its own project)
+# Reference: https://github.com/supabase/supabase/tree/master/docker
+#
+# BEFORE STARTING:
+#   1. Copy .env.supabase.example to .env.supabase and fill in all values
+#   2. Run: node scripts/generate-supabase-keys.js  to generate JWT keys
+#   3. Create Kong config:  mkdir -p supabase/volumes/kong
+#   4. Start: docker compose -f docker-compose.supabase.yml --env-file .env.supabase up -d
+
+services:
+
+  # ──────────────────────────────────────────────────────────────────────
+  # PostgreSQL — supabase/postgres includes pg_cron and pg_net extensions
+  # ──────────────────────────────────────────────────────────────────────
+  db:
+    image: supabase/postgres:15.8.1.060
+    container_name: supabase-db
+    restart: unless-stopped
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    environment:
+      POSTGRES_HOST: /var/run/postgresql
+      PGPORT: ${POSTGRES_PORT:-5432}
+      POSTGRES_PORT: ${POSTGRES_PORT:-5432}
+      PGPASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      PGDATABASE: ${POSTGRES_DB:-postgres}
+      POSTGRES_DB: ${POSTGRES_DB:-postgres}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXP: ${JWT_EXPIRY:-3600}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      # Mount init scripts to enable extensions
+      - ./supabase/volumes/db/init:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD", "pg_isready", "-U", "postgres", "-h", "localhost"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - supabase_net
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Kong — API gateway (routes /rest, /auth, /storage, /functions, etc.)
+  # ──────────────────────────────────────────────────────────────────────
+  kong:
+    image: kong:2.8.1
+    container_name: supabase-kong
+    restart: unless-stopped
+    ports:
+      - "${KONG_HTTP_PORT:-8000}:8000/tcp"
+      - "${KONG_HTTPS_PORT:-8443}:8443/tcp"
+    environment:
+      KONG_DATABASE: "off"
+      KONG_DECLARATIVE_CONFIG: /home/kong/kong.yml
+      KONG_DNS_ORDER: LAST,A,CNAME
+      KONG_PLUGINS: request-transformer,cors,key-auth,acl,basic-auth
+      KONG_NGINX_PROXY_PROXY_BUFFER_SIZE: 160k
+      KONG_NGINX_PROXY_PROXY_BUFFERS: 64 160k
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      DASHBOARD_USERNAME: ${DASHBOARD_USERNAME:-supabase}
+      DASHBOARD_PASSWORD: ${DASHBOARD_PASSWORD}
+    volumes:
+      - ./supabase/volumes/kong/kong.yml:/home/kong/kong.yml:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - supabase_net
+
+  # ──────────────────────────────────────────────────────────────────────
+  # GoTrue — Authentication service
+  # ──────────────────────────────────────────────────────────────────────
+  auth:
+    image: supabase/gotrue:v2.158.1
+    container_name: supabase-auth
+    restart: unless-stopped
+    environment:
+      GOTRUE_API_HOST: 0.0.0.0
+      GOTRUE_API_PORT: 9999
+      API_EXTERNAL_URL: ${API_EXTERNAL_URL}
+      GOTRUE_DB_DRIVER: postgres
+      GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}?search_path=auth
+      GOTRUE_SITE_URL: ${SITE_URL}
+      GOTRUE_URI_ALLOW_LIST: ${ADDITIONAL_REDIRECT_URLS}
+      GOTRUE_DISABLE_SIGNUP: ${DISABLE_SIGNUP:-false}
+      GOTRUE_JWT_ADMIN_ROLES: service_role
+      GOTRUE_JWT_AUD: authenticated
+      GOTRUE_JWT_DEFAULT_GROUP_NAME: authenticated
+      GOTRUE_JWT_EXP: ${JWT_EXPIRY:-3600}
+      GOTRUE_JWT_SECRET: ${JWT_SECRET}
+      GOTRUE_EXTERNAL_EMAIL_ENABLED: ${ENABLE_EMAIL_SIGNUP:-true}
+      GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED: ${ENABLE_ANONYMOUS_USERS:-false}
+      GOTRUE_MAILER_AUTOCONFIRM: ${ENABLE_EMAIL_AUTOCONFIRM:-true}
+      # SMTP — configure your mail provider
+      GOTRUE_SMTP_ADMIN_EMAIL: ${SMTP_ADMIN_EMAIL}
+      GOTRUE_SMTP_HOST: ${SMTP_HOST}
+      GOTRUE_SMTP_PORT: ${SMTP_PORT:-587}
+      GOTRUE_SMTP_USER: ${SMTP_USER}
+      GOTRUE_SMTP_PASS: ${SMTP_PASS}
+      GOTRUE_SMTP_SENDER_NAME: ${SMTP_SENDER_NAME:-Queued Social}
+      GOTRUE_MAILER_URLPATHS_INVITE: ${MAILER_URLPATHS_INVITE:-/auth/v1/verify}
+      GOTRUE_MAILER_URLPATHS_CONFIRMATION: ${MAILER_URLPATHS_CONFIRMATION:-/auth/v1/verify}
+      GOTRUE_MAILER_URLPATHS_RECOVERY: ${MAILER_URLPATHS_RECOVERY:-/auth/v1/verify}
+      GOTRUE_MAILER_URLPATHS_EMAIL_CHANGE: ${MAILER_URLPATHS_EMAIL_CHANGE:-/auth/v1/verify}
+      GOTRUE_RATE_LIMIT_HEADER: X-Forwarded-For
+      # Google OAuth (matches existing cloud config)
+      GOTRUE_EXTERNAL_GOOGLE_ENABLED: ${ENABLE_GOOGLE_SIGNUP:-false}
+      GOTRUE_EXTERNAL_GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID}
+      GOTRUE_EXTERNAL_GOOGLE_SECRET: ${GOOGLE_CLIENT_SECRET}
+      GOTRUE_EXTERNAL_GOOGLE_REDIRECT_URI: ${API_EXTERNAL_URL}/auth/v1/callback
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - supabase_net
+
+  # ──────────────────────────────────────────────────────────────────────
+  # PostgREST — auto-generates REST API from your Postgres schema
+  # ──────────────────────────────────────────────────────────────────────
+  rest:
+    image: postgrest/postgrest:v12.2.0
+    container_name: supabase-rest
+    restart: unless-stopped
+    environment:
+      PGRST_DB_URI: postgres://authenticator:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      PGRST_DB_SCHEMAS: ${PGRST_DB_SCHEMAS:-public,storage,graphql_public}
+      PGRST_DB_ANON_ROLE: anon
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      PGRST_DB_USE_LEGACY_GUCS: "false"
+      PGRST_APP_SETTINGS_JWT_SECRET: ${JWT_SECRET}
+      PGRST_APP_SETTINGS_JWT_EXP: ${JWT_EXPIRY:-3600}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - supabase_net
+    command: ["postgrest"]
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Realtime — broadcasts DB changes over WebSocket
+  # ──────────────────────────────────────────────────────────────────────
+  realtime:
+    image: supabase/realtime:v2.30.34
+    container_name: supabase-realtime
+    restart: unless-stopped
+    environment:
+      PORT: 4000
+      DB_HOST: db
+      DB_PORT: ${POSTGRES_PORT:-5432}
+      DB_USER: supabase_replication_admin
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_NAME: ${POSTGRES_DB:-postgres}
+      DB_AFTER_CONNECT_QUERY: "SET search_path TO _realtime"
+      DB_ENC_KEY: ${REALTIME_SECRET:-supabaserealtime}
+      API_JWT_SECRET: ${JWT_SECRET}
+      FLY_ALLOC_ID: fly123
+      FLY_APP_NAME: realtime
+      SECRET_KEY_BASE: ${SECRET_KEY_BASE}
+      ERL_AFLAGS: -proto_dist inet_tcp
+      ENABLE_TAILSCALE: "false"
+      DNS_NODES: "''"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - supabase_net
+    command: >
+      sh -c "/app/bin/migrate && /app/bin/realtime eval 'Realtime.Release.seeds(Realtime.Repo)' && /app/bin/server"
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Storage API — file uploads (connects to your existing Cloudflare R2)
+  # ──────────────────────────────────────────────────────────────────────
+  storage:
+    image: supabase/storage-api:v1.11.13
+    container_name: supabase-storage
+    restart: unless-stopped
+    environment:
+      ANON_KEY: ${ANON_KEY}
+      SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      POSTGREST_URL: http://rest:3000
+      PGRST_JWT_SECRET: ${JWT_SECRET}
+      DATABASE_URL: postgres://supabase_storage_admin:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      FILE_SIZE_LIMIT: 52428800
+      STORAGE_BACKEND: ${STORAGE_BACKEND:-s3}
+      # Cloudflare R2 (keeps your existing R2 bucket)
+      GLOBAL_S3_BUCKET: ${STORAGE_S3_BUCKET}
+      GLOBAL_S3_ENDPOINT: ${STORAGE_S3_ENDPOINT}
+      GLOBAL_S3_PROTOCOL: https
+      GLOBAL_S3_FORCE_PATH_STYLE: "true"
+      AWS_ACCESS_KEY_ID: ${STORAGE_S3_ACCESS_KEY}
+      AWS_SECRET_ACCESS_KEY: ${STORAGE_S3_SECRET_KEY}
+      AWS_DEFAULT_REGION: ${STORAGE_S3_REGION:-auto}
+      IMGPROXY_URL: http://imgproxy:5001
+      WEBHOOK_URL: ${FUNCTIONS_URL}/storage-cleanup
+      WEBHOOK_API_KEY: ${SERVICE_ROLE_KEY}
+      TENANT_ID: stub
+      REGION: ${STORAGE_S3_REGION:-auto}
+      IS_MULTITENANT: "false"
+      REQUEST_URL_LENGTH_LIMIT: 7500
+    depends_on:
+      db:
+        condition: service_healthy
+      rest:
+        condition: service_started
+      imgproxy:
+        condition: service_started
+    networks:
+      - supabase_net
+    volumes:
+      - storage_data:/var/lib/storage
+
+  # ──────────────────────────────────────────────────────────────────────
+  # imgproxy — on-the-fly image resizing
+  # ──────────────────────────────────────────────────────────────────────
+  imgproxy:
+    image: darthsim/imgproxy:v3.8.0
+    container_name: supabase-imgproxy
+    restart: unless-stopped
+    environment:
+      IMGPROXY_BIND: ":5001"
+      IMGPROXY_LOCAL_FILESYSTEM_ROOT: /
+      IMGPROXY_USE_ETAG: "true"
+      IMGPROXY_ENABLE_WEBP_DETECTION: ${IMGPROXY_ENABLE_WEBP_DETECTION:-true}
+    volumes:
+      - storage_data:/var/lib/storage:ro
+    networks:
+      - supabase_net
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Meta — Postgres metadata API (used by Studio)
+  # ──────────────────────────────────────────────────────────────────────
+  meta:
+    image: supabase/postgres-meta:v0.84.2
+    container_name: supabase-meta
+    restart: unless-stopped
+    environment:
+      PG_META_PORT: 8080
+      PG_META_DB_HOST: db
+      PG_META_DB_PORT: ${POSTGRES_PORT:-5432}
+      PG_META_DB_NAME: ${POSTGRES_DB:-postgres}
+      PG_META_DB_USER: supabase
+      PG_META_DB_PASSWORD: ${POSTGRES_PASSWORD}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - supabase_net
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Edge Runtime — serves all 14 Edge Functions from ./supabase/functions
+  # ──────────────────────────────────────────────────────────────────────
+  functions:
+    image: supabase/edge-runtime:v1.67.4
+    container_name: supabase-functions
+    restart: unless-stopped
+    environment:
+      JWT_SECRET: ${JWT_SECRET}
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_ROLE_KEY: ${SERVICE_ROLE_KEY}
+      SUPABASE_DB_URL: postgresql://postgres:${POSTGRES_PASSWORD}@db:${POSTGRES_PORT:-5432}/${POSTGRES_DB:-postgres}
+      # Pass through all app secrets to edge functions
+      VITE_CREDENTIAL_ENCRYPTION_KEY: ${VITE_CREDENTIAL_ENCRYPTION_KEY}
+      THREADS_CLIENT_ID: ${THREADS_CLIENT_ID}
+      THREADS_CLIENT_SECRET: ${THREADS_CLIENT_SECRET}
+      THREADS_REDIRECT_URI: ${THREADS_REDIRECT_URI}
+      LINKEDIN_CLIENT_ID: ${LINKEDIN_CLIENT_ID}
+      LINKEDIN_CLIENT_SECRET: ${LINKEDIN_CLIENT_SECRET}
+      LINKEDIN_REDIRECT_URI: ${LINKEDIN_REDIRECT_URI}
+      INSTAGRAM_CLIENT_ID: ${INSTAGRAM_CLIENT_ID}
+      INSTAGRAM_CLIENT_SECRET: ${INSTAGRAM_CLIENT_SECRET}
+      INSTAGRAM_REDIRECT_URI: ${INSTAGRAM_REDIRECT_URI}
+      STRIPE_SECRET_KEY: ${STRIPE_SECRET_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
+      STRIPE_PRICE_ID_PRO: ${STRIPE_PRICE_ID_PRO}
+      CLOUDFLARE_R2_ACCESS_KEY: ${STORAGE_S3_ACCESS_KEY}
+      CLOUDFLARE_R2_SECRET_KEY: ${STORAGE_S3_SECRET_KEY}
+      CLOUDFLARE_R2_BUCKET: ${STORAGE_S3_BUCKET}
+      CLOUDFLARE_R2_ENDPOINT: ${STORAGE_S3_ENDPOINT}
+      SCHEDULER_SECRET: ${SCHEDULER_SECRET}
+      VERIFY_JWT: "false"
+    volumes:
+      - ./supabase/functions:/home/deno/functions:ro
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - supabase_net
+    command:
+      - start
+      - --main-service
+      - /home/deno/functions/main/index.ts
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Studio — Supabase dashboard (optional, can be disabled in prod)
+  # ──────────────────────────────────────────────────────────────────────
+  studio:
+    image: supabase/studio:2024.11.18-sha-b2ee8db
+    container_name: supabase-studio
+    restart: unless-stopped
+    ports:
+      - "${STUDIO_PORT:-3001}:3000"
+    environment:
+      STUDIO_PG_META_URL: http://meta:8080
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      DEFAULT_ORGANIZATION_NAME: ${STUDIO_DEFAULT_ORGANIZATION:-Queued Social}
+      DEFAULT_PROJECT_NAME: ${STUDIO_DEFAULT_PROJECT:-queued-social}
+      SUPABASE_URL: http://kong:8000
+      SUPABASE_PUBLIC_URL: ${API_EXTERNAL_URL}
+      SUPABASE_ANON_KEY: ${ANON_KEY}
+      SUPABASE_SERVICE_KEY: ${SERVICE_ROLE_KEY}
+      AUTH_JWT_SECRET: ${JWT_SECRET}
+      LOGFLARE_API_KEY: ${LOGFLARE_API_KEY:-your-logflare-key}
+      LOGFLARE_URL: http://analytics:4000
+      NEXT_PUBLIC_ENABLE_LOGS: "true"
+      NEXT_ANALYTICS_BACKEND_PROVIDER: postgres
+    depends_on:
+      - auth
+      - meta
+    networks:
+      - supabase_net
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Analytics (Logflare) — log aggregation for Studio
+  # ──────────────────────────────────────────────────────────────────────
+  analytics:
+    image: supabase/logflare:1.4.0
+    container_name: supabase-analytics
+    restart: unless-stopped
+    environment:
+      LOGFLARE_NODE_HOST: 127.0.0.1
+      DB_USERNAME: supabase_admin
+      DB_DATABASE: ${POSTGRES_DB:-postgres}
+      DB_HOSTNAME: db
+      DB_PORT: ${POSTGRES_PORT:-5432}
+      DB_PASSWORD: ${POSTGRES_PASSWORD}
+      DB_SCHEMA: _analytics
+      LOGFLARE_API_KEY: ${LOGFLARE_API_KEY:-your-logflare-key}
+      LOGFLARE_SINGLE_TENANT: "true"
+      LOGFLARE_SUPABASE_MODE: "true"
+      LOGFLARE_MIN_CLUSTER_SIZE: 1
+      RELEASE_COOKIE: ${SECRET_KEY_BASE}
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - supabase_net
+    healthcheck:
+      test: ["CMD", "curl", "http://localhost:4000/health"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ──────────────────────────────────────────────────────────────────────
+  # Vector — log collection
+  # ──────────────────────────────────────────────────────────────────────
+  vector:
+    image: timberio/vector:0.28.1-alpine
+    container_name: supabase-vector
+    restart: unless-stopped
+    environment:
+      LOGFLARE_API_KEY: ${LOGFLARE_API_KEY:-your-logflare-key}
+    volumes:
+      - ./supabase/volumes/logs/vector.yml:/etc/vector/vector.yml:ro
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    depends_on:
+      analytics:
+        condition: service_healthy
+    networks:
+      - supabase_net
+    command: ["--config", "/etc/vector/vector.yml"]
+
+volumes:
+  db_data:
+    driver: local
+  storage_data:
+    driver: local
+
+networks:
+  supabase_net:
+    driver: bridge
+  # Expose to app network so your app container can reach kong
+  app_network:
+    external: true
+    name: ${APP_NETWORK_NAME:-queued-social_app_network}

@@ -1,0 +1,70 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.js
+.yarn/install-state.gz
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+/dist
+
+# misc
+.DS_Store
+*.pem
+
+# AI assistant local settings
+.claude/
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# local env files
+.env
+.env.local
+.env.production
+.env*.local
+.env.supabase
+
+# Supabase backup exports
+supabase-backup-*/
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts# Perso
+nal/deployment specific files
+temp/
+*.backup
+*-debug.html
+*-diagnostics.html
+verify-*.js
+debug-*.js
+check-*.js
+
+# Test results and reports
+/test-results/
+/playwright-report/
+/coverage/
+
+# Supabase
+.supabase/
+supabase/.temp/
+
+# Database backups (may contain personal data)
+supabase-migration-backup/
+
+# Legacy source (kept locally, not for public repo)
+src_legacy/
