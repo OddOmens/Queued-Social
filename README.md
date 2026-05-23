@@ -166,6 +166,53 @@ Queued includes a comprehensive `docker-compose.supabase.yml` configuration to s
 
 ---
 
+## ⚡ Hosting the Frontend on Cloudflare Pages
+
+Since the Queued frontend is a compiled Single Page Application (SPA) built with React and Vite, you do **not** need to host it inside a heavy Docker container or deploy it via Coolify. Instead, you can host the frontend globally on **Cloudflare Pages** for free. This gives you automated Git-based builds, SSL certificates, instant previews, and fast global asset delivery.
+
+### Setup Instructions
+
+#### 1. Push your Code to Git
+Deploying to Cloudflare Pages requires your codebase to be hosted on **GitHub** or **GitLab**. Ensure your local changes are committed and pushed to your remote repository.
+
+#### 2. Create a Cloudflare Pages Project
+1. Log into your [Cloudflare Dashboard](https://dash.cloudflare.com).
+2. In the left sidebar, navigate to **Workers & Pages** → **Overview**.
+3. Click **Create Application** → **Pages** → **Connect to Git**.
+4. Authorize Cloudflare to access your GitHub/GitLab account and select your `queued-social` repository.
+5. Click **Begin setup**.
+
+#### 3. Configure Build Settings
+Under the **Build settings** section, configure the build parameters:
+- **Framework preset**: Select `Vite` (if not pre-detected, select `None`).
+- **Build command**: `npm run build`
+- **Build output directory**: `dist`
+- **Root directory**: `/`
+
+#### 4. Inject Environment Variables (Critical)
+Cloudflare compiles your React app on their build servers. For the frontend to communicate with your Supabase database and platforms, you must inject your `VITE_` configuration tokens at build time:
+1. In the build setup page, expand **Environment variables (advanced)**.
+2. Add your key-value pairs (refer to [App Environment Settings](#app-environment-settings-envlocal--envproduction) for values):
+   - `VITE_SUPABASE_URL` = `https://your-project.supabase.co`
+   - `VITE_SUPABASE_ANON_KEY` = `your-anon-key`
+   - `VITE_APP_URL` = `https://your-custom-pages-subdomain.pages.dev` (or your custom domain)
+   - `VITE_ENABLE_BROWSER_SCHEDULER` = `false`
+   - `VITE_THREADS_CLIENT_ID` = `your-threads-client-id`
+   - `VITE_LINKEDIN_CLIENT_ID` = `your-linkedin-client-id`
+   - `VITE_INSTAGRAM_CLIENT_ID` = `your-instagram-app-id`
+3. Click **Save and Deploy**.
+
+#### 5. SPA Routing Configurations (Already Handled)
+In Single Page Applications (SPAs), when a user refreshes their browser on a sub-route (e.g. `/dashboard` or `/auth/callback`), standard static hosts return a `404 Not Found` error. 
+
+To resolve this, Queued includes a pre-configured `_redirects` rule in the `public/` directory:
+```text
+/*    /index.html   200
+```
+Vite automatically copies this rule into your production `dist/` directory during compilation. Cloudflare Pages detects this rule automatically and transparently rewrites all sub-path requests back to `index.html`, allowing React Router to successfully parse the path.
+
+---
+
 ## 🌥️ Cloudflare R2 Setup Guide
 
 To leverage Cloudflare R2 as a secure, fast, and cost-effective media library storage provider instead of standard Supabase local storage limits, you must configure your Cloudflare bucket, CORS policies, API tokens, and Supabase serverless secrets.
