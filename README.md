@@ -351,8 +351,20 @@ queued-social/
 
 ---
 
+## ⚠️ Open Source Disclaimer & No Warranty
+
+> [!WARNING]
+> **This software is provided "as is" without warranty of any kind, express or implied.**
+> 
+> Queued is a self-hostable open-source project. By deploying and using this codebase, you acknowledge and agree to the following terms:
+> - **Self-Maintenance**: Any bugs, security vulnerabilities, Deno runtime issues, database migrations, or third-party API breaking changes (Meta, Threads, LinkedIn, Stripe) are **solely your responsibility** to diagnose, patch, and maintain.
+> - **No Liability**: The maintainers (**Odd Omens LLC**) provide **zero guarantees of stability, platform compatibility, or support**. Under no circumstances shall the authors or copyright holders be liable for any claims, damages, data loss, social media account suspensions/shadowbans, financial charges, or other liabilities arising from the use of this software.
+> - **Compliance**: You are fully responsible for adhering to the respective developer agreements and rate limits of Meta/Facebook, LinkedIn, and Stripe.
+
+---
+
 ## 📄 License & Maintenance
 
 This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 
-Proudly built and maintained by **Odd Omens LLC** (<support@oddomens.com>). For bug reports, feature requests, or technical questions, please open an issue in the [GitHub issue tracker](https://github.com/OddOmens/queued-social/issues).
+Proudly open-sourced by **Odd Omens LLC** (<support@oddomens.com>). Feel free to fork the repository, customize the scheduler to your needs, or submit contributions via pull requests!
