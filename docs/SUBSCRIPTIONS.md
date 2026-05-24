@@ -171,9 +171,9 @@ ORDER BY post_count DESC;
 ## 📝 Environment Variables Checklist
 
 ### Coolify (Production)
-- ✅ `VITE_STRIPE_PUBLISHABLE_KEY=mk_1RUuRpDPf1P0vqtesbH5DXe3`
-- ✅ `VITE_STRIPE_PRO_PRICE_ID=price_1SdwOtDPf1P0vqteiHimbdOR`
+- ✅ `VITE_STRIPE_PUBLISHABLE_KEY=pk_live_your-publishable-key`
+- ✅ `VITE_STRIPE_PRO_PRICE_ID=price_your-price-id`
 
 ### Supabase Secrets
-- ✅ `STRIPE_SECRET_KEY=sk_live_...`
-- ✅ `STRIPE_WEBHOOK_SECRET=whsec_WYln7AIN0Gm0Cp2B5Ca8yRPtC9D32lPC`
+- ✅ `STRIPE_SECRET_KEY=sk_live_your-secret-key`
+- ✅ `STRIPE_WEBHOOK_SECRET=whsec_your-webhook-secret`
